@@ -1,0 +1,66 @@
+{
+   "cache": "./builder-ui/builder-json-cache",
+   "output": "./application",
+   "logs": "./builder-ui/logs",
+   "typescript": true,
+   "contents": true,
+   "joinedMeta": true,
+   "modules": [
+      {
+         "name": "WS.Core",
+         "path": "./store/ws/module/WS.Core",
+         "required": true
+      },
+      {
+         "name": "Types",
+         "path": "./store/Types/module/Types",
+         "required": true
+      },
+      {
+         "name": "I18n",
+         "path": "./store/I18n/module/I18n",
+         "required": true
+      },
+      {
+         "name": "WSTests",
+         "path": "./store/ws/module/WSTests"
+      },
+      {
+         "name": "File",
+         "path": "./store/rmi/module/File"
+      },
+      {
+         "name": "Env",
+         "path": "./store/rmi/module/Env",
+         "required": true
+      },
+      {
+         "name": "Browser",
+         "path": "./store/rmi/module/Browser",
+         "required": true
+      },
+      {
+         "name": "SbisEnv",
+         "path": "./store/rmi/module/SbisEnv",
+         "required": true
+      },
+      {
+         "name": "Vdom",
+         "path": "./store/ws/module/Vdom",
+         "required": true
+      },
+      {
+         "name": "View",
+         "path": "./store/ws/module/View",
+         "required": true
+      },{
+         "name": "Application",
+         "path": "./store/app/module/Application",
+         "required": true
+      }, {
+         "name": "Inferno",
+         "path": "./store/ws/module/Inferno",
+         "required": true
+      }
+   ]
+}

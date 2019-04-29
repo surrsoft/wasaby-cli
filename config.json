@@ -1,0 +1,50 @@
+{
+   "store": "store",
+   "workDir": "application",
+   "repositories": {
+      "Types": {
+         "url": "https://github.com/saby/Types.git",
+         "test": "test",
+         "modules": ["Types"],
+         "dependTest": ["I18n", "ws"]
+      },
+      "I18n": {
+         "url": "https://github.com/saby/I18n.git",
+         "test": "test",
+         "modules": ["I18n"]
+      },
+      "ws": {
+         "url": "https://git.sbis.ru/sbis/ws.git",
+         "test": "test/unit",
+         "modules": ["WS.Core", "test/WSTests", "Vdom", "View", "Inferno", "WS.Deprecated", "test/unit"],
+         "unitInBrowser": true
+      },
+      "rmi": {
+         "url": "https://git.sbis.ru/sbis/rmi.git",
+         "test": "tests/unit",
+         "modules": [
+            "src/client/Browser",
+            "src/client/Env",
+            "src/client/File",
+            "src/client/File-demo",
+            "src/client/SbisEnv",
+            "src/client/SbisFile"
+         ]
+      },
+      "app": {
+         "url": "https://github.com/saby/wasaby-app.git",
+         "modules": [
+            "src/Application"
+         ]
+      },
+      "test": {
+         "url": "https://github.com/saby/wasaby-app.git",
+         "modules": [
+            "src/Application"
+         ]
+      }
+   }
+}
+
+
+

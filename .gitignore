@@ -1,0 +1,14 @@
+.idea
+.vscode
+.genie
+.nyc_output
+.project
+.settings
+/package-lock.json
+/tsconfig.base.json
+/artifacts
+/node_modules
+/application
+/tslint.json
+/store
+/testConfig_.*

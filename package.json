@@ -1,0 +1,28 @@
+{
+  "name": "test-cli",
+  "version": "1.0.0",
+  "description": "",
+  "main": "cli.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "dependencies": {
+    "fs-extra": "^7.0.1",
+    "shelljs": "^0.8.3",
+    "saby-units": "git+https://platform-git.sbis.ru/saby/Units.git#19.400/feature/cli-give-config-to-chid-process",
+    "sbis3-builder": "git+https://github.com/saby/Builder.git#rc-19.400",
+    "saby-typescript": "git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-19.400"
+  },
+  "saby-units": {
+    "moduleType": "amd",
+    "root": "application",
+    "tests": "unit",
+    "report": "./application/artifacts/xunit-report.xml",
+    "htmlCoverageReport": "./application/artifacts/coverage/index.html",
+    "jsonCoverageReport": "./application/artifacts/coverage.json",
+    "url": {
+      "port": 1025
+    }
+  }
+}
