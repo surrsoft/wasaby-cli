@@ -6,7 +6,7 @@
          "url": "https://github.com/saby/Types.git",
          "test": "test",
          "modules": ["Types"],
-         "dependTest": ["I18n", "ws"]
+         "dependTest": ["ws", "Controls"]
       },
       "I18n": {
          "url": "https://github.com/saby/I18n.git",
@@ -17,6 +17,12 @@
          "url": "https://git.sbis.ru/sbis/ws.git",
          "test": "test/unit",
          "modules": ["WS.Core", "test/WSTests", "Vdom", "View", "Inferno", "WS.Deprecated", "test/unit"],
+         "unitInBrowser": true
+      },
+      "Controls": {
+         "url": "https://git.sbis.ru/sbis/controls.git",
+         "test": "tests/unit",
+         "modules": ["SBIS3.CONTROLS", "Controls", "tests/unit", "Examples", "Controls-demo"],
          "unitInBrowser": true
       },
       "rmi": {
@@ -32,12 +38,6 @@
          ]
       },
       "app": {
-         "url": "https://github.com/saby/wasaby-app.git",
-         "modules": [
-            "src/Application"
-         ]
-      },
-      "test": {
          "url": "https://github.com/saby/wasaby-app.git",
          "modules": [
             "src/Application"

@@ -8,7 +8,8 @@
 /tsconfig.base.json
 /artifacts
 /node_modules
+/store
+/builder_ui
 /application
 /tslint.json
-/store
-/testConfig_.*
+/testConfig_.*.json

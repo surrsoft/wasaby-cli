@@ -3,6 +3,22 @@ const shell = require('shelljs');
 const CONFIG = 'config.json';
 const path = require('path');
 const reposStore = '_repos';
+const argvOptions = {
+   rc: false,
+   branch: false,
+   rep: false
+};
+
+function walkDir(dir, callback, rootDir) {
+   rootDir = rootDir || dir;
+   fs.readdirSync(dir).forEach( f => {
+      let dirPath = path.join(dir, f);
+      let relativePath = path.relative(rootDir, dir);
+      let isDirectory = fs.statSync(dirPath).isDirectory();
+      isDirectory ? walkDir(dirPath, callback, rootDir) : callback(path.join(relativePath, f));
+   });
+};
+
 class cli {
    constructor() {
       let config = this.readConfig();
@@ -10,21 +26,49 @@ class cli {
       this._store = config.store;
       this._workDir = config.workDir;
       this._testModule = 'Types';
-      this._testModuleBranch = 'rc-19.200';
-      this._branch = 'rc-19.300';
+      const options = this._getArgvOptions();
+      this._testBranch = options.branch;
+      this._branch = options.rc;
       this._testList = [this._testModule];
+      this._unitModules = [];
       let cfg = this._repos[this._testModule];
       if (cfg.dependTest) {
          this._testList = this._testList.concat(cfg.dependTest);
       }
+      if (!this._testBranch) {
+         throw new Error('Параметр --branch не передан');
+      }
+      if (!this._branch) {
+         throw new Error('Параметр --rc не передан');
+      }
+      if (!this._testModule) {
+         throw new Error('Параметр --rep не передан');
+      }
 
       this.initStore().then(this.initWorkDir.bind(this)).then(this._startTest.bind(this));
+      //this.copy('Controls');
       //this._startTest();
    }
 
    readConfig() {
       let data = fs.readFileSync(CONFIG);
       return JSON.parse(data);
+   }
+
+   _getArgvOptions() {
+      let options = Object.assign({}, argvOptions);
+      process.argv.slice(2).forEach(arg => {
+         if (arg.startsWith('--')) {
+            let argName = arg.substr(2);
+            const [name, value] = argName.split('=', 2);
+            if (name in options) {
+               options[name] = value === undefined ? true : value;
+            } else {
+               restArgs.push(arg);
+            }
+         }
+      });
+      return options;
    }
 
    _makeBuilderConfig() {
@@ -37,14 +81,16 @@ class cli {
          const cfg = this._repos[name];
          cfg.modules.forEach((modulePath) => {
             const moduleName = this._getModuleName(modulePath);
-            const isNameInConfig = builderConfig.modules.find((item) => item.name == moduleName);
-            if (!isNameInConfig) {
-               builderConfig.modules.push({
-                  name: moduleName,
-                  path: ['.', this._store, name, 'module', moduleName].join('/')
-               })
+            if (moduleName !== 'unit') {
+               const isNameInConfig = builderConfig.modules.find((item) => (item.name == moduleName));
+               if (!isNameInConfig) {
+                  builderConfig.modules.push({
+                     name: moduleName,
+                     path: ['.', this._store, name, 'module', moduleName].join('/')
+                  })
+               }
             }
-         })
+         });
       });
 
       return fs.outputFile('./builderConfig.json', JSON.stringify(builderConfig, null, 4));
@@ -68,7 +114,7 @@ class cli {
       }));
    }
 
-   async _linkModules(testModule) {
+   async _linkModules() {
       console.log(`Подготовка тестов`);
       let builderCfg = path.join(process.cwd(), 'builderConfig.json');
       await this._makeBuilderConfig();
@@ -76,6 +122,7 @@ class cli {
          `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${builderCfg}`,
          ''
       ).then(() => {
+         this._copyUnit();
          console.log(`Подготовка тестов завершена успешно`);
       }).catch((e) => {
          console.log(`Подготовка тестов завершена с ошибкой ${e}`);
@@ -87,7 +134,7 @@ class cli {
    }
 
    async initWorkDir() {
-      await this._linkModules('Types');
+      await this._linkModules();
    }
 
    async _startTest() {
@@ -145,6 +192,7 @@ class cli {
          console.log(`Инициализация хранилища завершена с ошибкой ${e}`);
       });
    }
+
    //node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=C:\sbis\test-cli\builderConfig.json
    async copy(name) {
       let cfg = this._repos[name];
@@ -155,9 +203,14 @@ class cli {
       }
       return Promise.all(cfg.modules.map((module => {
          console.log(`копирование модуля ${name}/${module}`);
-         return fs.copy(path.join(reposPath, module),  path.join(this._store, name, 'module', this._getModuleName(module))).catch((e) => {
-            console.error(`Ошибка при клонировании репозитория ${name}: ${e}`);
-         });
+         if (this._getModuleName(module) == 'unit') {
+            this._unitModules.push(path.join(reposPath, module));
+         } else {
+            return fs.copy(path.join(reposPath, module), path.join(this._store, name, 'module', this._getModuleName(module))).catch((e) => {
+               console.error(`Ошибка при копировании репозитория ${name}: ${e}`);
+            });
+         }
+
       })));
    }
 
@@ -165,17 +218,28 @@ class cli {
       try {
          console.log(`git clone ${this._repos[name].url}`);
          await this._execute(`git clone ${this._repos[name].url} ${name}`, path.join(this._store, reposStore));
-         let branch = name == this._testModule ? this._testModuleBranch : this._branch;
-         await this._execute(`git checkout ${this._branch} `)
+         let branch = name == this._testModule ? this._testBranch : this._branch;
+         return this._execute(`git checkout ${this._branch} `)
          // if (['ws', 'rmi'].includes(name)) {
          //    await this._execute(`npm install`, path.join(this._store, reposStore, name));
-         //    let version  = (name == this._testModule) ? this._testModuleBranch : this._branch;
+         //    let version  = (name == this._testModule) ? this._testBranch : this._branch;
          //    await this._execute(`git checkout ${version}`, path.join(this._store, reposStore));
          //    await this._execute(`tsc -p tsconfig.json`, path.join(this._store, reposStore, name));
          // }
       } catch(e) {
          console.error(`Ошибка при клонировании репозитория ${name}: ${e}`);
       }
+   }
+
+   _copyUnit() {
+      this._unitModules.forEach((source) => {
+         walkDir(source, (filePath) => {
+            if (!filePath.includes('.test.')) {
+               fs.copySync(path.join(source, filePath), path.join(this._workDir, 'unit', filePath));
+            }
+         });
+      })
+
    }
 
    _execute(command, path) {
@@ -188,11 +252,11 @@ class cli {
          let result = '';
 
          cloneProcess.stdout.on('data', (data) => {
-            console.log(data);
+            //console.log(data);
          });
 
          cloneProcess.stderr.on('data', (data) => {
-            console.log(data);
+            //console.log(data);
          });
 
          cloneProcess.on('exit', () => {
