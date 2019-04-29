@@ -252,11 +252,11 @@ class cli {
          let result = '';
 
          cloneProcess.stdout.on('data', (data) => {
-            //console.log(data);
+            console.log(data);
          });
 
          cloneProcess.stderr.on('data', (data) => {
-            //console.log(data);
+            console.log(data);
          });
 
          cloneProcess.on('exit', () => {
