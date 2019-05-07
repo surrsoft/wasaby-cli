@@ -11,7 +11,7 @@ const argvOptions = {
 
 function walkDir(dir, callback, rootDir) {
    rootDir = rootDir || dir;
-   fs.readdirSync(dir).forEach( f => {
+   fs.readdirSync(dir).forEach(f => {
       let dirPath = path.join(dir, f);
       let relativePath = path.relative(rootDir, dir);
       let isDirectory = fs.statSync(dirPath).isDirectory();
@@ -25,21 +25,16 @@ class cli {
       this._repos = config.repositories;
       this._store = config.store;
       this._workDir = config.workDir;
-      this._testModule = 'Types';
       const options = this._getArgvOptions();
-      this._testBranch = options.branch;
+      this._testBranch = options.branch || options.rc;
+      this._testModule = options.rep;
       this._branch = options.rc;
       this._testList = [this._testModule];
+      this._argvOptions = options;
       this._unitModules = [];
       let cfg = this._repos[this._testModule];
       if (cfg.dependTest) {
          this._testList = this._testList.concat(cfg.dependTest);
-      }
-      if (!this._testBranch) {
-         throw new Error('Параметр --branch не передан');
-      }
-      if (!this._branch) {
-         throw new Error('Параметр --rc не передан');
       }
       if (!this._testModule) {
          throw new Error('Параметр --rep не передан');
@@ -61,11 +56,7 @@ class cli {
          if (arg.startsWith('--')) {
             let argName = arg.substr(2);
             const [name, value] = argName.split('=', 2);
-            if (name in options) {
-               options[name] = value === undefined ? true : value;
-            } else {
-               restArgs.push(arg);
-            }
+            options[name] = value === undefined ? true : value;
          }
       });
       return options;
@@ -153,7 +144,7 @@ class cli {
                testConfig = Object.assign({}, testConfig);
                cfg.report = testConfig.report.replace('${module}', name + '_browser');
                cfg.htmlCoverageReport = testConfig.htmlCoverageReport.replace('${module}', name + '_browser');
-               cfg.jsonCoverageReport = testConfig.jsonCoverageReport.replace('${module}', name+ '_browser');
+               cfg.jsonCoverageReport = testConfig.jsonCoverageReport.replace('${module}', name + '_browser');
                fs.outputFileSync(`./testConfig_${name}.json`, JSON.stringify(cfg, null, 4));
                return this._execute(
                   `node node_modules/saby-units/cli.js --browser --report --config="./testConfig_${name}.json"`,
@@ -175,59 +166,62 @@ class cli {
    async initStore() {
       console.log(`Инициализация хранилища`);
       try {
-         if (fs.existsSync(this._store)) {
-            await fs.remove(this._store);
-         }
+         await fs.remove(this._workDir);
+         await fs.remove('builder-ui');
+         await fs.remove(this._store);
          await fs.mkdirs(path.join(this._store, reposStore));
       } catch (e) {
          console.error(e.message);
       }
-      return Promise.all(Object.keys(this._repos).map((name) => {
-         if (!fs.existsSync(path.join(this._store, name))) {
-            return this.clone(name).then(this.copy.bind(this, name));
-         }
-      })).then(() => {
-         console.log(`Инициализация хранилища завершена успешно`);
-      }).catch((e) => {
-         console.log(`Инициализация хранилища завершена с ошибкой ${e}`);
-      });
+      if (this._branch) {
+         return Promise.all(Object.keys(this._repos).map((name) => {
+            if (!fs.existsSync(path.join(this._store, name))) {
+               return this.clone(name).then(this.copy.bind(this, name));
+            }
+         })).then(() => {
+            console.log(`Инициализация хранилища завершена успешно`);
+         }).catch((e) => {
+            console.log(`Инициализация хранилища завершена с ошибкой ${e}`);
+         });
+      }
    }
 
-   //node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=C:\sbis\test-cli\builderConfig.json
    async copy(name) {
       let cfg = this._repos[name];
       let reposPath = path.join(this._store, reposStore, name);
       await fs.mkdirs(path.join(this._store, name));
       if (cfg.test) {
-         await fs.copy(path.join(reposPath, cfg.test), path.join(this._store, name, name +'_test'));
+         await fs.ensureSymlink(path.join(reposPath, cfg.test), path.join(this._store, name, name + '_test'));
       }
       return Promise.all(cfg.modules.map((module => {
          console.log(`копирование модуля ${name}/${module}`);
          if (this._getModuleName(module) == 'unit') {
             this._unitModules.push(path.join(reposPath, module));
          } else {
-            return fs.copy(path.join(reposPath, module), path.join(this._store, name, 'module', this._getModuleName(module))).catch((e) => {
+            return fs.ensureSymlink(path.join(reposPath, module), path.join(this._store, name, 'module', this._getModuleName(module))).catch((e) => {
                console.error(`Ошибка при копировании репозитория ${name}: ${e}`);
             });
          }
-
       })));
    }
 
    async clone(name) {
-      try {
-         console.log(`git clone ${this._repos[name].url}`);
-         await this._execute(`git clone ${this._repos[name].url} ${name}`, path.join(this._store, reposStore));
-         let branch = name == this._testModule ? this._testBranch : this._branch;
-         return this._execute(`git checkout ${this._branch} `)
-         // if (['ws', 'rmi'].includes(name)) {
-         //    await this._execute(`npm install`, path.join(this._store, reposStore, name));
-         //    let version  = (name == this._testModule) ? this._testBranch : this._branch;
-         //    await this._execute(`git checkout ${version}`, path.join(this._store, reposStore));
-         //    await this._execute(`tsc -p tsconfig.json`, path.join(this._store, reposStore, name));
-         // }
-      } catch(e) {
-         console.error(`Ошибка при клонировании репозитория ${name}: ${e}`);
+      if (this._argvOptions[name]) {
+         try {
+            console.log(`Копирование репозитория ${name}`);
+            return fs.ensureSymlink(this._argvOptions[name], path.join(this._store, reposStore, name));
+         } catch (e) {
+            console.error(`Ошибка при копировании репозитория ${name}: ${e}`);
+         }
+      } else {
+         try {
+            console.log(`git clone ${this._repos[name].url}`);
+            await this._execute(`git clone ${this._repos[name].url} ${name}`, path.join(this._store, reposStore));
+            let branch = name == this._testModule ? this._testBranch : this._branch;
+            return this._execute(`git checkout ${this._branch} `)
+         } catch (e) {
+            console.error(`Ошибка при клонировании репозитория ${name}: ${e}`);
+         }
       }
    }
 

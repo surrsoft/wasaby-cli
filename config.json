@@ -2,13 +2,13 @@
    "store": "store",
    "workDir": "application",
    "repositories": {
-      "Types": {
+      "types": {
          "url": "https://github.com/saby/Types.git",
          "test": "test",
          "modules": ["Types"],
-         "dependTest": ["ws", "Controls"]
+         "dependTest": ["ws", "controls"]
       },
-      "I18n": {
+      "i18n": {
          "url": "https://github.com/saby/I18n.git",
          "test": "test",
          "modules": ["I18n"]
@@ -19,7 +19,7 @@
          "modules": ["WS.Core", "test/WSTests", "Vdom", "View", "Inferno", "WS.Deprecated", "test/unit"],
          "unitInBrowser": true
       },
-      "Controls": {
+      "controls": {
          "url": "https://git.sbis.ru/sbis/controls.git",
          "test": "tests/unit",
          "modules": ["SBIS3.CONTROLS", "Controls", "tests/unit", "Examples", "Controls-demo"],
