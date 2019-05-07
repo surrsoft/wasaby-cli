@@ -13,17 +13,13 @@
       },
       {
          "name": "Types",
-         "path": "./store/Types/module/Types",
+         "path": "./store/types/module/Types",
          "required": true
       },
       {
          "name": "I18n",
-         "path": "./store/I18n/module/I18n",
+         "path": "./store/i18n/module/I18n",
          "required": true
-      },
-      {
-         "name": "WSTests",
-         "path": "./store/ws/module/WSTests"
       },
       {
          "name": "File",
