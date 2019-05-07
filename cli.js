@@ -111,7 +111,7 @@ class cli {
       await this._makeBuilderConfig();
       return this._execute(
          `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${builderCfg}`,
-         ''
+         __dirname
       ).then(() => {
          this._copyUnit();
          console.log(`Подготовка тестов завершена успешно`);
@@ -121,7 +121,7 @@ class cli {
    }
 
    _tslibInstall() {
-      return this._execute(`node node_modules/saby-typescript/install.js --tslib=application/WS.Core/ext/tslib.js`, '');
+      return this._execute(`node node_modules/saby-typescript/install.js --tslib=application/WS.Core/ext/tslib.js`, __dirname );
    }
 
    async initWorkDir() {
@@ -135,7 +135,7 @@ class cli {
       return Promise.all(this._testList.map((name) => {
          return this._execute(
             `node node_modules/saby-units/cli.js --isolated --report --config="./testConfig_${name}.json"`,
-            ''
+            __dirname
          ).then(() => {
             let cfg = this._repos[name];
             if (cfg.unitInBrowser) {
@@ -148,7 +148,7 @@ class cli {
                fs.outputFileSync(`./testConfig_${name}.json`, JSON.stringify(cfg, null, 4));
                return this._execute(
                   `node node_modules/saby-units/cli.js --browser --report --config="./testConfig_${name}.json"`,
-                  ''
+                  __dirname
                )
             }
          });
@@ -173,17 +173,15 @@ class cli {
       } catch (e) {
          console.error(e.message);
       }
-      if (this._branch) {
-         return Promise.all(Object.keys(this._repos).map((name) => {
-            if (!fs.existsSync(path.join(this._store, name))) {
-               return this.clone(name).then(this.copy.bind(this, name));
-            }
-         })).then(() => {
-            console.log(`Инициализация хранилища завершена успешно`);
-         }).catch((e) => {
-            console.log(`Инициализация хранилища завершена с ошибкой ${e}`);
-         });
-      }
+      return Promise.all(Object.keys(this._repos).map((name) => {
+         if (!fs.existsSync(path.join(this._store, name))) {
+            return this.clone(name).then(this.copy.bind(this, name));
+         }
+      })).then(() => {
+         console.log(`Инициализация хранилища завершена успешно`);
+      }).catch((e) => {
+         console.log(`Инициализация хранилища завершена с ошибкой ${e}`);
+      });
    }
 
    async copy(name) {
