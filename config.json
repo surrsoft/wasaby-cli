@@ -6,18 +6,20 @@
          "url": "https://github.com/saby/Types.git",
          "test": "test",
          "modules": ["Types"],
-         "dependTest": ["ws", "controls"]
+         "dependTest": ["controls", "ws", "router", "ui", "app", "rmi"]
       },
       "i18n": {
          "url": "https://github.com/saby/I18n.git",
          "test": "test",
-         "modules": ["I18n"]
+         "modules": ["I18n"],
+         "dependTest": ["types", "controls", "router", "ui", "app", "rmi"]
       },
       "ws": {
          "url": "https://git.sbis.ru/sbis/ws.git",
          "test": "test/unit",
          "modules": ["WS.Core", "test/WSTests", "Vdom", "View", "Inferno", "WS.Deprecated", "test/unit"],
-         "unitInBrowser": true
+         "unitInBrowser": true,
+         "dependTest": ["types", "controls", "router", "ui", "app", "rmi"]
       },
       "controls": {
          "url": "https://git.sbis.ru/sbis/controls.git",
@@ -35,13 +37,31 @@
             "src/client/File-demo",
             "src/client/SbisEnv",
             "src/client/SbisFile"
+         ],
+         "dependTest": [
+            "rmi", "router", "types"
          ]
       },
       "app": {
          "url": "https://github.com/saby/wasaby-app.git",
          "modules": [
             "src/Application"
-         ]
+         ],
+         "test": "test"
+      },
+      "router": {
+         "url": "https://github.com/saby/router",
+         "modules": [
+            "RouterDemo", "Router", "RouterTest"
+         ],
+         "test": "RouterTest"
+      },
+      "ui": {
+         "url": "https://github.com/saby/ui",
+         "modules": [
+            "UI", "UIDemo", "UITest"
+         ],
+         "test": "UITest"
       }
    }
 }
