@@ -41,7 +41,7 @@
             "src/client/SbisFile"
          ],
          "dependTest": [
-            "rmi", "router", "types"
+            "router", "types"
          ]
       },
       "app": {
