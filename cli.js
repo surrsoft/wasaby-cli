@@ -25,12 +25,11 @@ class cli {
       this._repos = config.repositories;
       this._store = config.store;
       this._workDir = config.workDir;
-      const options = this._getArgvOptions();
-      this._testBranch = options.branch || options.rc;
-      this._testModule = options.rep;
-      this._branch = options.rc;
+      this._argvOptions = this._getArgvOptions();
+      this._testBranch = this._argvOptions.branch || this._argvOptions.rc;
+      this._testModule = this._argvOptions.rep;
+      this._branch = this._argvOptions.rc;
       this._testList = [this._testModule];
-      this._argvOptions = options;
       this._unitModules = [];
       let cfg = this._repos[this._testModule];
       if (cfg.dependTest) {
@@ -93,10 +92,11 @@ class cli {
 
    _makeTestConfig(name) {
       let port = 10025;
-      return Promise.all(this._testList.map((name) => {
+      let configPorts = this._argvOptions.ports ? this._argvOptions.ports.split(',') : [];
+      return Promise.all(this._testList.map((name, i) => {
          let testConfig = require('./testConfig.base.json');
          let cfg = Object.assign({}, testConfig);
-         cfg.url.port = port++;
+         cfg.url.port = configPorts[i] ? configPorts[i] : port++;
          cfg.tests = name + '_test';
          cfg.report = cfg.report.replace('${module}', name);
          cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('${module}', name);
