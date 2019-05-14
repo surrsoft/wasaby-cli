@@ -18,7 +18,7 @@
       "ws": {
          "url": "https://git.sbis.ru/sbis/ws.git",
          "test": "test/unit",
-         "modules": ["WS.Core", "test/WSTests", "Vdom", "View", "Inferno", "WS.Deprecated", "test/unit"],
+         "modules": ["WS.Core", "test/WSTests", "Vdom", "View", "Inferno", "WS.Deprecated", "test/unit", "Demo"],
          "unitInBrowser": true,
          "dependTest": ["types", "controls", "router", "ui", "app", "rmi"]
       },
@@ -38,7 +38,8 @@
             "src/client/File",
             "src/client/File-demo",
             "src/client/SbisEnv",
-            "src/client/SbisFile"
+            "src/client/SbisFile",
+            "tests"
          ],
          "dependTest": [
             "router", "types"
