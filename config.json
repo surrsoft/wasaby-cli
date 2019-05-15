@@ -2,30 +2,51 @@
    "store": "store",
    "workDir": "application",
    "repositories": {
+      "engine": {
+         "url": "http://git.sbis.ru/sbis/engine.git",
+         "unitInBrowser": true,
+         "test": "test/unit",
+         "modules": [
+            "client/LongOperations",
+            "client/SchemeEditor",
+            "client/ParametersWebAPI",
+            "client/Graphs",
+            "client/RichEditor",
+            "client/Previewer",
+            "client/Summation",
+            "client/Layout",
+            "client/NavigationPanels",
+            "client/ExtControls",
+            "client/EngineLink",
+            "client/EngineUser",
+            "client/EngineLanguage"
+         ]
+      },
       "types": {
          "url": "https://github.com/saby/Types.git",
          "test": "test",
          "modules": ["Types"],
-         "dependTest": ["controls", "ws", "router", "ui", "app", "rmi"]
+         "dependTest": ["controls", "ws", "router", "ui", "app", "rmi", "engine"]
       },
       "i18n": {
          "url": "https://github.com/saby/I18n.git",
          "test": "test",
          "unitInBrowser": true,
          "modules": ["I18n"],
-         "dependTest": ["types", "controls", "router", "ui", "app", "rmi"]
+         "dependTest": ["types", "controls", "router", "ui", "app", "rmi", "engine"]
       },
       "ws": {
          "url": "https://git.sbis.ru/sbis/ws.git",
          "test": "test/unit",
          "modules": ["WS.Core", "test/WSTests", "Vdom", "View", "Inferno", "WS.Deprecated", "test/unit", "Demo"],
          "unitInBrowser": true,
-         "dependTest": ["types", "controls", "router", "ui", "app", "rmi"]
+         "dependTest": ["types", "controls", "router", "ui", "app", "rmi", "engine"]
       },
       "controls": {
          "url": "https://git.sbis.ru/sbis/controls.git",
          "unitInBrowser": true,
          "test": "tests/unit",
+         "dependTest": ["engine"],
          "modules": ["SBIS3.CONTROLS", "Controls", "tests/unit", "Examples", "Controls-demo"]
       },
       "rmi": {
@@ -41,9 +62,7 @@
             "src/client/SbisFile",
             "tests"
          ],
-         "dependTest": [
-            "router", "types"
-         ]
+         "dependTest": ["router", "types", "engine"]
       },
       "app": {
          "url": "https://github.com/saby/wasaby-app.git",
@@ -51,6 +70,7 @@
          "modules": [
             "src/Application"
          ],
+         "dependTest": ["engine"],
          "test": "test"
       },
       "router": {
@@ -59,6 +79,7 @@
          "modules": [
             "RouterDemo", "Router", "RouterTest"
          ],
+         "dependTest": ["engine"],
          "test": "RouterTest"
       },
       "ui": {
@@ -67,6 +88,7 @@
          "modules": [
             "UI", "UIDemo", "UITest"
          ],
+         "dependTest": ["engine"],
          "test": "UITest"
       }
    }
