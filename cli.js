@@ -214,9 +214,11 @@ class cli {
       } else {
          try {
             console.log(`git clone ${this._repos[name].url}`);
+            const branch = name == this._testModule ? this._testBranch : this._branch;
+            const pathToRepos = path.join(this._store, reposStore, name);
+
             await this._execute(`git clone ${this._repos[name].url} ${name}`, path.join(this._store, reposStore));
-            let branch = name == this._testModule ? this._testBranch : this._branch;
-            return this._execute(`git checkout ${this._branch} `)
+            return this._execute(`git checkout ${branch} `, pathToRepos);
          } catch (e) {
             console.error(`Ошибка при клонировании репозитория ${name}: ${e}`);
          }
