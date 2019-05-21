@@ -26,7 +26,7 @@ class cli {
       this._store = config.store;
       this._workDir = config.workDir;
       this._argvOptions = this._getArgvOptions();
-      this._testBranch = this._argvOptions.branch || this._argvOptions.rc;
+      this._testBranch = this._argvOptions.branch || this._argvOptions.rc || '';
       this._testModule = this._argvOptions.rep;
       this._branch = this._argvOptions.rc;
       this._testList = [this._testModule];
@@ -39,9 +39,12 @@ class cli {
          throw new Error('Параметр --rep не передан');
       }
 
-      this.initStore().then(this.initWorkDir.bind(this)).then(this._startTest.bind(this));
-      //this.copy('Controls');
-      //this._startTest();
+      this.initStore()
+         .then(
+            this.initWorkDir.bind(this)
+         ).then(
+            this._startTest.bind(this)
+         );
    }
 
    readConfig() {
@@ -116,7 +119,7 @@ class cli {
          this._copyUnit();
          console.log(`Подготовка тестов завершена успешно`);
       }).catch((e) => {
-         console.log(`Подготовка тестов завершена с ошибкой ${e}`);
+         throw new Error(`Подготовка тестов завершена с ошибкой ${e}`);
       });
    }
 
@@ -175,12 +178,15 @@ class cli {
       }
       return Promise.all(Object.keys(this._repos).map((name) => {
          if (!fs.existsSync(path.join(this._store, name))) {
-            return this.clone(name).then(this.copy.bind(this, name));
+            return this.initRepos(name)
+               .then(
+                  this.copy.bind(this, name)
+               );
          }
       })).then(() => {
          console.log(`Инициализация хранилища завершена успешно`);
       }).catch((e) => {
-         console.log(`Инициализация хранилища завершена с ошибкой ${e}`);
+         throw new Error(`Инициализация хранилища завершена с ошибкой ${e}`);
       });
    }
 
@@ -197,31 +203,52 @@ class cli {
             this._unitModules.push(path.join(reposPath, module));
          } else {
             return fs.ensureSymlink(path.join(reposPath, module), path.join(this._store, name, 'module', this._getModuleName(module))).catch((e) => {
-               console.error(`Ошибка при копировании репозитория ${name}: ${e}`);
+               throw new Error(`Ошибка при копировании репозитория ${name}: ${e}`);
             });
          }
       })));
    }
 
-   async clone(name) {
+   async checkout(checkoutBranch, pathToRepos) {
+      try {
+         return this._execute(`git checkout ${checkoutBranch} `, pathToRepos);
+      } catch (err) {
+         throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${e}`);
+      }
+   }
+
+   async cloneRepos(name) {
+      try {
+         console.log(`git clone ${this._repos[name].url}`);
+
+         await this._execute(`git clone ${this._repos[name].url} ${name}`, path.join(this._store, reposStore));
+
+         return path.join(this._store, reposStore, name);
+      } catch (err) {
+         throw new Error(`Ошибка при клонировании репозитория ${name}: ${err}`);
+      }
+   }
+
+   async copyRepos(pathToOriginal, name) {
+      try {
+         console.log(`Копирование репозитория ${name}`);
+
+         return fs.ensureSymlink(pathToOriginal, path.join(this._store, reposStore, name));
+      } catch (err) {
+         throw new Error(`Ошибка при копировании репозитория ${name}: ${err}`);
+      }
+   }
+
+   async initRepos(name) {
       if (this._argvOptions[name]) {
-         try {
-            console.log(`Копирование репозитория ${name}`);
-            return fs.ensureSymlink(this._argvOptions[name], path.join(this._store, reposStore, name));
-         } catch (e) {
-            console.error(`Ошибка при копировании репозитория ${name}: ${e}`);
+         if (fs.existsSync(this._argvOptions[name])) {
+            return this.copyRepos(this._argvOptions[name], name);
+         } else {
+            return this.checkout(this._argvOptions[name], await this.cloneRepos(name, this._argvOptions[name]));
          }
       } else {
-         try {
-            console.log(`git clone ${this._repos[name].url}`);
-            const branch = name == this._testModule ? this._testBranch : this._branch;
-            const pathToRepos = path.join(this._store, reposStore, name);
-
-            await this._execute(`git clone ${this._repos[name].url} ${name}`, path.join(this._store, reposStore));
-            return this._execute(`git checkout ${branch} `, pathToRepos);
-         } catch (e) {
-            console.error(`Ошибка при клонировании репозитория ${name}: ${e}`);
-         }
+         const branch = name === this._testModule ? this._testBranch : this._branch;
+         return this.checkout(branch, await this.cloneRepos(name));
       }
    }
 
@@ -232,8 +259,7 @@ class cli {
                fs.copySync(path.join(source, filePath), path.join(this._workDir, 'unit', filePath));
             }
          });
-      })
-
+      });
    }
 
    _execute(command, path) {
@@ -261,6 +287,6 @@ class cli {
    };
 }
 
-let c = new cli();
+new cli();
 
 
