@@ -90,6 +90,10 @@
          ],
          "dependTest": ["engine"],
          "test": "UITest"
+      },
+      "cdn": {
+         "url": "https://github.com/saby/wasaby-cdn",
+         "modules": []
       }
    }
 }

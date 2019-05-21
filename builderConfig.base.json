@@ -49,14 +49,72 @@
          "name": "View",
          "path": "./store/ws/module/View",
          "required": true
-      },{
+      },
+      {
          "name": "Application",
          "path": "./store/app/module/Application",
          "required": true
-      }, {
+      },
+      {
          "name": "Inferno",
          "path": "./store/ws/module/Inferno",
          "required": true
+      },
+      {
+         "name": "Graphs",
+         "path": "./store/engine/module/Graphs"
+      },
+      {
+         "name": "EngineLanguage",
+         "path": "./store/engine/module/EngineLanguage"
+      },
+      {
+         "name": "EngineLink",
+         "path": "./store/engine/module/EngineLink"
+      },
+      {
+         "name": "EngineUser",
+         "path": "./store/engine/module/EngineUser"
+      },
+      {
+         "name": "ExtControls",
+         "path": "./store/engine/module/ExtControls"
+      },
+      {
+         "name": "Summation",
+         "path": "./store/engine/module/Summation"
+      },
+      {
+         "name": "Layout",
+         "path": "./store/engine/module/Layout"
+      },
+      {
+         "name": "LongOperations",
+         "path": "./store/engine/module/LongOperations"
+      },
+      {
+         "name": "NavigationPanels",
+         "path": "./store/engine/module/NavigationPanels"
+      },
+      {
+         "name": "ParametersWebAPI",
+         "path": "./store/engine/module/ParametersWebAPI"
+      },
+      {
+         "name": "Previewer",
+         "path": "./store/engine/module/Previewer"
+      },
+      {
+         "name": "RichEditor",
+         "path": "./store/engine/module/RichEditor"
+      },
+      {
+         "name": "SchemeEditor",
+         "path": "./store/engine/module/SchemeEditor"
+      },
+      {
+         "name": "cdn",
+         "path": "./store/_repos/cdn"
       }
    ]
 }
