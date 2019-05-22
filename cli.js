@@ -115,8 +115,9 @@ class cli {
       return this._execute(
          `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${builderCfg}`,
          __dirname
-      ).then(() => {
+      ).then(async () => {
          this._copyUnit();
+         await this._linkFolder();
          console.log(`Подготовка тестов завершена успешно`);
       }).catch((e) => {
          throw new Error(`Подготовка тестов завершена с ошибкой ${e}`);
@@ -188,6 +189,19 @@ class cli {
       }).catch((e) => {
          throw new Error(`Инициализация хранилища завершена с ошибкой ${e}`);
       });
+   }
+
+   async _linkFolder() {
+      for (const name in this._repos) {
+         if (this._repos[name].linkFolders) {
+            for (const pathOriginal in this._repos[name].linkFolders) {
+
+               const pathDir = path.join(this._store, reposStore, name, pathOriginal);
+               const pathLink =  path.join(this._workDir, this._repos[name].linkFolders[pathOriginal]);
+               await fs.ensureSymlink(pathDir, pathLink);
+            }
+         }
+      }
    }
 
    async copy(name) {
