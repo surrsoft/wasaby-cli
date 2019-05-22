@@ -111,10 +111,6 @@
       {
          "name": "SchemeEditor",
          "path": "./store/engine/module/SchemeEditor"
-      },
-      {
-         "name": "cdn",
-         "path": "./store/_repos/cdn"
       }
    ]
 }
