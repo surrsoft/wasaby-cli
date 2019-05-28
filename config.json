@@ -23,13 +23,13 @@
          ]
       },
       "types": {
-         "url": "https://github.com/saby/Types.git",
+         "url": "https://platform-git.sbis.ru/saby/Types.git",
          "test": "test",
          "modules": ["Types"],
          "dependTest": ["controls", "ws", "router", "ui", "app", "rmi", "engine"]
       },
       "i18n": {
-         "url": "https://github.com/saby/I18n.git",
+         "url": "https://platform-git.sbis.ru/saby/I18n.git",
          "test": "test",
          "unitInBrowser": true,
          "modules": ["I18n"],
@@ -65,7 +65,7 @@
          "dependTest": ["router", "types", "engine"]
       },
       "app": {
-         "url": "https://github.com/saby/wasaby-app.git",
+         "url": "https://platform-git.sbis.ru/saby/wasaby-app.git",
          "unitInBrowser": true,
          "modules": [
             "src/Application"
@@ -74,7 +74,7 @@
          "test": "test"
       },
       "router": {
-         "url": "https://github.com/saby/router",
+         "url": "https://platform-git.sbis.ru/saby/router",
          "unitInBrowser": true,
          "modules": [
             "RouterDemo", "Router", "RouterTest"
@@ -83,7 +83,7 @@
          "test": "RouterTest"
       },
       "ui": {
-         "url": "https://github.com/saby/ui",
+         "url": "https://platform-git.sbis.ru/saby/ui",
          "unitInBrowser": true,
          "modules": [
             "UI", "UIDemo", "UITest"
@@ -92,7 +92,7 @@
          "test": "UITest"
       },
       "cdn": {
-         "url": "https://github.com/saby/wasaby-cdn",
+         "url": "https://platform-git.sbis.ru/saby/wasaby-cdn",
          "linkFolders": {
             "/" : "cdn"
          },
