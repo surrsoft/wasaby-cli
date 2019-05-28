@@ -4,15 +4,16 @@
   "description": "",
   "main": "cli.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha",
+    "test:coverage": "nyc --reporter=html npm run test "
   },
   "author": "",
   "dependencies": {
     "fs-extra": "^7.0.1",
-    "shelljs": "^0.8.3",
+    "saby-typescript": "git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-19.400",
     "saby-units": "git+https://platform-git.sbis.ru/saby/Units.git#rc-19.400",
-    "sbis3-builder": "git+https://github.com/saby/Builder.git#rc-19.400",
-    "saby-typescript": "git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-19.400"
+    "sbis3-builder": "git+https://platform-git.sbis.ru/saby/Builder.git#rc-19.400",
+    "shelljs": "^0.8.3"
   },
   "saby-units": {
     "moduleType": "amd",
@@ -24,5 +25,10 @@
     "url": {
       "port": 1025
     }
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^6.1.4",
+    "nyc": "^14.1.1"
   }
 }

@@ -3,11 +3,6 @@ const shell = require('shelljs');
 const CONFIG = 'config.json';
 const path = require('path');
 const reposStore = '_repos';
-const argvOptions = {
-   rc: false,
-   branch: false,
-   rep: false
-};
 
 function walkDir(dir, callback, rootDir) {
    rootDir = rootDir || dir;
@@ -19,26 +14,31 @@ function walkDir(dir, callback, rootDir) {
    });
 };
 
-class cli {
-   constructor() {
+class Cli {
+   init() {
       let config = this.readConfig();
       this._repos = config.repositories;
       this._store = config.store;
       this._workDir = config.workDir;
+
       this._argvOptions = this._getArgvOptions();
       this._testBranch = this._argvOptions.branch || this._argvOptions.rc || '';
       this._testModule = this._argvOptions.rep;
-      this._branch = this._argvOptions.rc;
+      this._rc = this._argvOptions.rc;
+      if (!this._testModule) {
+         throw new Error('Параметр --rep не передан');
+      }
+
       this._testList = [this._testModule];
       this._unitModules = [];
       let cfg = this._repos[this._testModule];
       if (cfg.dependTest) {
          this._testList = this._testList.concat(cfg.dependTest);
       }
-      if (!this._testModule) {
-         throw new Error('Параметр --rep не передан');
-      }
+   }
 
+   run() {
+      this.init();
       this.initStore()
          .then(
             this.initWorkDir.bind(this)
@@ -53,7 +53,7 @@ class cli {
    }
 
    _getArgvOptions() {
-      let options = Object.assign({}, argvOptions);
+      let options = {};
       process.argv.slice(2).forEach(arg => {
          if (arg.startsWith('--')) {
             let argName = arg.substr(2);
@@ -258,11 +258,17 @@ class cli {
          if (fs.existsSync(this._argvOptions[name])) {
             return this.copyRepos(this._argvOptions[name], name);
          } else {
-            return this.checkout(this._argvOptions[name], await this.cloneRepos(name, this._argvOptions[name]));
+            return this.checkout(
+               this._argvOptions[name],
+               await this.cloneRepos(name, this._argvOptions[name])
+            );
          }
       } else {
-         const branch = name === this._testModule ? this._testBranch : this._branch;
-         return this.checkout(branch, await this.cloneRepos(name));
+         const branch = name === this._testModule ? this._testBranch : this._rc;
+         return this.checkout(
+            branch,
+            await this.cloneRepos(name)
+         );
       }
    }
 
@@ -301,6 +307,12 @@ class cli {
    };
 }
 
-new cli();
+module.exports = Cli;
+
+if (require.main.filename === __filename) {
+   let cli = new Cli();
+   cli.run()
+}
+
 
 
