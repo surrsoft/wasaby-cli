@@ -273,7 +273,7 @@ class cli {
          return this._execute(`git checkout ${checkoutBranch} `, pathToRepos).then(() => {
             if (name === this._testModule) {
                console.log(`Попытка смержить ветку "${checkoutBranch}" для репозитория "${name}" с "${this._rc}"`);
-               return this._execute(`git merge ${this._rc}`, pathToRepos).catch(() => {
+               return this._execute(`git merge origin/${this._rc}`, pathToRepos).catch(() => {
                   throw new Error(`При мерже "${checkoutBranch}" в "${this._rc}" произошел конфликт`);
                });
             }
