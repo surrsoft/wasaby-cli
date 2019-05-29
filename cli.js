@@ -32,6 +32,7 @@ class Cli {
       this._testList = [this._testModule];
       this._unitModules = [];
       let cfg = this._repos[this._testModule];
+      this._childProcessMap = [];
       if (cfg.dependTest) {
          this._testList = this._testList.concat(cfg.dependTest);
       }
@@ -44,7 +45,24 @@ class Cli {
             this.initWorkDir.bind(this)
          ).then(
             this._startTest.bind(this)
-         );
+         ).catch((e) => {
+            this._closeChildProcess().then(() => {
+               console.log(`Тестирование завершено с ошибкой ${e}`);
+            });
+         });
+   }
+
+   _closeChildProcess() {
+      return Promise.all(this._childProcessMap.map((process) => {
+         return new Promise((resolve) => {
+            process.on('close', () => {
+               resolve();
+            });
+            process.withErrorKill = true;
+            process.kill('SIGKILL');
+         });
+      }));
+      this._childProcessMap = [];
    }
 
    readConfig() {
@@ -64,6 +82,22 @@ class Cli {
       return options;
    }
 
+   _getModulesByRepName(name) {
+      let s3mods = [];
+      let modulesDir = this._repos[name].modulesDir || '';
+      walkDir(path.join(this._store, reposStore, name, modulesDir), (filePath) => {
+         if (filePath.includes('.s3mod')) {
+            filePath = filePath.split(path.sep);
+            filePath.splice(-1, 1);
+            modulesDir && filePath.unshift(modulesDir);
+            let modulePath = path.join.apply(path, filePath);
+            if (!s3mods.includes(modulePath)) {
+               s3mods.push(modulePath);
+            }
+         }
+      });
+      return s3mods;
+   }
    _makeBuilderConfig() {
       let builderConfig = require('./builderConfig.base.json');
       this._testList.forEach((name) => {
@@ -71,6 +105,7 @@ class Cli {
             name: name + '_test',
             path: ['.', this._store, name, name + '_test'].join('/')
          });
+
          const cfg = this._repos[name];
          cfg.modules.forEach((modulePath) => {
             const moduleName = this._getModuleName(modulePath);
@@ -90,7 +125,7 @@ class Cli {
    }
 
    _getModuleName(module) {
-      return module.split('/').pop();
+      return module.includes('/') ? module.split('/').pop() : module.split('\\').pop();
    }
 
    _makeTestConfig(name) {
@@ -114,7 +149,8 @@ class Cli {
       await this._makeBuilderConfig();
       return this._execute(
          `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${builderCfg}`,
-         __dirname
+         __dirname,
+         true
       ).then(async () => {
          this._copyUnit();
          await this._linkFolder();
@@ -125,7 +161,11 @@ class Cli {
    }
 
    _tslibInstall() {
-      return this._execute(`node node_modules/saby-typescript/install.js --tslib=application/WS.Core/ext/tslib.js`, __dirname );
+      return this._execute(
+         `node node_modules/saby-typescript/install.js --tslib=application/WS.Core/ext/tslib.js`,
+         __dirname,
+         true
+      );
    }
 
    async initWorkDir() {
@@ -139,7 +179,8 @@ class Cli {
       return Promise.all(this._testList.map((name) => {
          return this._execute(
             `node node_modules/saby-units/cli.js --isolated --report --config="./testConfig_${name}.json"`,
-            __dirname
+            __dirname,
+            true
          ).then(() => {
             let cfg = this._repos[name];
             if (cfg.unitInBrowser) {
@@ -152,7 +193,8 @@ class Cli {
                fs.outputFileSync(`./testConfig_${name}.json`, JSON.stringify(cfg, null, 4));
                return this._execute(
                   `node node_modules/saby-units/cli.js --browser --report --config="./testConfig_${name}.json"`,
-                  __dirname
+                  __dirname,
+                  true
                )
             }
          });
@@ -211,11 +253,14 @@ class Cli {
       if (cfg.test) {
          await fs.ensureSymlink(path.join(reposPath, cfg.test), path.join(this._store, name, name + '_test'));
       }
+      cfg.modules = this._getModulesByRepName(name).concat(cfg.modules || []);
+      let d = cfg.modules.filter((a, index) => {return  cfg.modules.indexOf(a) != index});
       return Promise.all(cfg.modules.map((module => {
          console.log(`копирование модуля ${name}/${module}`);
          if (this._getModuleName(module) == 'unit') {
             this._unitModules.push(path.join(reposPath, module));
          } else {
+
             return fs.ensureSymlink(path.join(reposPath, module), path.join(this._store, name, 'module', this._getModuleName(module))).catch((e) => {
                throw new Error(`Ошибка при копировании репозитория ${name}: ${e}`);
             });
@@ -223,9 +268,20 @@ class Cli {
       })));
    }
 
-   async checkout(checkoutBranch, pathToRepos) {
+   async checkout(name, checkoutBranch, pathToRepos) {
       try {
-         return this._execute(`git checkout ${checkoutBranch} `, pathToRepos);
+         if (!checkoutBranch) {
+            throw new Error(`Не удалось определить ветку для репозитория ${name}`);
+         }
+         console.log(`Переключение на ветку ${checkoutBranch} для репозитория ${name}`);
+         return this._execute(`git checkout ${checkoutBranch} `, pathToRepos).then(() => {
+            if (name === this._testModule) {
+               console.log(`Попытка смержить ветку "${checkoutBranch}" для репозитория "${name}" с "${this._rc}"`);
+               return this._execute(`git merge ${this._rc}`, pathToRepos).catch(() => {
+                  throw new Error(`При мерже "${checkoutBranch}" в "${this._rc}" произошел конфликт`);
+               });
+            }
+         });
       } catch (err) {
          throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${e}`);
       }
@@ -258,14 +314,14 @@ class Cli {
          if (fs.existsSync(this._argvOptions[name])) {
             return this.copyRepos(this._argvOptions[name], name);
          } else {
-            return this.checkout(
+            return this.checkout(name,
                this._argvOptions[name],
                await this.cloneRepos(name, this._argvOptions[name])
             );
          }
       } else {
          const branch = name === this._testModule ? this._testBranch : this._rc;
-         return this.checkout(
+         return this.checkout(name,
             branch,
             await this.cloneRepos(name)
          );
@@ -282,15 +338,13 @@ class Cli {
       });
    }
 
-   _execute(command, path) {
+   _execute(command, path, force) {
       return new Promise((resolve, reject) => {
          const cloneProcess = shell.exec(`cd ${path} && ${command}`, {
             silent: true,
             async: true
          });
-
-         let result = '';
-
+         this._childProcessMap.push(cloneProcess);
          cloneProcess.stdout.on('data', (data) => {
             console.log(data);
          });
@@ -299,10 +353,14 @@ class Cli {
             console.log(data);
          });
 
-         cloneProcess.on('exit', () => {
-            resolve(result);
+         cloneProcess.on('exit', (code) => {
+            this._childProcessMap.splice(this._childProcessMap.indexOf(cloneProcess), 1);
+            if (force || !code && !cloneProcess.withErrorKill) {
+               resolve();
+            } else {
+               reject();
+            }
          });
-
       });
    };
 }
