@@ -46,19 +46,19 @@
          "test": "test"
       },
       "router": {
-         "url": "https://platform-git.sbis.ru/saby/router",
+         "url": "https://platform-git.sbis.ru/saby/router.git",
          "unitInBrowser": true,
          "dependTest": ["engine"],
          "test": "RouterTest"
       },
       "ui": {
-         "url": "https://platform-git.sbis.ru/saby/ui",
+         "url": "https://platform-git.sbis.ru/saby/ui.git",
          "unitInBrowser": true,
          "dependTest": ["engine"],
          "test": "UITest"
       },
       "cdn": {
-         "url": "https://platform-git.sbis.ru/saby/wasaby-cdn",
+         "url": "https://platform-git.sbis.ru/saby/wasaby-cdn.git",
          "linkFolders": {
             "/" : "cdn"
          },
