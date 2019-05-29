@@ -11,7 +11,7 @@
       "types": {
          "url": "https://platform-git.sbis.ru/saby/Types.git",
          "test": "test",
-         "dependTest": ["ws", "router", "ui", "app", "rmi"]
+         "dependTest": ["ws", "router", "ui", "app", "rmi", "engine", "controls"]
       },
       "i18n": {
          "url": "https://platform-git.sbis.ru/saby/I18n.git",
