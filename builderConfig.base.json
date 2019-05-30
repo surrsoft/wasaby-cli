@@ -5,6 +5,7 @@
    "typescript": true,
    "contents": true,
    "joinedMeta": true,
+   "less": true,
    "modules": [
       {
          "name": "WS.Core",
