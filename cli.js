@@ -3,6 +3,8 @@ const shell = require('shelljs');
 const CONFIG = 'config.json';
 const path = require('path');
 const reposStore = '_repos';
+const repModulesMap = new Map();
+const builderConfigName = 'builderConfig.json';
 
 function walkDir(dir, callback, rootDir) {
    rootDir = rootDir || dir;
@@ -15,7 +17,7 @@ function walkDir(dir, callback, rootDir) {
 };
 
 class Cli {
-   init() {
+   constructor() {
       let config = this.readConfig();
       this._repos = config.repositories;
       this._store = config.store;
@@ -39,7 +41,6 @@ class Cli {
    }
 
    run() {
-      this.init();
       this.initStore()
          .then(
             this.initWorkDir.bind(this)
@@ -83,6 +84,18 @@ class Cli {
    }
 
    _getModulesByRepName(name) {
+      if (repModulesMap.has(name)) {
+         return repModulesMap.get(name);
+      }
+
+      const cfg = this._repos[name];
+      let modules = this._findModulesInRepDir(name).concat(cfg.modules || []);
+      repModulesMap.set(name, modules);
+
+      return modules;
+   }
+
+   _findModulesInRepDir(name) {
       let s3mods = [];
       let modulesDir = this._repos[name].modulesDir || '';
       walkDir(path.join(this._store, reposStore, name, modulesDir), (filePath) => {
@@ -98,6 +111,7 @@ class Cli {
       });
       return s3mods;
    }
+
    _makeBuilderConfig() {
       let builderConfig = require('./builderConfig.base.json');
       this._testList.forEach((name) => {
@@ -106,9 +120,10 @@ class Cli {
             path: ['.', this._store, name, name + '_test'].join('/')
          });
 
-         const cfg = this._repos[name];
-         cfg.modules.forEach((modulePath) => {
-            const moduleName = this._getModuleName(modulePath);
+         const modules = this._getModulesByRepName(name);
+
+         modules.forEach((modulePath) => {
+            const moduleName = this._getModuleNameByPath(modulePath);
             if (moduleName !== 'unit') {
                const isNameInConfig = builderConfig.modules.find((item) => (item.name == moduleName));
                if (!isNameInConfig) {
@@ -121,10 +136,10 @@ class Cli {
          });
       });
 
-      return fs.outputFile('./builderConfig.json', JSON.stringify(builderConfig, null, 4));
+      return fs.outputFile(`./${builderConfigName}`, JSON.stringify(builderConfig, null, 4));
    }
 
-   _getModuleName(module) {
+   _getModuleNameByPath(module) {
       return module.includes('/') ? module.split('/').pop() : module.split('\\').pop();
    }
 
@@ -145,7 +160,7 @@ class Cli {
 
    async _linkModules() {
       console.log(`Подготовка тестов`);
-      let builderCfg = path.join(process.cwd(), 'builderConfig.json');
+      let builderCfg = path.join(process.cwd(), );
       await this._makeBuilderConfig();
       return this._execute(
          `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${builderCfg}`,
@@ -221,7 +236,7 @@ class Cli {
       }
       return Promise.all(Object.keys(this._repos).map((name) => {
          if (!fs.existsSync(path.join(this._store, name))) {
-            return this.initRepos(name)
+            return this.initRepStore(name)
                .then(
                   this.copy.bind(this, name)
                );
@@ -253,15 +268,15 @@ class Cli {
       if (cfg.test) {
          await fs.ensureSymlink(path.join(reposPath, cfg.test), path.join(this._store, name, name + '_test'));
       }
-      cfg.modules = this._getModulesByRepName(name).concat(cfg.modules || []);
-      let d = cfg.modules.filter((a, index) => {return  cfg.modules.indexOf(a) != index});
-      return Promise.all(cfg.modules.map((module => {
+      const modules = this._getModulesByRepName(name);
+
+      return Promise.all(modules.map((module => {
          console.log(`копирование модуля ${name}/${module}`);
-         if (this._getModuleName(module) == 'unit') {
+         if (this._getModuleNameByPath(module) == 'unit') {
             this._unitModules.push(path.join(reposPath, module));
          } else {
 
-            return fs.ensureSymlink(path.join(reposPath, module), path.join(this._store, name, 'module', this._getModuleName(module))).catch((e) => {
+            return fs.ensureSymlink(path.join(reposPath, module), path.join(this._store, name, 'module', this._getModuleNameByPath(module))).catch((e) => {
                throw new Error(`Ошибка при копировании репозитория ${name}: ${e}`);
             });
          }
@@ -287,7 +302,7 @@ class Cli {
       }
    }
 
-   async cloneRepos(name) {
+   async cloneRepToStore(name) {
       try {
          console.log(`git clone ${this._repos[name].url}`);
 
@@ -299,7 +314,7 @@ class Cli {
       }
    }
 
-   async copyRepos(pathToOriginal, name) {
+   async copyRepToStore(pathToOriginal, name) {
       try {
          console.log(`Копирование репозитория ${name}`);
 
@@ -309,21 +324,23 @@ class Cli {
       }
    }
 
-   async initRepos(name) {
+   async initRepStore(name) {
       if (this._argvOptions[name]) {
          if (fs.existsSync(this._argvOptions[name])) {
-            return this.copyRepos(this._argvOptions[name], name);
+            return this.copyRepToStore(this._argvOptions[name], name);
          } else {
-            return this.checkout(name,
+            return this.checkout(
+               name,
                this._argvOptions[name],
-               await this.cloneRepos(name, this._argvOptions[name])
+               await this.cloneRepToStore(name, this._argvOptions[name])
             );
          }
       } else {
          const branch = name === this._testModule ? this._testBranch : this._rc;
-         return this.checkout(name,
+         return this.checkout(
+            name,
             branch,
-            await this.cloneRepos(name)
+            await this.cloneRepToStore(name)
          );
       }
    }
