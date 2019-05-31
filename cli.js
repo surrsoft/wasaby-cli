@@ -187,6 +187,24 @@ class Cli {
       await this._linkModules();
    }
 
+   _startBrowserTest(name) {
+      let cfg = this._repos[name];
+      if (cfg.unitInBrowser) {
+         let cfg = require(`./testConfig_${name}.json`);
+         let testConfig = require('./testConfig.base.json');
+         testConfig = Object.assign({}, testConfig);
+         cfg.report = testConfig.report.replace('${module}', name + '_browser');
+         cfg.htmlCoverageReport = testConfig.htmlCoverageReport.replace('${module}', name + '_browser');
+         cfg.jsonCoverageReport = testConfig.jsonCoverageReport.replace('${module}', name + '_browser');
+         fs.outputFileSync(`./testConfig_${name}.json`, JSON.stringify(cfg, null, 4));
+         return this._execute(
+            `node node_modules/saby-units/cli.js --browser --report --config="./testConfig_${name}.json"`,
+            __dirname,
+            true
+         )
+      }
+   }
+
    async _startTest() {
       console.log('Запуск тестов');
       await this._makeTestConfig();
@@ -197,21 +215,7 @@ class Cli {
             __dirname,
             true
          ).then(() => {
-            let cfg = this._repos[name];
-            if (cfg.unitInBrowser) {
-               let cfg = require(`./testConfig_${name}.json`);
-               let testConfig = require('./testConfig.base.json');
-               testConfig = Object.assign({}, testConfig);
-               cfg.report = testConfig.report.replace('${module}', name + '_browser');
-               cfg.htmlCoverageReport = testConfig.htmlCoverageReport.replace('${module}', name + '_browser');
-               cfg.jsonCoverageReport = testConfig.jsonCoverageReport.replace('${module}', name + '_browser');
-               fs.outputFileSync(`./testConfig_${name}.json`, JSON.stringify(cfg, null, 4));
-               return this._execute(
-                  `node node_modules/saby-units/cli.js --browser --report --config="./testConfig_${name}.json"`,
-                  __dirname,
-                  true
-               )
-            }
+            return this._startBrowserTest(name);
          });
       })).then(() => {
          console.log('Закончили тестирование');
