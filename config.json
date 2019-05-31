@@ -30,6 +30,7 @@
          "url": "https://git.sbis.ru/sbis/controls.git",
          "unitInBrowser": true,
          "test": "tests/unit",
+         "dependOn":["ui"],
          "dependTest": ["engine"],
          "modules": ["tests/unit"]
       },
