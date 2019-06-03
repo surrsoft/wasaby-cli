@@ -17,7 +17,7 @@
          "url": "https://platform-git.sbis.ru/saby/I18n.git",
          "test": "test",
          "unitInBrowser": true,
-         "dependTest": ["types", "controls", "router", "ui", "app", "rmi", "engine"]
+         "dependTest": ["types", "controls", "router", "ui", "app", "rmi", "engine", "ws"]
       },
       "ws": {
          "url": "https://git.sbis.ru/sbis/ws.git",
