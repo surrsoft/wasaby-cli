@@ -158,12 +158,12 @@ class Cli {
       }));
    }
 
-   async _linkModules() {
+   async initWorkDir() {
       console.log(`Подготовка тестов`);
-      let builderCfg = path.join(process.cwd(), );
+      let pathToCfg = process.cwd();
       await this._makeBuilderConfig();
       return this._execute(
-         `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${builderCfg}`,
+         `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${pathToCfg}`,
          __dirname,
          true
       ).then(async () => {
@@ -183,15 +183,11 @@ class Cli {
       );
    }
 
-   async initWorkDir() {
-      await this._linkModules();
-   }
-
    _startBrowserTest(name) {
       let cfg = this._repos[name];
       if (cfg.unitInBrowser) {
-         let cfg = require(`./testConfig_${name}.json`);
-         let testConfig = require('./testConfig.base.json');
+         let cfg = fs.readJsonSync(`./testConfig_${name}.json`);
+         let testConfig = fs.readJsonSync('./testConfig.base.json');
          testConfig = Object.assign({}, testConfig);
          cfg.report = testConfig.report.replace('${module}', name + '_browser');
          cfg.htmlCoverageReport = testConfig.htmlCoverageReport.replace('${module}', name + '_browser');
@@ -220,12 +216,6 @@ class Cli {
       })).then(() => {
          console.log('Закончили тестирование');
       });
-   }
-
-   _initWorkDir() {
-      if (!path.existsSync(this._workDir)) {
-         fs.mkdirSync(this._workDir);
-      }
    }
 
    async initStore() {
