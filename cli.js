@@ -113,7 +113,18 @@ class Cli {
 
    _makeBuilderConfig() {
       let builderConfig = require('./builderConfig.base.json');
-      this._testList.forEach((name) => {
+      let testList = this._testList;
+      testList.forEach((name) => {
+         const cfg = this._repos[name];
+         if (cfg.dependOn) {
+            cfg.dependOn.forEach((name) => {
+               if (!testList.includes(name)) {
+                  testList.push(name)
+               }
+            });
+         }
+      });
+      testList.forEach((name) => {
          builderConfig.modules.push({
             name: name + '_test',
             path: ['.', this._store, name, name + '_test'].join('/')
@@ -133,6 +144,7 @@ class Cli {
                }
             }
          });
+
       });
 
       return fs.outputFile(`./${builderConfigName}`, JSON.stringify(builderConfig, null, 4));
