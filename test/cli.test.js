@@ -368,7 +368,7 @@ describe('CLI', () => {
             return process;
          });
          stubConsole = sinon.stub(console, 'log').callsFake((log) => {
-            chai.expect(log).to.equal('123321');
+            chai.expect(log).to.equal('ttttt');
             done();
          });
          cli._execute('help', 'path');

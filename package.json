@@ -10,10 +10,11 @@
   "author": "",
   "dependencies": {
     "fs-extra": "^7.0.1",
-    "shelljs": "^0.8.3",
+    "p-map": "^2.1.0",
+    "saby-typescript": "git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-19.400",
     "saby-units": "git+https://platform-git.sbis.ru/saby/Units.git#rc-19.400",
     "sbis3-builder": "git+https://platform-git.sbis.ru/saby/Builder.git#rc-19.400",
-    "saby-typescript": "git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-19.400"
+    "shelljs": "^0.8.3"
   },
   "saby-units": {
     "moduleType": "amd",

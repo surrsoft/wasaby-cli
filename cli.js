@@ -5,6 +5,7 @@ const path = require('path');
 const reposStore = '_repos';
 const repModulesMap = new Map();
 const builderConfigName = 'builderConfig.json';
+const pMap = require('p-map');
 
 function walkDir(dir, callback, rootDir) {
    rootDir = rootDir || dir;
@@ -204,9 +205,9 @@ class Cli {
          cfg.report = testConfig.report.replace('${module}', name + '_browser');
          cfg.htmlCoverageReport = testConfig.htmlCoverageReport.replace('${module}', name + '_browser');
          cfg.jsonCoverageReport = testConfig.jsonCoverageReport.replace('${module}', name + '_browser');
-         fs.outputFileSync(`./testConfig_${name}.json`, JSON.stringify(cfg, null, 4));
+         fs.outputFileSync(`./testConfig_${name}_browser.json`, JSON.stringify(cfg, null, 4));
          return this._execute(
-            `node node_modules/saby-units/cli.js --browser --report --config="./testConfig_${name}.json"`,
+            `node node_modules/saby-units/cli.js --browser --report --config="./testConfig_${name}_browser.json"`,
             __dirname,
             true
          )
@@ -217,15 +218,18 @@ class Cli {
       console.log('Запуск тестов');
       await this._makeTestConfig();
       await this._tslibInstall();
-      await Promise.all(this._testList.map((name) => {
-         return this._execute(
-            `node node_modules/saby-units/cli.js --isolated --report --config="./testConfig_${name}.json"`,
-            __dirname,
-            true
-         ).then(() => {
-            return this._startBrowserTest(name);
-         });
-      }));
+      await pMap(this._testList, (name) => {
+         return Promise.all([
+            this._execute(
+               `node node_modules/saby-units/cli.js --isolated --report --config="./testConfig_${name}.json"`,
+               __dirname,
+               true
+            ),
+            this._startBrowserTest(name)
+         ]);
+      },{
+         concurrency: 4
+      });
    }
 
    async initStore() {
