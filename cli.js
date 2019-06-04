@@ -159,7 +159,7 @@ class Cli {
 
    async initWorkDir() {
       console.log(`Подготовка тестов`);
-      let pathToCfg = process.cwd();
+      let pathToCfg = path.join(process.cwd(), 'builderConfig.json');
       try {
          await this._makeBuilderConfig();
          await this._execute(
