@@ -40,21 +40,20 @@ class Cli {
       }
    }
 
-   run() {
-      this.initStore()
-         .then(
-            this.initWorkDir.bind(this)
-         ).then(
-            this._startTest.bind(this)
-         ).catch((e) => {
-            this._closeChildProcess().then(() => {
-               console.log(`Тестирование завершено с ошибкой ${e}`);
-            });
-         });
+   async run() {
+      try {
+         await this.initStore();
+         await this.initWorkDir();
+         await this.startTest();
+         console.log('Закончили тестирование');
+      } catch(e) {
+         await this._closeChildProcess();
+         console.log(`Тестирование завершено с ошибкой ${e}`);
+      }
    }
 
-   _closeChildProcess() {
-      return Promise.all(this._childProcessMap.map((process) => {
+   async _closeChildProcess() {
+      await Promise.all(this._childProcessMap.map((process) => {
          return new Promise((resolve) => {
             process.on('close', () => {
                resolve();
@@ -161,18 +160,19 @@ class Cli {
    async initWorkDir() {
       console.log(`Подготовка тестов`);
       let pathToCfg = process.cwd();
-      await this._makeBuilderConfig();
-      return this._execute(
-         `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${pathToCfg}`,
-         __dirname,
-         true
-      ).then(async () => {
+      try {
+         await this._makeBuilderConfig();
+         await this._execute(
+            `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${pathToCfg}`,
+            __dirname,
+            true
+         );
          this._copyUnit();
          await this._linkFolder();
          console.log(`Подготовка тестов завершена успешно`);
-      }).catch((e) => {
+      } catch(e) {
          throw new Error(`Подготовка тестов завершена с ошибкой ${e}`);
-      });
+      }
    }
 
    _tslibInstall() {
@@ -201,11 +201,11 @@ class Cli {
       }
    }
 
-   async _startTest() {
+   async startTest() {
       console.log('Запуск тестов');
       await this._makeTestConfig();
       await this._tslibInstall();
-      return Promise.all(this._testList.map((name) => {
+      await Promise.all(this._testList.map((name) => {
          return this._execute(
             `node node_modules/saby-units/cli.js --isolated --report --config="./testConfig_${name}.json"`,
             __dirname,
@@ -213,9 +213,7 @@ class Cli {
          ).then(() => {
             return this._startBrowserTest(name);
          });
-      })).then(() => {
-         console.log('Закончили тестирование');
-      });
+      }));
    }
 
    async initStore() {
@@ -225,21 +223,18 @@ class Cli {
          await fs.remove('builder-ui');
          await fs.remove(this._store);
          await fs.mkdirs(path.join(this._store, reposStore));
-      } catch (e) {
-         console.error(e.message);
-      }
-      return Promise.all(Object.keys(this._repos).map((name) => {
-         if (!fs.existsSync(path.join(this._store, name))) {
-            return this.initRepStore(name)
-               .then(
-                  this.copy.bind(this, name)
-               );
-         }
-      })).then(() => {
+         await Promise.all(Object.keys(this._repos).map((name) => {
+            if (!fs.existsSync(path.join(this._store, name))) {
+               return this.initRepStore(name)
+                  .then(
+                     this.copy.bind(this, name)
+                  );
+            }
+         }));
          console.log(`Инициализация хранилища завершена успешно`);
-      }).catch((e) => {
+      } catch (e) {
          throw new Error(`Инициализация хранилища завершена с ошибкой ${e}`);
-      });
+      }
    }
 
    async _linkFolder() {
@@ -269,7 +264,6 @@ class Cli {
          if (this._getModuleNameByPath(module) == 'unit') {
             this._unitModules.push(path.join(reposPath, module));
          } else {
-
             return fs.ensureSymlink(path.join(reposPath, module), path.join(this._store, name, 'module', this._getModuleNameByPath(module))).catch((e) => {
                throw new Error(`Ошибка при копировании репозитория ${name}: ${e}`);
             });
@@ -278,21 +272,22 @@ class Cli {
    }
 
    async checkout(name, checkoutBranch, pathToRepos) {
+      if (!checkoutBranch) {
+         throw new Error(`Не удалось определить ветку для репозитория ${name}`);
+      }
       try {
-         if (!checkoutBranch) {
-            throw new Error(`Не удалось определить ветку для репозитория ${name}`);
-         }
          console.log(`Переключение на ветку ${checkoutBranch} для репозитория ${name}`);
-         return this._execute(`git checkout ${checkoutBranch} `, pathToRepos).then(() => {
-            if (name === this._testModule) {
-               console.log(`Попытка смержить ветку "${checkoutBranch}" для репозитория "${name}" с "${this._rc}"`);
-               return this._execute(`git merge origin/${this._rc}`, pathToRepos).catch(() => {
-                  throw new Error(`При мерже "${checkoutBranch}" в "${this._rc}" произошел конфликт`);
-               });
-            }
-         });
+         await this._execute(`git checkout ${checkoutBranch}`, pathToRepos);
       } catch (err) {
          throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${e}`);
+      }
+      if (name === this._testModule) {
+         console.log(`Попытка смержить ветку "${checkoutBranch}" для репозитория "${name}" с "${this._rc}"`);
+         try {
+            await this._execute(`git merge origin/${this._rc}`, pathToRepos);
+         } catch (e) {
+            throw new Error(`При мерже "${checkoutBranch}" в "${this._rc}" произошел конфликт`);
+         }
       }
    }
 
@@ -312,7 +307,7 @@ class Cli {
       try {
          console.log(`Копирование репозитория ${name}`);
 
-         return fs.ensureSymlink(pathToOriginal, path.join(this._store, reposStore, name));
+         await fs.ensureSymlink(pathToOriginal, path.join(this._store, reposStore, name));
       } catch (err) {
          throw new Error(`Ошибка при копировании репозитория ${name}: ${err}`);
       }
