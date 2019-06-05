@@ -1,7 +1,6 @@
 {
    "moduleType": "amd",
    "root": "application",
-   "tests": "unit",
    "patchedRequire": true,
    "report": "./application/artifacts/${module}/xunit-report.xml",
    "htmlCoverageReport": "./application/artifacts/${module}/coverage/index.html",

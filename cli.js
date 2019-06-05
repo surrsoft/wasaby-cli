@@ -3,11 +3,9 @@ const shell = require('shelljs');
 const CONFIG = 'config.json';
 const path = require('path');
 const reposStore = '_repos';
-const argvOptions = {
-   rc: false,
-   branch: false,
-   rep: false
-};
+const repModulesMap = new Map();
+const builderConfigName = 'builderConfig.json';
+const pMap = require('p-map');
 
 function walkDir(dir, callback, rootDir) {
    rootDir = rootDir || dir;
@@ -19,16 +17,21 @@ function walkDir(dir, callback, rootDir) {
    });
 };
 
-class cli {
+class Cli {
    constructor() {
       let config = this.readConfig();
       this._repos = config.repositories;
       this._store = config.store;
       this._workDir = config.workDir;
+
       this._argvOptions = this._getArgvOptions();
       this._testBranch = this._argvOptions.branch || this._argvOptions.rc || '';
       this._testModule = this._argvOptions.rep;
       this._rc = this._argvOptions.rc;
+      if (!this._testModule) {
+         throw new Error('Параметр --rep не передан');
+      }
+
       this._testList = [this._testModule];
       this._unitModules = [];
       let cfg = this._repos[this._testModule];
@@ -36,23 +39,22 @@ class cli {
       if (cfg.dependTest) {
          this._testList = this._testList.concat(cfg.dependTest);
       }
-      if (!this._testModule) {
-         throw new Error('Параметр --rep не передан');
-      }
-      this.initStore()
-         .then(
-            this.initWorkDir.bind(this)
-         ).then(
-            this._startTest.bind(this)
-         ).catch((e) => {
-            this._closeChildProcess().then(() => {
-               console.log(`Тестирование завершено с ошибкой ${e}`);
-            });
-         });
    }
 
-   _closeChildProcess() {
-      return Promise.all(this._childProcessMap.map((process) => {
+   async run() {
+      try {
+         await this.initStore();
+         await this.initWorkDir();
+         await this.startTest();
+         console.log('Закончили тестирование');
+      } catch(e) {
+         await this._closeChildProcess();
+         console.log(`Тестирование завершено с ошибкой ${e}`);
+      }
+   }
+
+   async _closeChildProcess() {
+      await Promise.all(this._childProcessMap.map((process) => {
          return new Promise((resolve) => {
             process.on('close', () => {
                resolve();
@@ -70,7 +72,7 @@ class cli {
    }
 
    _getArgvOptions() {
-      let options = Object.assign({}, argvOptions);
+      let options = {};
       process.argv.slice(2).forEach(arg => {
          if (arg.startsWith('--')) {
             let argName = arg.substr(2);
@@ -82,6 +84,18 @@ class cli {
    }
 
    _getModulesByRepName(name) {
+      if (repModulesMap.has(name)) {
+         return repModulesMap.get(name);
+      }
+
+      const cfg = this._repos[name];
+      let modules = this._findModulesInRepDir(name).concat(cfg.modules || []);
+      repModulesMap.set(name, modules);
+
+      return modules;
+   }
+
+   _findModulesInRepDir(name) {
       let s3mods = [];
       let modulesDir = this._repos[name].modulesDir || '';
       walkDir(path.join(this._store, reposStore, name, modulesDir), (filePath) => {
@@ -97,6 +111,7 @@ class cli {
       });
       return s3mods;
    }
+
    _makeBuilderConfig() {
       let builderConfig = require('./builderConfig.base.json');
       let testList = this._testList;
@@ -116,9 +131,10 @@ class cli {
             path: ['.', this._store, name, name + '_test'].join('/')
          });
 
-         const cfg = this._repos[name];
-         cfg.modules.forEach((modulePath) => {
-            const moduleName = this._getModuleName(modulePath);
+         const modules = this._getModulesByRepName(name);
+
+         modules.forEach((modulePath) => {
+            const moduleName = this._getModuleNameByPath(modulePath);
             if (moduleName !== 'unit') {
                const isNameInConfig = builderConfig.modules.find((item) => (item.name == moduleName));
                if (!isNameInConfig) {
@@ -132,10 +148,10 @@ class cli {
 
       });
 
-      return fs.outputFile('./builderConfig.json', JSON.stringify(builderConfig, null, 4));
+      return fs.outputFile(`./${builderConfigName}`, JSON.stringify(builderConfig, null, 4));
    }
 
-   _getModuleName(module) {
+   _getModuleNameByPath(module) {
       return module.includes('/') ? module.split('/').pop() : module.split('\\').pop();
    }
 
@@ -154,66 +170,66 @@ class cli {
       }));
    }
 
-   async _linkModules() {
+   async initWorkDir() {
       console.log(`Подготовка тестов`);
-      let builderCfg = path.join(process.cwd(), 'builderConfig.json');
-      await this._makeBuilderConfig();
-      return this._execute(
-         `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${builderCfg}`,
-         __dirname,
-         true
-      ).then(async () => {
+      let pathToCfg = path.join(process.cwd(), 'builderConfig.json');
+      try {
+         await this._makeBuilderConfig();
+         await this._execute(
+            `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${pathToCfg}`,
+            __dirname,
+            true
+         );
          this._copyUnit();
          await this._linkFolder();
          console.log(`Подготовка тестов завершена успешно`);
-      }).catch((e) => {
+      } catch(e) {
          throw new Error(`Подготовка тестов завершена с ошибкой ${e}`);
-      });
+      }
    }
 
    _tslibInstall() {
-      return this._execute(`node node_modules/saby-typescript/install.js --tslib=application/WS.Core/ext/tslib.js`, __dirname, true);
+      return this._execute(
+         `node node_modules/saby-typescript/install.js --tslib=application/WS.Core/ext/tslib.js`,
+         __dirname,
+         true
+      );
    }
 
-   async initWorkDir() {
-      await this._linkModules();
+   _startBrowserTest(name) {
+      let cfg = this._repos[name];
+      if (cfg.unitInBrowser) {
+         let cfg = fs.readJsonSync(`./testConfig_${name}.json`);
+         let testConfig = fs.readJsonSync('./testConfig.base.json');
+         testConfig = Object.assign({}, testConfig);
+         cfg.report = testConfig.report.replace('${module}', name + '_browser');
+         cfg.htmlCoverageReport = testConfig.htmlCoverageReport.replace('${module}', name + '_browser');
+         cfg.jsonCoverageReport = testConfig.jsonCoverageReport.replace('${module}', name + '_browser');
+         fs.outputFileSync(`./testConfig_${name}_browser.json`, JSON.stringify(cfg, null, 4));
+         return this._execute(
+            `node node_modules/saby-units/cli.js --browser --report --config="./testConfig_${name}_browser.json"`,
+            __dirname,
+            true
+         )
+      }
    }
 
-   async _startTest() {
+   async startTest() {
       console.log('Запуск тестов');
       await this._makeTestConfig();
       await this._tslibInstall();
-      return Promise.all(this._testList.map((name) => {
-         return this._execute(
-            `node node_modules/saby-units/cli.js --isolated --report --config="./testConfig_${name}.json"`,
-            __dirname,
-            true
-         ).then(() => {
-            let cfg = this._repos[name];
-            if (cfg.unitInBrowser) {
-               let cfg = require(`./testConfig_${name}.json`);
-               let testConfig = require('./testConfig.base.json');
-               testConfig = Object.assign({}, testConfig);
-               cfg.report = testConfig.report.replace('${module}', name + '_browser');
-               cfg.htmlCoverageReport = testConfig.htmlCoverageReport.replace('${module}', name + '_browser');
-               cfg.jsonCoverageReport = testConfig.jsonCoverageReport.replace('${module}', name + '_browser');
-               fs.outputFileSync(`./testConfig_${name}.json`, JSON.stringify(cfg, null, 4));
-               return this._execute(
-                  `node node_modules/saby-units/cli.js --browser --report --config="./testConfig_${name}.json"`,
-                  __dirname,
-                  true
-               )
-            }
-         });
-      })).then(() => {
-         console.log('Закончили тестирование');
+      await pMap(this._testList, (name) => {
+         return Promise.all([
+            this._execute(
+               `node node_modules/saby-units/cli.js --isolated --report --config="./testConfig_${name}.json"`,
+               __dirname,
+               true
+            ),
+            this._startBrowserTest(name)
+         ]);
+      },{
+         concurrency: 4
       });
-   }
-
-   _initWorkDir() {
-      if (!path.existsSync(this._workDir)) {
-         fs.mkdirSync(this._workDir);
-      }
    }
 
    async initStore() {
@@ -223,22 +239,18 @@ class cli {
          await fs.remove('builder-ui');
          await fs.remove(this._store);
          await fs.mkdirs(path.join(this._store, reposStore));
-      } catch (e) {
-         console.error(e.message);
-      }
-      return Promise.all(Object.keys(this._repos).map((name) => {
-         if (!fs.existsSync(path.join(this._store, name))) {
-            return this.initRepos(name)
-               .then(
-                  this.copy.bind(this, name)
-               );
-            return this.copy(name);
-         }
-      })).then(() => {
+         await Promise.all(Object.keys(this._repos).map((name) => {
+            if (!fs.existsSync(path.join(this._store, name))) {
+               return this.initRepStore(name)
+                  .then(
+                     this.copy.bind(this, name)
+                  );
+            }
+         }));
          console.log(`Инициализация хранилища завершена успешно`);
-      }).catch((e) => {
+      } catch (e) {
          throw new Error(`Инициализация хранилища завершена с ошибкой ${e}`);
-      });
+      }
    }
 
    async _linkFolder() {
@@ -261,15 +273,14 @@ class cli {
       if (cfg.test) {
          await fs.ensureSymlink(path.join(reposPath, cfg.test), path.join(this._store, name, name + '_test'));
       }
-      cfg.modules = this._getModulesByRepName(name).concat(cfg.modules || []);
-      let d = cfg.modules.filter((a, index) => {return  cfg.modules.indexOf(a) != index});
-      return Promise.all(cfg.modules.map((module => {
+      const modules = this._getModulesByRepName(name);
+
+      return Promise.all(modules.map((module => {
          console.log(`копирование модуля ${name}/${module}`);
-         if (this._getModuleName(module) == 'unit') {
+         if (this._getModuleNameByPath(module) == 'unit') {
             this._unitModules.push(path.join(reposPath, module));
          } else {
-
-            return fs.ensureSymlink(path.join(reposPath, module), path.join(this._store, name, 'module', this._getModuleName(module))).catch((e) => {
+            return fs.ensureSymlink(path.join(reposPath, module), path.join(this._store, name, 'module', this._getModuleNameByPath(module))).catch((e) => {
                throw new Error(`Ошибка при копировании репозитория ${name}: ${e}`);
             });
          }
@@ -277,25 +288,26 @@ class cli {
    }
 
    async checkout(name, checkoutBranch, pathToRepos) {
+      if (!checkoutBranch) {
+         throw new Error(`Не удалось определить ветку для репозитория ${name}`);
+      }
       try {
-         if (!checkoutBranch) {
-            throw new Error(`Не удалось определить ветку для репозитория ${name}`);
-         }
          console.log(`Переключение на ветку ${checkoutBranch} для репозитория ${name}`);
-         return this._execute(`git checkout ${checkoutBranch} `, pathToRepos).then(() => {
-            if (name === this._testModule) {
-               console.log(`Попытка смержить ветку "${checkoutBranch}" для репозитория "${name}" с "${this._rc}"`);
-               return this._execute(`git merge origin/${this._rc}`, pathToRepos).catch(() => {
-                  throw new Error(`При мерже "${checkoutBranch}" в "${this._rc}" произошел конфликт`);
-               });
-            }
-         });
+         await this._execute(`git checkout ${checkoutBranch}`, pathToRepos);
       } catch (err) {
          throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${e}`);
       }
+      if (name === this._testModule) {
+         console.log(`Попытка смержить ветку "${checkoutBranch}" для репозитория "${name}" с "${this._rc}"`);
+         try {
+            await this._execute(`git merge origin/${this._rc}`, pathToRepos);
+         } catch (e) {
+            throw new Error(`При мерже "${checkoutBranch}" в "${this._rc}" произошел конфликт`);
+         }
+      }
    }
 
-   async cloneRepos(name) {
+   async cloneRepToStore(name) {
       try {
          console.log(`git clone ${this._repos[name].url}`);
 
@@ -307,26 +319,34 @@ class cli {
       }
    }
 
-   async copyRepos(pathToOriginal, name) {
+   async copyRepToStore(pathToOriginal, name) {
       try {
          console.log(`Копирование репозитория ${name}`);
 
-         return fs.ensureSymlink(pathToOriginal, path.join(this._store, reposStore, name));
+         await fs.ensureSymlink(pathToOriginal, path.join(this._store, reposStore, name));
       } catch (err) {
          throw new Error(`Ошибка при копировании репозитория ${name}: ${err}`);
       }
    }
 
-   async initRepos(name) {
+   async initRepStore(name) {
       if (this._argvOptions[name]) {
          if (fs.existsSync(this._argvOptions[name])) {
-            return this.copyRepos(this._argvOptions[name], name);
+            return this.copyRepToStore(this._argvOptions[name], name);
          } else {
-            return this.checkout(name, this._argvOptions[name], await this.cloneRepos(name, this._argvOptions[name]));
+            return this.checkout(
+               name,
+               this._argvOptions[name],
+               await this.cloneRepToStore(name, this._argvOptions[name])
+            );
          }
       } else {
          const branch = name === this._testModule ? this._testBranch : this._rc;
-         return this.checkout(name, branch, await this.cloneRepos(name));
+         return this.checkout(
+            name,
+            branch,
+            await this.cloneRepToStore(name)
+         );
       }
    }
 
@@ -367,6 +387,12 @@ class cli {
    };
 }
 
-new cli();
+module.exports = Cli;
+
+if (require.main.filename === __filename) {
+   let cli = new Cli();
+   cli.run()
+}
+
 
 
