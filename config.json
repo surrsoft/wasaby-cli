@@ -6,7 +6,7 @@
          "url": "https://git.sbis.ru/sbis/engine.git",
          "unitInBrowser": true,
          "test": "test/unit",
-         "dependOn":["rmi"],
+         "dependOn":["rmi", "controls", "ui"],
          "modulesDir": "client"
       },
       "types": {
@@ -17,6 +17,7 @@
       "i18n": {
          "url": "https://platform-git.sbis.ru/saby/I18n.git",
          "test": "test",
+         "dependOn":["rmi"],
          "unitInBrowser": true,
          "dependTest": ["types", "controls", "router", "ui", "app", "rmi", "engine", "ws"]
       },
@@ -60,6 +61,7 @@
          "url": "https://platform-git.sbis.ru/saby/ui.git",
          "unitInBrowser": true,
          "dependTest": ["engine"],
+         "dependOn":["controls"],
          "test": "UITest"
       },
       "cdn": {
