@@ -350,7 +350,7 @@ describe('CLI', () => {
             });
             return process;
          });
-         stubConsole = sinon.stub(console, 'log').callsFake((log) => {
+         stubConsole = sinon.stub(cli, 'log').callsFake((log) => {
             chai.expect(log).to.equal('ttttt');
             done();
          });
@@ -367,7 +367,7 @@ describe('CLI', () => {
             });
             return process;
          });
-         stubConsole = sinon.stub(console, 'log').callsFake((log) => {
+         stubConsole = sinon.stub(cli, 'log').callsFake((log) => {
             chai.expect(log).to.equal('ttttt');
             done();
          });
@@ -407,6 +407,33 @@ describe('CLI', () => {
          copySync.restore();
          stubReaddirSync.restore();
          stubStat.restore();
+      });
+   });
+
+   describe('.checkReport()', () => {
+      let stubTestReports, stubexistsSync;
+      it('should throw an error', () => {
+         stubTestReports = sinon.stub(cli, '_testReports').value(['test', 'test1']);
+         stubexistsSync = sinon.stub(fs, 'existsSync').callsFake((name) => {
+            if (name == 'test1') {
+               return false;
+            }
+            return true;
+         });
+
+         chai.expect(() => {cli.checkReport()}).to.throw();
+      });
+      it('should not throw an error', () => {
+         stubTestReports = sinon.stub(cli, '_testReports').value(['test', 'test1']);
+         stubexistsSync = sinon.stub(fs, 'existsSync').callsFake((name) => {
+            return true;
+         });
+
+         chai.expect(() => {cli.checkReport()}).to.not.throw();
+      });
+      afterEach(() => {
+         stubTestReports.restore();
+         stubexistsSync.restore();
       });
    });
    describe('initRepStore', () => {
