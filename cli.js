@@ -23,7 +23,7 @@ class Cli {
       this._repos = config.repositories;
       this._store = config.store;
       this._workDir = config.workDir;
-
+      this._testReports = [];
       this._argvOptions = this._getArgvOptions();
       this._testBranch = this._argvOptions.branch || this._argvOptions.rc || '';
       this._testModule = this._argvOptions.rep;
@@ -46,13 +46,25 @@ class Cli {
          await this.initStore();
          await this.initWorkDir();
          await this.startTest();
+         this.checkReport();
          console.log('Закончили тестирование');
       } catch(e) {
          await this._closeChildProcess();
          console.log(`Тестирование завершено с ошибкой ${e}`);
       }
    }
-
+   async checkReport() {
+      let error = [];
+      this._testReports.forEach(path => {
+         if (!fs.existsSync(path)) {
+            error.push(path);
+         }
+      });
+      if (error) {
+         console.error(`Отчеты отсутствуют тесты не прошли: ${error.join(', ')}`);
+         process.exit(2);
+      }
+   }
    async _closeChildProcess() {
       await Promise.all(this._childProcessMap.map((process) => {
          return new Promise((resolve) => {
@@ -164,6 +176,7 @@ class Cli {
          cfg.url.port = configPorts[i] ? configPorts[i] : port++;
          cfg.tests = name + '_test';
          cfg.report = cfg.report.replace('${module}', name);
+         this._testReports.push(cfg.report);
          cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('${module}', name);
          cfg.jsonCoverageReport = cfg.jsonCoverageReport.replace('${module}', name);
          return fs.outputFile(`./testConfig_${name}.json`, JSON.stringify(cfg, null, 4));
@@ -196,29 +209,36 @@ class Cli {
       );
    }
 
-   _startBrowserTest(name) {
+   async _startBrowserTest(name) {
+      console.log(`Запуск тестов ${name} в браузере`);
       let cfg = this._repos[name];
       if (cfg.unitInBrowser) {
          let cfg = fs.readJsonSync(`./testConfig_${name}.json`);
          let testConfig = fs.readJsonSync('./testConfig.base.json');
          testConfig = Object.assign({}, testConfig);
          cfg.report = testConfig.report.replace('${module}', name + '_browser');
+         this._testReports.push(cfg.report);
          cfg.htmlCoverageReport = testConfig.htmlCoverageReport.replace('${module}', name + '_browser');
          cfg.jsonCoverageReport = testConfig.jsonCoverageReport.replace('${module}', name + '_browser');
          fs.outputFileSync(`./testConfig_${name}_browser.json`, JSON.stringify(cfg, null, 4));
-         return this._execute(
+         await this._execute(
             `node node_modules/saby-units/cli.js --browser --report --config="./testConfig_${name}_browser.json"`,
             __dirname,
             true
-         )
+         );
+         console.log(`тесты ${name} в браузере завершены`);
+         if (!fs.existsSync(cfg.report)) {
+            console.error(`${name}: отсутствует файл отчета ${cfg.report}`);
+         }
       }
    }
 
    async startTest() {
-      console.log('Запуск тестов');
+
       await this._makeTestConfig();
       await this._tslibInstall();
       await pMap(this._testList, (name) => {
+         console.log(`Запуск тестов ${name}`);
          return Promise.all([
             this._execute(
                `node node_modules/saby-units/cli.js --isolated --report --config="./testConfig_${name}.json"`,
@@ -228,7 +248,7 @@ class Cli {
             this._startBrowserTest(name)
          ]);
       },{
-         concurrency: 4
+         concurrency: 1
       });
    }
 
