@@ -60,7 +60,7 @@ class Cli {
             error.push(path);
          }
       });
-      if (error) {
+      if (error.length > 0) {
          console.error(`Отчеты отсутствуют тесты не прошли: ${error.join(', ')}`);
          process.exit(2);
       }
