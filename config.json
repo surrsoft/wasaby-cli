@@ -60,6 +60,7 @@
          "url": "https://platform-git.sbis.ru/saby/ui.git",
          "unitInBrowser": true,
          "dependTest": ["engine"],
+         "dependOn":["controls"],
          "test": "UITest"
       },
       "cdn": {
