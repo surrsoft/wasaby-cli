@@ -350,7 +350,7 @@ describe('CLI', () => {
             });
             return process;
          });
-         stubConsole = sinon.stub(console, 'log').callsFake((log) => {
+         stubConsole = sinon.stub(cli, 'log').callsFake((log) => {
             chai.expect(log).to.equal('ttttt');
             done();
          });
@@ -367,7 +367,7 @@ describe('CLI', () => {
             });
             return process;
          });
-         stubConsole = sinon.stub(console, 'log').callsFake((log) => {
+         stubConsole = sinon.stub(cli, 'log').callsFake((log) => {
             chai.expect(log).to.equal('ttttt');
             done();
          });
@@ -407,6 +407,33 @@ describe('CLI', () => {
          copySync.restore();
          stubReaddirSync.restore();
          stubStat.restore();
+      });
+   });
+
+   describe('.checkReport()', () => {
+      let stubTestReports, stubexistsSync;
+      it('should throw an error', () => {
+         stubTestReports = sinon.stub(cli, '_testReports').value(['test', 'test1']);
+         stubexistsSync = sinon.stub(fs, 'existsSync').callsFake((name) => {
+            if (name == 'test1') {
+               return false;
+            }
+            return true;
+         });
+
+         chai.expect(() => {cli.checkReport()}).to.throw();
+      });
+      it('should not throw an error', () => {
+         stubTestReports = sinon.stub(cli, '_testReports').value(['test', 'test1']);
+         stubexistsSync = sinon.stub(fs, 'existsSync').callsFake((name) => {
+            return true;
+         });
+
+         chai.expect(() => {cli.checkReport()}).to.not.throw();
+      });
+      afterEach(() => {
+         stubTestReports.restore();
+         stubexistsSync.restore();
       });
    });
    describe('initRepStore', () => {
@@ -630,7 +657,7 @@ describe('CLI', () => {
    });
 
    describe('.startTest()', () => {
-      let stubmakeTestConfig, stubtslibInstall, stubstartBrowserTest, stubtestList;
+      let stubmakeTestConfig, stubtslibInstall, stubstartBrowserTest, stubtestList, stubExecute;
       beforeEach(() => {
          stubmakeTestConfig = sinon.stub(cli, '_makeTestConfig').callsFake(() => {
             return Promise.resolve();
@@ -645,21 +672,23 @@ describe('CLI', () => {
       });
       it('should start test', (done) => {
          let commandsArray = [];
-         let stubExecute = sinon.stub(cli, '_execute').callsFake((cmd) => {
+         stubExecute = sinon.stub(cli, '_execute').callsFake((cmd) => {
             commandsArray.push(cmd);
             chai.expect(commandsArray).to.includes('node node_modules/saby-units/cli.js --isolated --report --config="./testConfig_engine.json"');
+
             return Promise.resolve();
          });
-         cli.startTest().finally(() => {
+         cli.startTest().then(() => {
             done();
-            stubExecute.restore();
          });
       });
+
       afterEach(() => {
          stubmakeTestConfig.restore();
          stubtslibInstall.restore();
          stubstartBrowserTest.restore();
          stubtestList.restore();
+         stubExecute && stubExecute.restore();
       });
    });
 

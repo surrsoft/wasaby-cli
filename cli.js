@@ -56,10 +56,10 @@ class Cli {
          await this.initWorkDir();
          await this.startTest();
          this.checkReport();
-         console.log('Закончили тестирование');
+         this.log('Закончили тестирование');
       } catch(e) {
          await this._closeChildProcess();
-         console.log(`Тестирование завершено с ошибкой ${e}`);
+         this.log(`Тестирование завершено с ошибкой ${e}`);
       }
    }
 
@@ -74,8 +74,7 @@ class Cli {
          }
       });
       if (error.length > 0) {
-         console.error(`Отчеты отсутствуют тесты не прошли: ${error.join(', ')}`);
-         process.exit(2);
+         throw new Error(`Отчеты отсутствуют тесты не прошли: ${error.join(', ')}`);
       }
    }
 
@@ -244,7 +243,7 @@ class Cli {
     * @return {Promise<void>}
     */
    async initWorkDir() {
-      console.log(`Подготовка тестов`);
+      this.log(`Подготовка тестов`);
       let pathToCfg = path.join(process.cwd(), 'builderConfig.json');
       try {
          await this._makeBuilderConfig();
@@ -255,7 +254,7 @@ class Cli {
          );
          this._copyUnit();
          await this._linkFolder();
-         console.log(`Подготовка тестов завершена успешно`);
+         this.log(`Подготовка тестов завершена успешно`);
       } catch(e) {
          throw new Error(`Подготовка тестов завершена с ошибкой ${e}`);
       }
@@ -280,7 +279,7 @@ class Cli {
     * @private
     */
    async _startBrowserTest(name) {
-      console.log(`Запуск тестов ${name} в браузере`);
+      this.log(`Запуск тестов ${name} в браузере`);
       let cfg = this._repos[name];
       if (cfg.unitInBrowser) {
          let cfg = fs.readJsonSync(`./testConfig_${name}.json`);
@@ -296,7 +295,7 @@ class Cli {
             __dirname,
             true
          );
-         console.log(`тесты ${name} в браузере завершены`);
+         this.log(`тесты ${name} в браузере завершены`);
          if (!fs.existsSync(cfg.report)) {
             console.error(`${name}: отсутствует файл отчета ${cfg.report}`);
          }
@@ -308,11 +307,10 @@ class Cli {
     * @return {Promise<void>}
     */
    async startTest() {
-
       await this._makeTestConfig();
       await this._tslibInstall();
       await pMap(this._testList, (name) => {
-         console.log(`Запуск тестов ${name}`);
+         this.log(`Запуск тестов ${name}`);
          return Promise.all([
             this._execute(
                `node node_modules/saby-units/cli.js --isolated --report --config="./testConfig_${name}.json"`,
@@ -322,7 +320,7 @@ class Cli {
             this._startBrowserTest(name)
          ]);
       },{
-         concurrency: 1
+         concurrency: 4
       });
    }
 
@@ -331,7 +329,7 @@ class Cli {
     * @return {Promise<void>}
     */
    async initStore() {
-      console.log(`Инициализация хранилища`);
+      this.log(`Инициализация хранилища`);
       try {
          await fs.remove(this._workDir);
          await fs.remove('builder-ui');
@@ -345,7 +343,7 @@ class Cli {
                   );
             }
          }));
-         console.log(`Инициализация хранилища завершена успешно`);
+         this.log(`Инициализация хранилища завершена успешно`);
       } catch (e) {
          throw new Error(`Инициализация хранилища завершена с ошибкой ${e}`);
       }
@@ -384,7 +382,7 @@ class Cli {
       const modules = this._getModulesByRepName(name);
 
       return Promise.all(modules.map((module => {
-         console.log(`копирование модуля ${name}/${module}`);
+         this.log(`копирование модуля ${name}/${module}`);
          if (this._getModuleNameByPath(module) == 'unit') {
             this._unitModules.push(path.join(reposPath, module));
          } else {
@@ -407,13 +405,13 @@ class Cli {
          throw new Error(`Не удалось определить ветку для репозитория ${name}`);
       }
       try {
-         console.log(`Переключение на ветку ${checkoutBranch} для репозитория ${name}`);
+         this.log(`Переключение на ветку ${checkoutBranch} для репозитория ${name}`);
          await this._execute(`git checkout ${checkoutBranch}`, pathToRepos);
       } catch (err) {
          throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${e}`);
       }
       if (name === this._testModule) {
-         console.log(`Попытка смержить ветку "${checkoutBranch}" для репозитория "${name}" с "${this._rc}"`);
+         this.log(`Попытка смержить ветку "${checkoutBranch}" для репозитория "${name}" с "${this._rc}"`);
          try {
             await this._execute(`git merge origin/${this._rc}`, pathToRepos);
          } catch (e) {
@@ -429,7 +427,7 @@ class Cli {
     */
    async cloneRepToStore(name) {
       try {
-         console.log(`git clone ${this._repos[name].url}`);
+         this.log(`git clone ${this._repos[name].url}`);
 
          await this._execute(`git clone ${this._repos[name].url} ${name}`, path.join(this._store, reposStore));
 
@@ -447,7 +445,7 @@ class Cli {
     */
    async copyRepToStore(pathToOriginal, name) {
       try {
-         console.log(`Копирование репозитория ${name}`);
+         this.log(`Копирование репозитория ${name}`);
 
          await fs.ensureSymlink(pathToOriginal, path.join(this._store, reposStore, name));
       } catch (err) {
@@ -506,11 +504,11 @@ class Cli {
          });
          this._childProcessMap.push(cloneProcess);
          cloneProcess.stdout.on('data', (data) => {
-            console.log(data);
+            this.log(data);
          });
 
          cloneProcess.stderr.on('data', (data) => {
-            console.log(data);
+            this.log(data);
          });
 
          cloneProcess.on('exit', (code) => {
@@ -530,7 +528,10 @@ module.exports = Cli;
 if (require.main.filename === __filename) {
    //Если файл запущен напрямую запускаем тестирование
    let cli = new Cli();
-   cli.run()
+   cli.run().catch((e) => {
+      console.error(e);
+      process.exit(2);
+   })
 }
 
 
