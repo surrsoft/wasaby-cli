@@ -32,18 +32,36 @@ class Cli {
       this._argvOptions = this._getArgvOptions();
       this._testBranch = this._argvOptions.branch || this._argvOptions.rc || '';
       this._testModule = this._argvOptions.rep;
+      this._unitModules = [];
+      this._childProcessMap = [];
       this._rc = this._argvOptions.rc;
+
       if (!this._testModule) {
          throw new Error('Параметр --rep не передан');
       }
 
-      this._testList = [this._testModule];
-      this._unitModules = [];
-      let cfg = this._repos[this._testModule];
-      this._childProcessMap = [];
-      if (cfg.dependTest) {
-         this._testList = this._testList.concat(cfg.dependTest);
+      this._testList = this._getTestList(this._testModule);
+   }
+
+   /**
+    * Возвращает список репозиториев для тестирования
+    * @param {String} name - название репозитория в конфиге или all - в этом случае вернет все модули
+    * @return {Array}
+    * @private
+    */
+   _getTestList(name) {
+      if (name !== 'all') {
+         let tests = [name];
+         let cfg = this._repos[name];
+
+         if (cfg.dependTest) {
+            tests = tests.concat(cfg.dependTest);
+         }
+         return tests;
       }
+      return Object.keys(this._repos).filter((name) => {
+         return !!this._repos[name].test;
+      });
    }
 
    /**
@@ -320,7 +338,7 @@ class Cli {
             this._startBrowserTest(name)
          ]);
       },{
-         concurrency: 4
+         concurrency: 1
       });
    }
 
@@ -493,9 +511,22 @@ class Cli {
       });
    }
 
+   /**
+    * Выводит сообщение в лог
+    * @param {String} message
+    */
    log(message) {
       console.log(message);
    }
+
+   /**
+    * Выполняет команду shell
+    * @param {String} command - текст команды
+    * @param {String} path - путь по которому надо выполнить команду
+    * @param {Boolean} force - если true в случае ошибки вернет промис resolve
+    * @return {Promise<any>}
+    * @private
+    */
    _execute(command, path, force) {
       return new Promise((resolve, reject) => {
          const cloneProcess = shell.exec(`cd ${path} && ${command}`, {
