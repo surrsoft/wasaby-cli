@@ -993,4 +993,35 @@ describe('CLI', () => {
          stubExecute.restore();
       })
    });
+
+   describe('._getTestList()', () => {
+      let stubrepos;
+      beforeEach(() => {
+         stubrepos = sinon.stub(cli, '_repos').value( {
+            test1: {
+               test: 'path'
+            },
+            test2: {
+               test: 'path',
+               dependTest: 'test1'
+            },
+            test3: {}
+         });
+      });
+      it('should return all test', () => {
+         chai.expect(cli._getTestList('all')).to.deep.equal(['test1', 'test2']);
+      });
+
+      it('should return test list for test1', () => {
+         chai.expect(cli._getTestList('test1')).to.deep.equal(['test1']);
+      });
+
+      it('should return test list for test with depend test', () => {
+         chai.expect(cli._getTestList('test2')).to.deep.equal(['test2', 'test1']);
+      });
+
+      afterEach(() => {
+         stubrepos.restore();
+      })
+   });
 });

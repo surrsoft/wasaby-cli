@@ -17,6 +17,11 @@ function walkDir(dir, callback, rootDir) {
    });
 };
 
+/**
+ * Модуль для запуска юнит тестов
+ * @class Cli
+ * @author Ганшин Я.О.
+ */
 class Cli {
    constructor() {
       let config = this.readConfig();
@@ -27,20 +32,42 @@ class Cli {
       this._argvOptions = this._getArgvOptions();
       this._testBranch = this._argvOptions.branch || this._argvOptions.rc || '';
       this._testModule = this._argvOptions.rep;
+      this._unitModules = [];
+      this._childProcessMap = [];
       this._rc = this._argvOptions.rc;
+
       if (!this._testModule) {
          throw new Error('Параметр --rep не передан');
       }
 
-      this._testList = [this._testModule];
-      this._unitModules = [];
-      let cfg = this._repos[this._testModule];
-      this._childProcessMap = [];
-      if (cfg.dependTest) {
-         this._testList = this._testList.concat(cfg.dependTest);
-      }
+      this._testList = this._getTestList(this._testModule);
    }
 
+   /**
+    * Возвращает список репозиториев для тестирования
+    * @param {String} name - название репозитория в конфиге или all - в этом случае вернет все модули
+    * @return {Array}
+    * @private
+    */
+   _getTestList(name) {
+      if (name !== 'all') {
+         let tests = [name];
+         let cfg = this._repos[name];
+
+         if (cfg.dependTest) {
+            tests = tests.concat(cfg.dependTest);
+         }
+         return tests;
+      }
+      return Object.keys(this._repos).filter((name) => {
+         return !!this._repos[name].test;
+      });
+   }
+
+   /**
+    * Запускает сборку юнит тестов
+    * @return {Promise<void>}
+    */
    async run() {
       try {
          await this.initStore();
@@ -53,6 +80,10 @@ class Cli {
          this.log(`Тестирование завершено с ошибкой ${e}`);
       }
    }
+
+   /**
+    * Проверяет наличие отчетов по юнит тестам, если какого-то отчета нет кидает ошибку
+    */
    checkReport() {
       let error = [];
       this._testReports.forEach(path => {
@@ -64,6 +95,12 @@ class Cli {
          throw new Error(`Отчеты отсутствуют тесты не прошли: ${error.join(', ')}`);
       }
    }
+
+   /**
+    * Закрвыает все дочерние процессы
+    * @return {Promise<void>}
+    * @private
+    */
    async _closeChildProcess() {
       await Promise.all(this._childProcessMap.map((process) => {
          return new Promise((resolve) => {
@@ -77,11 +114,19 @@ class Cli {
       this._childProcessMap = [];
    }
 
+   /**
+    * Возвращает конфиг
+    * @return {any}
+    */
    readConfig() {
       let data = fs.readFileSync(CONFIG);
       return JSON.parse(data);
    }
 
+   /**
+    * Возвращает опции командной строки
+    * @private
+    */
    _getArgvOptions() {
       let options = {};
       process.argv.slice(2).forEach(arg => {
@@ -94,6 +139,12 @@ class Cli {
       return options;
    }
 
+   /**
+    * возвращает набор интерфейсных модулей из репозитория
+    * @param {String} name - название репозитория в конфиге
+    * @return {Array}
+    * @private
+    */
    _getModulesByRepName(name) {
       if (repModulesMap.has(name)) {
          return repModulesMap.get(name);
@@ -106,6 +157,12 @@ class Cli {
       return modules;
    }
 
+   /**
+    * Ищет модули в репозитории по s3mod
+    * @param {String} name - название репозитория в конфиге
+    * @return {Array}
+    * @private
+    */
    _findModulesInRepDir(name) {
       let s3mods = [];
       let modulesDir = this._repos[name].modulesDir || '';
@@ -123,6 +180,11 @@ class Cli {
       return s3mods;
    }
 
+   /**
+    * Создает конфиг для билдера
+    * @return {Promise<void>}
+    * @private
+    */
    _makeBuilderConfig() {
       let builderConfig = require('./builderConfig.base.json');
       let testList = this._testList;
@@ -162,10 +224,22 @@ class Cli {
       return fs.outputFile(`./${builderConfigName}`, JSON.stringify(builderConfig, null, 4));
    }
 
-   _getModuleNameByPath(module) {
-      return module.includes('/') ? module.split('/').pop() : module.split('\\').pop();
+   /**
+    * возвращает название модуля по пути
+    * @param {String} path
+    * @return {String}
+    * @private
+    */
+   _getModuleNameByPath(path) {
+      return path.includes('/') ? path.split('/').pop() : path.split('\\').pop();
    }
 
+   /**
+    * Создает конфиги для юнит тестов
+    * @param {String} name - название репозитория в конфиге
+    * @return {Promise<[any, ...]>}
+    * @private
+    */
    _makeTestConfig(name) {
       let port = 10025;
       let configPorts = this._argvOptions.ports ? this._argvOptions.ports.split(',') : [];
@@ -182,6 +256,10 @@ class Cli {
       }));
    }
 
+   /**
+    * инициализирует рабочую директорию: запускает билдер, копирует тесты
+    * @return {Promise<void>}
+    */
    async initWorkDir() {
       this.log(`Подготовка тестов`);
       let pathToCfg = path.join(process.cwd(), 'builderConfig.json');
@@ -201,6 +279,10 @@ class Cli {
       }
    }
 
+   /**
+    * копирует tslib
+    * @private
+    */
    _tslibInstall() {
       return this._execute(
          `node node_modules/saby-typescript/install.js --tslib=application/WS.Core/ext/tslib.js`,
@@ -210,6 +292,12 @@ class Cli {
       );
    }
 
+   /**
+    * запускает тесты в браузере
+    * @param {String} name - название репозитория в конфиге
+    * @return {Promise<void>}
+    * @private
+    */
    async _startBrowserTest(name) {
       this.log(`Запуск тестов в браузере`, name);
       let cfg = this._repos[name];
@@ -235,6 +323,10 @@ class Cli {
       }
    }
 
+   /**
+    * Запускает тестирование
+    * @return {Promise<void>}
+    */
    async startTest() {
       await this._makeTestConfig();
       await this._tslibInstall();
@@ -250,10 +342,14 @@ class Cli {
             this._startBrowserTest(name)
          ]);
       },{
-         concurrency: 4
+         concurrency: 1
       });
    }
 
+   /**
+    * инициализация хранилища, клонирует необходимые рапозитории из гита, либо копирует из переданной папки
+    * @return {Promise<void>}
+    */
    async initStore() {
       this.log(`Инициализация хранилища`);
       try {
@@ -275,6 +371,11 @@ class Cli {
       }
    }
 
+   /**
+    * Создает симлинки в рабочей директории, после прогона билдера
+    * @return {Promise<void>}
+    * @private
+    */
    async _linkFolder() {
       for (const name in this._repos) {
          if (this._repos[name].linkFolders) {
@@ -288,6 +389,11 @@ class Cli {
       }
    }
 
+   /**
+    * создает симлинки для модулей
+    * @param {String} name - название репозитория в конфиге
+    * @return {Promise<[any, ...]>}
+    */
    async copy(name) {
       let cfg = this._repos[name];
       let reposPath = path.join(this._store, reposStore, name);
@@ -309,6 +415,13 @@ class Cli {
       })));
    }
 
+   /**
+    * переключает репозиторий на нужную ветку
+    * @param {String} name - название репозитория в конфиге
+    * @param {String} checkoutBranch - ветка на которую нужно переключиться
+    * @param {String} pathToRepos - путь до репозитория
+    * @return {Promise<void>}
+    */
    async checkout(name, checkoutBranch, pathToRepos) {
       if (!checkoutBranch) {
          throw new Error(`Не удалось определить ветку для репозитория ${name}`);
@@ -329,6 +442,11 @@ class Cli {
       }
    }
 
+   /**
+    * Клонирует репозиторий из гита
+    * @param {String} name - название репозитория в конфиге
+    * @return {Promise<*|string>}
+    */
    async cloneRepToStore(name) {
       try {
          this.log(`git clone ${this._repos[name].url}`, name);
@@ -341,6 +459,12 @@ class Cli {
       }
    }
 
+   /**
+    * Копирует репозиторий, если в параметрах запуска передали путь
+    * @param {String} pathToOriginal
+    * @param {String} name - название репозитория в конфиге
+    * @return {Promise<void>}
+    */
    async copyRepToStore(pathToOriginal, name) {
       try {
          this.log(`Копирование репозитория`, name);
@@ -351,6 +475,11 @@ class Cli {
       }
    }
 
+   /**
+    * Инициализация хранилища, клонирует/копирует репозитории переключает на нужные ветки
+    * @param {String} name - название репозитория в конфиге
+    * @return {Promise<void>}
+    */
    async initRepStore(name) {
       if (this._argvOptions[name]) {
          if (fs.existsSync(this._argvOptions[name])) {
@@ -372,6 +501,10 @@ class Cli {
       }
    }
 
+   /**
+    * Копирует юнит тесты
+    * @private
+    */
    _copyUnit() {
       this._unitModules.forEach((source) => {
          walkDir(source, (filePath) => {
@@ -382,12 +515,26 @@ class Cli {
       });
    }
 
+   /**
+    * Выводит сообщение в лог
+    * @param {String} message
+    */
    log(message, name) {
       let date = new Date();
       let time = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}:${date.getMilliseconds()}`;
       name = name ? ' '+name : '';
       console.log(`[${time}]${name}: ${message}`);
    }
+
+   /**
+    * Выполняет команду shell
+    * @param {String} command - текст команды
+    * @param {String} path - путь по которому надо выполнить команду
+    * @param {Boolean} force - если true в случае ошибки вернет промис resolve
+    * @param {String} processName - метка процесса в логах
+    * @return {Promise<any>}
+    * @private
+    */
    _execute(command, path, force, processName) {
       if (typeof force == 'string') {
          processName = force;
@@ -421,6 +568,7 @@ class Cli {
 module.exports = Cli;
 
 if (require.main.filename === __filename) {
+   //Если файл запущен напрямую запускаем тестирование
    let cli = new Cli();
    cli.run().catch((e) => {
       console.error(e);
