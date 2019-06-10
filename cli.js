@@ -190,7 +190,8 @@ class Cli {
          await this._execute(
             `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${pathToCfg}`,
             __dirname,
-            true
+            true,
+            'builder'
          );
          this._copyUnit();
          await this._linkFolder();
@@ -204,12 +205,13 @@ class Cli {
       return this._execute(
          `node node_modules/saby-typescript/install.js --tslib=application/WS.Core/ext/tslib.js`,
          __dirname,
-         true
+         true,
+         'typescriptInstall'
       );
    }
 
    async _startBrowserTest(name) {
-      this.log(`Запуск тестов ${name} в браузере`);
+      this.log(`Запуск тестов в браузере`, name);
       let cfg = this._repos[name];
       if (cfg.unitInBrowser) {
          let cfg = fs.readJsonSync(`./testConfig_${name}.json`);
@@ -223,9 +225,10 @@ class Cli {
          await this._execute(
             `node node_modules/saby-units/cli.js --browser --report --config="./testConfig_${name}_browser.json"`,
             __dirname,
-            true
+            true,
+            `test browser {name}`
          );
-         this.log(`тесты ${name} в браузере завершены`);
+         this.log(`тесты в браузере завершены`, name);
          if (!fs.existsSync(cfg.report)) {
             console.error(`${name}: отсутствует файл отчета ${cfg.report}`);
          }
@@ -236,12 +239,13 @@ class Cli {
       await this._makeTestConfig();
       await this._tslibInstall();
       await pMap(this._testList, (name) => {
-         this.log(`Запуск тестов ${name}`);
+         this.log(`Запуск тестов`, name);
          return Promise.all([
             this._execute(
                `node node_modules/saby-units/cli.js --isolated --report --config="./testConfig_${name}.json"`,
                __dirname,
-               true
+               true,
+               `test ${name}`
             ),
             this._startBrowserTest(name)
          ]);
@@ -294,7 +298,7 @@ class Cli {
       const modules = this._getModulesByRepName(name);
 
       return Promise.all(modules.map((module => {
-         this.log(`копирование модуля ${name}/${module}`);
+         this.log(`копирование модуля ${name}/${module}`, name);
          if (this._getModuleNameByPath(module) == 'unit') {
             this._unitModules.push(path.join(reposPath, module));
          } else {
@@ -310,15 +314,15 @@ class Cli {
          throw new Error(`Не удалось определить ветку для репозитория ${name}`);
       }
       try {
-         this.log(`Переключение на ветку ${checkoutBranch} для репозитория ${name}`);
-         await this._execute(`git checkout ${checkoutBranch}`, pathToRepos);
+         this.log(`Переключение на ветку ${checkoutBranch}`, name);
+         await this._execute(`git checkout ${checkoutBranch}`, pathToRepos, `checkout ${name}`);
       } catch (err) {
          throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${e}`);
       }
       if (name === this._testModule) {
-         this.log(`Попытка смержить ветку "${checkoutBranch}" для репозитория "${name}" с "${this._rc}"`);
+         this.log(`Попытка смержить ветку "${checkoutBranch}" с "${this._rc}"`, name);
          try {
-            await this._execute(`git merge origin/${this._rc}`, pathToRepos);
+            await this._execute(`git merge origin/${this._rc}`, pathToRepos, `merge ${name}`);
          } catch (e) {
             throw new Error(`При мерже "${checkoutBranch}" в "${this._rc}" произошел конфликт`);
          }
@@ -327,9 +331,9 @@ class Cli {
 
    async cloneRepToStore(name) {
       try {
-         this.log(`git clone ${this._repos[name].url}`);
+         this.log(`git clone ${this._repos[name].url}`, name);
 
-         await this._execute(`git clone ${this._repos[name].url} ${name}`, path.join(this._store, reposStore));
+         await this._execute(`git clone ${this._repos[name].url} ${name}`, path.join(this._store, reposStore), `clone ${name}`);
 
          return path.join(this._store, reposStore, name);
       } catch (err) {
@@ -339,7 +343,7 @@ class Cli {
 
    async copyRepToStore(pathToOriginal, name) {
       try {
-         this.log(`Копирование репозитория ${name}`);
+         this.log(`Копирование репозитория`, name);
 
          await fs.ensureSymlink(pathToOriginal, path.join(this._store, reposStore, name));
       } catch (err) {
@@ -378,10 +382,16 @@ class Cli {
       });
    }
 
-   log(message) {
-      console.log(message);
+   log(message, name) {
+      let date = new Date();
+      let time = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}:${date.getMilliseconds()}`;
+      name = name ? ' '+name : '';
+      console.log(`[${time}]${name}: ${message}`);
    }
-   _execute(command, path, force) {
+   _execute(command, path, force, processName) {
+      if (typeof force == 'string') {
+         processName = force;
+      }
       return new Promise((resolve, reject) => {
          const cloneProcess = shell.exec(`cd ${path} && ${command}`, {
             silent: true,
@@ -389,11 +399,11 @@ class Cli {
          });
          this._childProcessMap.push(cloneProcess);
          cloneProcess.stdout.on('data', (data) => {
-            this.log(data);
+            this.log(data, processName);
          });
 
          cloneProcess.stderr.on('data', (data) => {
-            this.log(data);
+            this.log(data, processName);
          });
 
          cloneProcess.on('exit', (code) => {
