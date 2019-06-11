@@ -51,6 +51,7 @@ class Cli {
       } catch(e) {
          await this._closeChildProcess();
          this.log(`Тестирование завершено с ошибкой ${e}`);
+         throw new Error(e);
       }
    }
    checkReport() {
