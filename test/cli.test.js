@@ -963,7 +963,17 @@ describe('CLI', () => {
          stubClose = sinon.stub(cli, '_closeChildProcess').callsFake(() => {
             done();
          });
-         cli.run();
+         cli.run().catch(() => {});
+      });
+
+      it('should throw error when process close with error', (done) => {
+         stubInitStore = sinon.stub(cli, 'initStore').callsFake(() => {
+            return Promise.reject();
+         });
+         stubClose = sinon.stub(cli, '_closeChildProcess').callsFake(() => {});
+         cli.run().catch(() => {
+            done();
+         });
       });
 
       afterEach(() => {
