@@ -39,8 +39,8 @@
       "rmi": {
          "url": "https://git.sbis.ru/sbis/rmi.git",
          "test": "tests/unit",
-         "unitInBrowser": true,
          "dependTest": ["router", "types", "engine"],
+         "unitInBrowser": true,
          "linkFolders": {
             "/tests/unit" : "tests"
          }
