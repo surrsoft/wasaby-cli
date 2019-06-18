@@ -1034,7 +1034,7 @@ describe('CLI', () => {
             }
          });
       });
-      it('should return all test', (done) => {
+      it('should write xml file', (done) => {
          stubFsWrite = sinon.stub(fs, 'writeFileSync').callsFake(function(name, text) {
             chai.expect(text).to.equal('<testsuite><testcase name="test1"></testcase></testsuite>');
             done();
@@ -1048,26 +1048,27 @@ describe('CLI', () => {
       })
    });
 
-   describe('._writeXmlFile()', () => {
-      let stuBuilder, stubFsWrite;
+   describe('.prepareReport()', () => {
+      let stubRead, stubWrite, stubTestReports;
       beforeEach(() => {
-         stuBuilder = sinon.stub(xml2js, 'Builder').callsFake(function() {
-            this.buildObject = function () {
-               return '<testsuite><testcase name="test1"></testcase></testsuite>';
-            }
+         stubWrite = sinon.stub(cli, '_writeXmlFile').callsFake(function() {});
+         stubTestReports = sinon.stub(cli, '_testReports').value(new Map([['name', 'test/path']]));
+         stubRead = sinon.stub(fs, 'readFileSync').callsFake(function() {
+            return '<testsuite><testcase classname="test1"></testcase></testsuite>';
          });
       });
       it('should return all test', (done) => {
-         stubFsWrite = sinon.stub(fs, 'writeFileSync').callsFake(function(name, text) {
-            chai.expect(text).to.equal('<testsuite><testcase name="test1"></testcase></testsuite>');
+         stubWrite.callsFake(function(name, obj) {
+            chai.expect(obj.testsuite.testcase[0].$.classname).to.equal('name: test1');
             done();
          });
-         cli._writeXmlFile('test', {});
+         cli.prepareReport();
       });
 
       afterEach(() => {
-         stuBuilder.restore();
-         stubFsWrite.restore();
-      })
+         stubWrite.restore();
+         stubRead.restore();
+         stubTestReports.restore();
+      });
    });
 });
