@@ -54,11 +54,11 @@ class Cli {
          await this.initWorkDir();
          await this.startTest();
          this.checkReport();
-         this.readReport();
+         this.prepareReport();
          this.log('Закончили тестирование');
       } catch(e) {
          await this._closeChildProcess();
-         this.readReport();
+         this.prepareReport();
          this.log(`Тестирование завершено с ошибкой ${e}`);
          throw new Error(e);
       }
@@ -85,30 +85,38 @@ class Cli {
       });
    }
 
-   _writeXmlFile(filename, obj) {
-      let filepath = path.normalize(path.join(__dirname, filename));
+   /**
+    * Записывает объект в xml файл
+    * @param {string} filePath - Путь до файла
+    * @param {Object} obj - Объект который надо записать
+    * @private
+    */
+   _writeXmlFile(filePath, obj) {
       let builder = new xml2js.Builder();
       let xml = builder.buildObject(obj);
-      fs.writeFileSync(filepath, xml);
+      fs.writeFileSync(filePath, xml);
    }
 
-   readReport() {
-      let artifactsPath = path.join(this._workDir, 'artifacts');
-      let testFileName = 'xunit-report.xml';
+   /**
+    * Дописывает в отчеты название репозитория
+    */
+   prepareReport() {
       this._testReports.forEach((value, name) => {
-         const parser = new xml2js.Parser();
-         let xml_string = fs.readFileSync(value, "utf8");
-         parser.parseString(xml_string, (error, result) => {
-            if(error === null) {
-               result.testsuite.testcase.forEach((item) => {
-                  item.$.classname = `${name}: ` + item.$.classname;
-               });
-               this._writeXmlFile(value, result);
-            }
-            else {
-               this.log(error);
-            }
-         });
+         if (!fs.existsSync(path)) {
+            const parser = new xml2js.Parser();
+            let xml_string = fs.readFileSync(value, "utf8");
+            parser.parseString(xml_string, (error, result) => {
+               if (error === null) {
+                  result.testsuite.testcase.forEach((item) => {
+                     item.$.classname = `${name}: ` + item.$.classname;
+                  });
+                  this._writeXmlFile(value, result);
+               }
+               else {
+                  this.log(error);
+               }
+            });
+         }
       });
    }
 
