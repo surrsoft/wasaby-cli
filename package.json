@@ -16,18 +16,8 @@
     "saby-typescript": "git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-19.400",
     "saby-units": "git+https://platform-git.sbis.ru/saby/Units.git#rc-19.400",
     "sbis3-builder": "git+https://platform-git.sbis.ru/saby/Builder.git#rc-19.400",
-    "shelljs": "^0.8.3"
-  },
-  "saby-units": {
-    "moduleType": "amd",
-    "root": "application",
-    "tests": "unit",
-    "report": "./application/artifacts/xunit-report.xml",
-    "htmlCoverageReport": "./application/artifacts/coverage/index.html",
-    "jsonCoverageReport": "./application/artifacts/coverage.json",
-    "url": {
-      "port": 1025
-    }
+    "shelljs": "^0.8.3",
+    "xml2js": "^0.4.19"
   },
   "devDependencies": {
     "chai": "^4.2.0",
