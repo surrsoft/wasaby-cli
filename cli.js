@@ -50,8 +50,8 @@ class Cli {
     */
    async run() {
       try {
-         //await this.initStore();
-         //await this.initWorkDir();
+         await this.initStore();
+         await this.initWorkDir();
          await this.startTest();
          this.checkReport();
          this.prepareReport();
