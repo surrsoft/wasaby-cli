@@ -3,6 +3,7 @@ const Cli = require('./../cli');
 const sinon = require('sinon');
 const fs = require('fs-extra');
 const path = require('path');
+const xml2js = require('xml2js');
 let cli;
 let stubArgv;
 
@@ -32,15 +33,19 @@ let getProcess = () => {
    }
 };
 
+let stubConsoleLog;
+
 describe('CLI', () => {
    beforeEach(() => {
       stubArgv = sinon.stub(process, 'argv');
       stubArgv.value(['','', '--rep=types', '--branch=200/feature', '--rc=rc-200']);
       cli = new Cli();
+      stubConsoleLog = sinon.stub(cli, 'log').callsFake((log) => {});
    });
 
    afterEach(() => {
       stubArgv.restore();
+      stubConsoleLog.restore();
    });
 
    describe('.constructor()', () => {
@@ -56,7 +61,6 @@ describe('CLI', () => {
          let config = cli.readConfig();
          chai.expect(config).to.be.an('object').to.deep.equal(require('./../config.json'));
       });
-
    });
 
    describe('._getArgvOptions()', () => {
@@ -107,7 +111,7 @@ describe('CLI', () => {
       it('should make a config files for each modules in confing', (done) => {
          let baseConfig = require('../testConfig.base.json');
          let configFiles = {};
-         let stubfs = sinon.stub(fs, 'outputFile').callsFake((fileName, config) => {
+         let stubfs = sinon.stub(fs, 'outputFileSync').callsFake((fileName, config) => {
             configFiles[fileName] = JSON.parse(config);
          });
          stubArgv.value(['','']);
@@ -227,19 +231,6 @@ describe('CLI', () => {
          chai.expect(() => cli._startBrowserTest('test')).to.not.throw();
       });
 
-      it('should make config', (done) => {
-         stubexecute = sinon.stub(cli, '_execute').callsFake(() => {});
-         stubOutputFile = sinon.stub(fs, 'outputFileSync').callsFake((file, config) => {
-            config = JSON.parse(config);
-
-            chai.expect(config.htmlCoverageReport).to.includes('_browser');
-            chai.expect(config.jsonCoverageReport).to.includes('_browser');
-            done();
-         });
-
-         cli._startBrowserTest('test');
-      });
-
       it('should run test', (done) => {
          stubOutputFile = sinon.stub(fs, 'outputFileSync').callsFake(() => {});
          stubexecute = sinon.stub(cli, '_execute').callsFake((cmd) => {
@@ -260,7 +251,7 @@ describe('CLI', () => {
 
    describe('_execute', () => {
       const shell = require('shelljs');
-      let stubExec, stubConsole;
+      let stubExec;
       it('should execute command', (done) => {
          stubExec = sinon.stub(shell, 'exec').callsFake((cmd) => {
             let process = getProcess();
@@ -350,7 +341,7 @@ describe('CLI', () => {
             });
             return process;
          });
-         stubConsole = sinon.stub(cli, 'log').callsFake((log) => {
+         stubConsoleLog.callsFake((log) => {
             chai.expect(log).to.equal('ttttt');
             done();
          });
@@ -367,7 +358,7 @@ describe('CLI', () => {
             });
             return process;
          });
-         stubConsole = sinon.stub(cli, 'log').callsFake((log) => {
+         stubConsoleLog.callsFake((log) => {
             chai.expect(log).to.equal('ttttt');
             done();
          });
@@ -376,7 +367,6 @@ describe('CLI', () => {
 
       afterEach(()=> {
          stubExec.restore();
-         stubConsole && stubConsole.restore();
       })
    });
 
@@ -1033,5 +1023,52 @@ describe('CLI', () => {
       afterEach(() => {
          stubrepos.restore();
       })
+   });
+
+   describe('._writeXmlFile()', () => {
+      let stuBuilder, stubFsWrite;
+      beforeEach(() => {
+         stuBuilder = sinon.stub(xml2js, 'Builder').callsFake(function() {
+            this.buildObject = function () {
+               return '<testsuite><testcase name="test1"></testcase></testsuite>';
+            }
+         });
+      });
+      it('should write xml file', (done) => {
+         stubFsWrite = sinon.stub(fs, 'writeFileSync').callsFake(function(name, text) {
+            chai.expect(text).to.equal('<testsuite><testcase name="test1"></testcase></testsuite>');
+            done();
+         });
+         cli._writeXmlFile('test', {});
+      });
+
+      afterEach(() => {
+         stuBuilder.restore();
+         stubFsWrite.restore();
+      })
+   });
+
+   describe('.prepareReport()', () => {
+      let stubRead, stubWrite, stubTestReports;
+      beforeEach(() => {
+         stubWrite = sinon.stub(cli, '_writeXmlFile').callsFake(function() {});
+         stubTestReports = sinon.stub(cli, '_testReports').value(new Map([['name', 'test/path']]));
+         stubRead = sinon.stub(fs, 'readFileSync').callsFake(function() {
+            return '<testsuite><testcase classname="test1"></testcase></testsuite>';
+         });
+      });
+      it('should return all test', (done) => {
+         stubWrite.callsFake(function(name, obj) {
+            chai.expect(obj.testsuite.testcase[0].$.classname).to.equal('name: test1');
+            done();
+         });
+         cli.prepareReport();
+      });
+
+      afterEach(() => {
+         stubWrite.restore();
+         stubRead.restore();
+         stubTestReports.restore();
+      });
    });
 });

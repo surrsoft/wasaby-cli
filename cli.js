@@ -1,4 +1,5 @@
 const fs = require('fs-extra');
+const xml2js = require('xml2js');
 const shell = require('shelljs');
 const CONFIG = 'config.json';
 const path = require('path');
@@ -28,7 +29,7 @@ class Cli {
       this._repos = config.repositories;
       this._store = config.store;
       this._workDir = config.workDir;
-      this._testReports = [];
+      this._testReports = new Map();
       this._argvOptions = this._getArgvOptions();
       this._testBranch = this._argvOptions.branch || this._argvOptions.rc || '';
       this._testModule = this._argvOptions.rep;
@@ -41,6 +42,26 @@ class Cli {
       }
 
       this._testList = this._getTestList(this._testModule);
+   }
+
+   /**
+    * Запускает сборку юнит тестов
+    * @return {Promise<void>}
+    */
+   async run() {
+      try {
+         await this.initStore();
+         await this.initWorkDir();
+         await this.startTest();
+         this.checkReport();
+         this.prepareReport();
+         this.log('Закончили тестирование');
+      } catch(e) {
+         await this._closeChildProcess();
+         this.prepareReport();
+         this.log(`Тестирование завершено с ошибкой ${e}`);
+         throw new Error(e);
+      }
    }
 
    /**
@@ -65,21 +86,38 @@ class Cli {
    }
 
    /**
-    * Запускает сборку юнит тестов
-    * @return {Promise<void>}
+    * Записывает объект в xml файл
+    * @param {string} filePath - Путь до файла
+    * @param {Object} obj - Объект который надо записать
+    * @private
     */
-   async run() {
-      try {
-         await this.initStore();
-         await this.initWorkDir();
-         await this.startTest();
-         this.checkReport();
-         this.log('Закончили тестирование');
-      } catch(e) {
-         await this._closeChildProcess();
-         this.log(`Тестирование завершено с ошибкой ${e}`);
-         throw new Error(e);
-      }
+   _writeXmlFile(filePath, obj) {
+      let builder = new xml2js.Builder();
+      let xml = builder.buildObject(obj);
+      fs.writeFileSync(filePath, xml);
+   }
+
+   /**
+    * Дописывает в отчеты название репозитория
+    */
+   prepareReport() {
+      this._testReports.forEach((value, name) => {
+         if (!fs.existsSync(path)) {
+            const parser = new xml2js.Parser();
+            let xml_string = fs.readFileSync(value, "utf8");
+            parser.parseString(xml_string, (error, result) => {
+               if (error === null) {
+                  result.testsuite.testcase.forEach((item) => {
+                     item.$.classname = `${name}: ` + item.$.classname;
+                  });
+                  this._writeXmlFile(value, result);
+               }
+               else {
+                  this.log(error);
+               }
+            });
+         }
+      });
    }
 
    /**
@@ -235,6 +273,18 @@ class Cli {
       return path.includes('/') ? path.split('/').pop() : path.split('\\').pop();
    }
 
+   _getTestConfig(name, suffix) {
+      const testConfig = require('./testConfig.base.json');
+      let cfg = Object.assign({}, testConfig);
+      let fullName = name + (suffix||'');
+      cfg.tests = name + '_test';
+
+      cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('${module}', fullName);
+      cfg.jsonCoverageReport = cfg.jsonCoverageReport.replace('${module}', fullName);
+      cfg.report = cfg.report.replace('${module}', fullName );
+      this._testReports.set(fullName, cfg.report);
+      return cfg;
+   }
    /**
     * Создает конфиги для юнит тестов
     * @param {String} name - название репозитория в конфиге
@@ -242,18 +292,19 @@ class Cli {
     * @private
     */
    _makeTestConfig(name) {
-      let port = 10025;
+      let defaultPort = 10025;
       let configPorts = this._argvOptions.ports ? this._argvOptions.ports.split(',') : [];
       return Promise.all(this._testList.map((name, i) => {
-         let testConfig = require('./testConfig.base.json');
-         let cfg = Object.assign({}, testConfig);
-         cfg.url.port = configPorts[i] ? configPorts[i] : port++;
-         cfg.tests = name + '_test';
-         cfg.report = cfg.report.replace('${module}', name);
-         this._testReports.push(cfg.report);
-         cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('${module}', name);
-         cfg.jsonCoverageReport = cfg.jsonCoverageReport.replace('${module}', name);
-         return fs.outputFile(`./testConfig_${name}.json`, JSON.stringify(cfg, null, 4));
+         return new Promise(resolve => {
+            let cfg = this._getTestConfig(name);
+            fs.outputFileSync(`./testConfig_${name}.json`, JSON.stringify(cfg, null, 4));
+            if (this._repos[name].unitInBrowser) {
+               let cfg = this._getTestConfig(name, 'InBrowser');
+               cfg.url.port = configPorts.shift() || defaultPort++;
+               fs.outputFileSync(`./testConfig_${name}InBrowser.json`, JSON.stringify(cfg, null, 4));
+            }
+            resolve();
+         });
       }));
    }
 
@@ -269,7 +320,8 @@ class Cli {
          await this._execute(
             `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${pathToCfg}`,
             __dirname,
-            true
+            true,
+            'builder'
          );
          this._copyUnit();
          await this._linkFolder();
@@ -287,7 +339,8 @@ class Cli {
       return this._execute(
          `node node_modules/saby-typescript/install.js --tslib=application/WS.Core/ext/tslib.js`,
          __dirname,
-         true
+         true,
+         'typescriptInstall'
       );
    }
 
@@ -298,26 +351,16 @@ class Cli {
     * @private
     */
    async _startBrowserTest(name) {
-      this.log(`Запуск тестов ${name} в браузере`);
+      this.log(`Запуск тестов в браузере`, name);
       let cfg = this._repos[name];
       if (cfg.unitInBrowser) {
-         let cfg = fs.readJsonSync(`./testConfig_${name}.json`);
-         let testConfig = fs.readJsonSync('./testConfig.base.json');
-         testConfig = Object.assign({}, testConfig);
-         cfg.report = testConfig.report.replace('${module}', name + '_browser');
-         this._testReports.push(cfg.report);
-         cfg.htmlCoverageReport = testConfig.htmlCoverageReport.replace('${module}', name + '_browser');
-         cfg.jsonCoverageReport = testConfig.jsonCoverageReport.replace('${module}', name + '_browser');
-         fs.outputFileSync(`./testConfig_${name}_browser.json`, JSON.stringify(cfg, null, 4));
          await this._execute(
-            `node node_modules/saby-units/cli.js --browser --report --config="./testConfig_${name}_browser.json"`,
+            `node node_modules/saby-units/cli.js --browser --report --config="./testConfig_${name}InBrowser.json"`,
             __dirname,
-            true
+            true,
+            `test browser {name}`
          );
-         this.log(`тесты ${name} в браузере завершены`);
-         if (!fs.existsSync(cfg.report)) {
-            console.error(`${name}: отсутствует файл отчета ${cfg.report}`);
-         }
+         this.log(`тесты в браузере завершены`, name);
       }
    }
 
@@ -329,17 +372,18 @@ class Cli {
       await this._makeTestConfig();
       await this._tslibInstall();
       await pMap(this._testList, (name) => {
-         this.log(`Запуск тестов ${name}`);
+         this.log(`Запуск тестов`, name);
          return Promise.all([
             this._execute(
                `node node_modules/saby-units/cli.js --isolated --report --config="./testConfig_${name}.json"`,
                __dirname,
-               true
+               true,
+               `test ${name}`
             ),
             this._startBrowserTest(name)
          ]);
       },{
-         concurrency: 1
+         concurrency: 4
       });
    }
 
@@ -401,7 +445,7 @@ class Cli {
       const modules = this._getModulesByRepName(name);
 
       return Promise.all(modules.map((module => {
-         this.log(`копирование модуля ${name}/${module}`);
+         this.log(`копирование модуля ${name}/${module}`, name);
          if (this._getModuleNameByPath(module) == 'unit') {
             this._unitModules.push(path.join(reposPath, module));
          } else {
@@ -424,15 +468,15 @@ class Cli {
          throw new Error(`Не удалось определить ветку для репозитория ${name}`);
       }
       try {
-         this.log(`Переключение на ветку ${checkoutBranch} для репозитория ${name}`);
-         await this._execute(`git checkout ${checkoutBranch}`, pathToRepos);
+         this.log(`Переключение на ветку ${checkoutBranch}`, name);
+         await this._execute(`git checkout ${checkoutBranch}`, pathToRepos, `checkout ${name}`);
       } catch (err) {
          throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${e}`);
       }
       if (name === this._testModule) {
-         this.log(`Попытка смержить ветку "${checkoutBranch}" для репозитория "${name}" с "${this._rc}"`);
+         this.log(`Попытка смержить ветку "${checkoutBranch}" с "${this._rc}"`, name);
          try {
-            await this._execute(`git merge origin/${this._rc}`, pathToRepos);
+            await this._execute(`git merge origin/${this._rc}`, pathToRepos, `merge ${name}`);
          } catch (e) {
             throw new Error(`При мерже "${checkoutBranch}" в "${this._rc}" произошел конфликт`);
          }
@@ -446,9 +490,9 @@ class Cli {
     */
    async cloneRepToStore(name) {
       try {
-         this.log(`git clone ${this._repos[name].url}`);
+         this.log(`git clone ${this._repos[name].url}`, name);
 
-         await this._execute(`git clone ${this._repos[name].url} ${name}`, path.join(this._store, reposStore));
+         await this._execute(`git clone ${this._repos[name].url} ${name}`, path.join(this._store, reposStore), `clone ${name}`);
 
          return path.join(this._store, reposStore, name);
       } catch (err) {
@@ -464,7 +508,7 @@ class Cli {
     */
    async copyRepToStore(pathToOriginal, name) {
       try {
-         this.log(`Копирование репозитория ${name}`);
+         this.log(`Копирование репозитория`, name);
 
          await fs.ensureSymlink(pathToOriginal, path.join(this._store, reposStore, name));
       } catch (err) {
@@ -516,8 +560,11 @@ class Cli {
     * Выводит сообщение в лог
     * @param {String} message
     */
-   log(message) {
-      console.log(message);
+   log(message, name) {
+      let date = new Date();
+      let time = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}:${date.getMilliseconds()}`;
+      name = name ? ' '+name : '';
+      console.log(`[${time}]${name}: ${message}`);
    }
 
    /**
@@ -525,10 +572,14 @@ class Cli {
     * @param {String} command - текст команды
     * @param {String} path - путь по которому надо выполнить команду
     * @param {Boolean} force - если true в случае ошибки вернет промис resolve
+    * @param {String} processName - метка процесса в логах
     * @return {Promise<any>}
     * @private
     */
-   _execute(command, path, force) {
+   _execute(command, path, force, processName) {
+      if (typeof force == 'string') {
+         processName = force;
+      }
       return new Promise((resolve, reject) => {
          const cloneProcess = shell.exec(`cd ${path} && ${command}`, {
             silent: true,
@@ -536,11 +587,11 @@ class Cli {
          });
          this._childProcessMap.push(cloneProcess);
          cloneProcess.stdout.on('data', (data) => {
-            this.log(data);
+            this.log(data, processName);
          });
 
          cloneProcess.stderr.on('data', (data) => {
-            this.log(data);
+            this.log(data, processName);
          });
 
          cloneProcess.on('exit', (code) => {
