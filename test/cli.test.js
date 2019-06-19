@@ -1049,12 +1049,15 @@ describe('CLI', () => {
    });
 
    describe('.prepareReport()', () => {
-      let stubRead, stubWrite, stubTestReports;
+      let stubRead, stubWrite, stubTestReports, fsExistsSync;
       beforeEach(() => {
          stubWrite = sinon.stub(cli, '_writeXmlFile').callsFake(function() {});
          stubTestReports = sinon.stub(cli, '_testReports').value(new Map([['name', 'test/path']]));
          stubRead = sinon.stub(fs, 'readFileSync').callsFake(function() {
             return '<testsuite><testcase classname="test1"></testcase></testsuite>';
+         });
+         fsExistsSync = sinon.stub(fs, 'existsSync').callsFake(function() {
+            return true;
          });
       });
       it('should return all test', (done) => {
@@ -1069,6 +1072,7 @@ describe('CLI', () => {
          stubWrite.restore();
          stubRead.restore();
          stubTestReports.restore();
+         fsExistsSync.restore();
       });
    });
 });
