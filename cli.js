@@ -296,7 +296,7 @@ class Cli {
       let configPorts = this._argvOptions.ports ? this._argvOptions.ports.split(',') : [];
       return Promise.all(this._testList.map((name, i) => {
          return new Promise(resolve => {
-            let cfg = this._getTestConfig(name);
+            let cfg = this._getTestConfig(name, 'OnNodeJs');
             fs.outputFileSync(`./testConfig_${name}.json`, JSON.stringify(cfg, null, 4));
             if (this._repos[name].unitInBrowser) {
                let cfg = this._getTestConfig(name, 'InBrowser');
