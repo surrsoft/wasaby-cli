@@ -101,16 +101,17 @@ class Cli {
     * Дописывает в отчеты название репозитория
     */
    prepareReport() {
-      this._testReports.forEach((value, name) => {
-         if (!fs.existsSync(path)) {
+      this.log('Подготовка отчетов');
+      this._testReports.forEach((filePath, name) => {
+         if (fs.existsSync(filePath)) {
             const parser = new xml2js.Parser();
-            let xml_string = fs.readFileSync(value, "utf8");
+            let xml_string = fs.readFileSync(filePath, "utf8");
             parser.parseString(xml_string, (error, result) => {
                if (error === null) {
                   result.testsuite.testcase.forEach((item) => {
                      item.$.classname = `${name}: ` + item.$.classname;
                   });
-                  this._writeXmlFile(value, result);
+                  this._writeXmlFile(filePath, result);
                }
                else {
                   this.log(error);
@@ -124,15 +125,17 @@ class Cli {
     * Проверяет наличие отчетов по юнит тестам, если какого-то отчета нет кидает ошибку
     */
    checkReport() {
+      this.log('Проверка существования отчетов');
       let error = [];
-      this._testReports.forEach(path => {
+      this._testReports.forEach((path, name) => {
          if (!fs.existsSync(path)) {
-            error.push(path);
+            error.push(name);
          }
       });
       if (error.length > 0) {
-         throw new Error(`Отчеты отсутствуют тесты не прошли: ${error.join(', ')}`);
+         throw new Error(`Критическая ошибка, не удалось запустить следущие тесты: ${error.join(', ')}`);
       }
+      this.log('Проверка пройдена успешно');
    }
 
    /**
