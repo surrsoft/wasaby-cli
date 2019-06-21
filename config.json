@@ -6,40 +6,40 @@
          "url": "https://git.sbis.ru/sbis/engine.git",
          "unitInBrowser": true,
          "test": "test/unit",
-         "dependOn":["rmi", "controls", "ui"],
+         "dependOn":["rmi", "controls", "ui", "schemeeditor"],
          "modulesDir": "client"
       },
       "types": {
          "url": "https://platform-git.sbis.ru/saby/Types.git",
          "test": "test",
-         "dependTest": ["ws", "router", "ui", "app", "rmi", "engine", "controls"]
+         "dependTest": ["ws", "router", "ui", "app", "rmi", "engine", "controls", "schemeeditor"]
       },
       "i18n": {
          "url": "https://platform-git.sbis.ru/saby/I18n.git",
          "test": "test",
          "dependOn":["rmi"],
          "unitInBrowser": true,
-         "dependTest": ["types", "controls", "router", "ui", "app", "rmi", "engine", "ws"]
+         "dependTest": ["types", "controls", "router", "ui", "app", "rmi", "engine", "ws", "schemeeditor"]
       },
       "ws": {
          "url": "https://git.sbis.ru/sbis/ws.git",
          "test": "test/unit",
          "modules": ["test/WSTests", "test/unit", "Demo"],
          "unitInBrowser": true,
-         "dependTest": ["types", "controls", "router", "ui", "app", "rmi", "engine"]
+         "dependTest": ["types", "controls", "router", "ui", "app", "rmi", "engine", "schemeeditor"]
       },
       "controls": {
          "url": "https://git.sbis.ru/sbis/controls.git",
          "unitInBrowser": true,
          "test": "tests/unit",
          "dependOn":["ui"],
-         "dependTest": ["engine"],
+         "dependTest": ["engine", "schemeeditor"],
          "modules": ["tests/unit"]
       },
       "rmi": {
          "url": "https://git.sbis.ru/sbis/rmi.git",
          "test": "tests/unit",
-         "dependTest": ["router", "types", "engine"],
+         "dependTest": ["router", "types", "engine", "schemeeditor"],
          "unitInBrowser": true,
          "linkFolders": {
             "/tests/unit" : "tests"
@@ -48,20 +48,20 @@
       "app": {
          "url": "https://platform-git.sbis.ru/saby/wasaby-app.git",
          "unitInBrowser": true,
-         "dependTest": ["engine"],
+         "dependTest": ["engine", "schemeeditor"],
          "test": "test"
       },
       "router": {
          "url": "https://platform-git.sbis.ru/saby/router.git",
          "unitInBrowser": true,
-         "dependTest": ["engine"],
+         "dependTest": ["engine", "schemeeditor"],
          "test": "RouterTest",
          "modules": ["RouterTest"]
       },
       "ui": {
          "url": "https://platform-git.sbis.ru/saby/ui.git",
          "unitInBrowser": true,
-         "dependTest": ["engine"],
+         "dependTest": ["engine", "schemeeditor"],
          "dependOn":["controls"],
          "test": "UITest"
       },
@@ -69,8 +69,13 @@
          "url": "https://platform-git.sbis.ru/saby/wasaby-cdn.git",
          "linkFolders": {
             "/" : "cdn"
-         },
-         "modules": []
+         }
+      },
+      "schemeeditor": {
+         "url": "https://git.sbis.ru/engine/schemeeditor",
+         "unitInBrowser": true,
+         "dependOn":["rmi", "controls", "ui"],
+         "test": "tests/unit/SchemeEditor"
       }
    }
 }

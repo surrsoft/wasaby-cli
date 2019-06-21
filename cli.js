@@ -358,7 +358,7 @@ class Cli {
             `node node_modules/saby-units/cli.js --browser --report --config="./testConfig_${name}InBrowser.json"`,
             __dirname,
             true,
-            `test browser {name}`
+            `test browser ${name}`
          );
          this.log(`тесты в браузере завершены`, name);
       }
