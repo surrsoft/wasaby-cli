@@ -71,6 +71,12 @@
             "/" : "cdn"
          },
          "modules": []
+      },
+      "schemeeditor": {
+         "url": "https://git.sbis.ru/engine/schemeeditor.git",
+         "unitInBrowser": true,
+         "dependOn":["rmi", "controls", "ui"],
+         "test": "tests/unit/SchemeEditor"
       }
    }
 }
