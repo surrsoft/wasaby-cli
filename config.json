@@ -6,7 +6,7 @@
          "url": "https://git.sbis.ru/sbis/engine.git",
          "unitInBrowser": true,
          "test": "test/unit",
-         "dependOn":["rmi", "controls", "ui"],
+         "dependOn":["rmi", "controls", "ui", "schemeeditor"],
          "modulesDir": "client"
       },
       "types": {
