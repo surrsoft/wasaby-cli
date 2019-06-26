@@ -1062,7 +1062,7 @@ describe('CLI', () => {
       });
       it('should return all test', (done) => {
          stubWrite.callsFake(function(name, obj) {
-            chai.expect(obj.testsuite.testcase[0].$.classname).to.equal('name: test1');
+            chai.expect(obj.testsuite.testcase[0].$.classname).to.equal('[name]: test1');
             done();
          });
          cli.prepareReport();
