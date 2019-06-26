@@ -109,7 +109,7 @@ class Cli {
             parser.parseString(xml_string, (error, result) => {
                if (error === null) {
                   result.testsuite.testcase.forEach((item) => {
-                     item.$.classname = `${name}: ` + item.$.classname;
+                     item.$.classname = `[${name}]: ${item.$.classname}`;
                   });
                   this._writeXmlFile(filePath, result);
                }
