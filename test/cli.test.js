@@ -90,20 +90,43 @@ describe('CLI', () => {
    });
 
    describe('._makeBuilderConfig()', () => {
+      let stubfs, stubModules, stubrepos, cliTestList;
+      beforeEach(() => {
+         stubfs = sinon.stub(fs, 'outputFile').callsFake(() => {});
+         stubModules = sinon.stub(cli, '_getModulesByRepName').callsFake((name) => {
+            return [name];
+         });
+      });
       it('should throw error when rep is empty', (done) => {
          let baseConfig = require('../builderConfig.base.json');
-         let stubfs = sinon.stub(fs, 'outputFile').callsFake((fileName, config) => {
+         stubfs.callsFake((fileName, config) => {
             config = JSON.parse(config);
             chai.expect(config).to.deep.include(baseConfig);
             done();
          });
-         stubArgv.value(['','']);
-         let stubModules = sinon.stub(cli, '_getModulesByRepName').callsFake((name) => {
-            return [name];
-         });
          cli._makeBuilderConfig();
          stubModules.restore();
          stubfs.restore();
+      });
+
+      it('should not change testList', () => {
+         stubrepos = sinon.stub(cli, '_repos').value({
+            test1: {},
+            test2: {
+               test: 'path',
+               dependOn: ['test1']
+            }
+         });
+         cliTestList = sinon.stub(cli, '_testList').value(['test2']);
+         cli._makeBuilderConfig();
+         chai.expect(cli._testList).to.deep.equal(['test2']);
+
+      });
+      afterEach(() => {
+         stubModules.restore();
+         stubfs.restore();
+         stubrepos && stubrepos.restore();
+         cliTestList && cliTestList.restore();
       });
    });
 

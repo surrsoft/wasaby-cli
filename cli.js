@@ -229,7 +229,7 @@ class Cli {
     */
    _makeBuilderConfig() {
       let builderConfig = require('./builderConfig.base.json');
-      let testList = this._testList;
+      let testList = this._testList.slice();
       testList.forEach((name) => {
          const cfg = this._repos[name];
          if (cfg.dependOn) {
