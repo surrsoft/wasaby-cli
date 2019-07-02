@@ -32,16 +32,16 @@ class Cli {
       this._testReports = new Map();
       this._argvOptions = this._getArgvOptions();
       this._testBranch = this._argvOptions.branch || this._argvOptions.rc || '';
-      this._testModule = this._argvOptions.rep;
+      this._testRep = this._argvOptions.rep;
       this._unitModules = [];
       this._childProcessMap = [];
       this._rc = this._argvOptions.rc;
-
-      if (!this._testModule) {
+      this._modulesMap = new Map();
+      this._dependTest = {};
+      this._testList = undefined;
+      if (!this._testRep) {
          throw new Error('Параметр --rep не передан');
       }
-
-      this._testList = this._getTestList(this._testModule);
    }
 
    /**
@@ -60,31 +60,61 @@ class Cli {
          await this._closeChildProcess();
          this.prepareReport();
          this.log(`Тестирование завершено с ошибкой ${e}`);
-         throw new Error(e);
+         throw e;
       }
    }
 
    /**
     * Возвращает список репозиториев для тестирования
-    * @param {String} name - название репозитория в конфиге или all - в этом случае вернет все модули
     * @return {Array}
     * @private
     */
-   _getTestList(name) {
-      if (name !== 'all') {
-         let tests = [name];
-         let cfg = this._repos[name];
-
-         if (cfg.dependTest) {
-            tests = tests.concat(cfg.dependTest);
-         }
-         return tests;
+   _getTestList() {
+      if (this._testList) {
+         return this._testList;
       }
-      return Object.keys(this._repos).filter((name) => {
-         return !!this._repos[name].test;
-      });
+
+      let tests = [];
+      if (this._testRep !== 'all') {
+         tests = [this._testRep];
+         let cfg = this._repos[this._testRep];
+         let modules = this._getModulesWithDepend(this._getModulesFromMap(this._testRep));
+         modules.forEach((name) => {
+            let cfg = this._modulesMap.get(name);
+            if (!tests.includes(cfg.rep)) {
+               tests.push(cfg.rep);
+            }
+         });
+      } else {
+         tests = Object.keys(this._repos).filter((name) => {
+            return !!this._repos[name].test;
+         });
+      }
+      return this._testList = tests;
    }
 
+   _getModulesFromMap(repName) {
+      let moduels = [];
+      this._modulesMap.forEach(cfg => {
+         if (cfg.rep == repName) {
+            moduels.push(cfg.name);
+         }
+      });
+      return moduels;
+   }
+
+   _getModulesWithDepend(modules) {
+      let result = modules.slice();
+      this._modulesMap.forEach(cfg => {
+         if (!result.includes(cfg.name) && cfg.depends.some(dependName => result.includes(dependName))) {
+            result.push(cfg.name);
+         }
+      });
+      if (modules.length  !== result.length) {
+         return this._getModulesWithDepend(result);
+      }
+      return result;
+   }
    /**
     * Записывает объект в xml файл
     * @param {string} filePath - Путь до файла
@@ -187,16 +217,13 @@ class Cli {
     * @return {Array}
     * @private
     */
-   _getModulesByRepName(name) {
-      if (repModulesMap.has(name)) {
-         return repModulesMap.get(name);
-      }
-
+   async _getModulesByRepName(name) {
       const cfg = this._repos[name];
-      let modules = this._findModulesInRepDir(name).concat(cfg.modules || []);
-      repModulesMap.set(name, modules);
+      let allModules = this._findModulesInRepDir(name);
+      let uiModules = await this._addToModulesMap(allModules);
+      repModulesMap.set(name, uiModules);
 
-      return modules;
+      return uiModules.concat(cfg.modules || []);
    }
 
    /**
@@ -207,19 +234,66 @@ class Cli {
     */
    _findModulesInRepDir(name) {
       let s3mods = [];
-      let modulesDir = this._repos[name].modulesDir || '';
-      walkDir(path.join(this._store, reposStore, name, modulesDir), (filePath) => {
+      walkDir(path.join(this._store, reposStore, name), (filePath) => {
          if (filePath.includes('.s3mod')) {
-            filePath = filePath.split(path.sep);
-            filePath.splice(-1, 1);
-            modulesDir && filePath.unshift(modulesDir);
-            let modulePath = path.join.apply(path, filePath);
-            if (!s3mods.includes(modulePath)) {
-               s3mods.push(modulePath);
-            }
+            let splitFilePath = filePath.split(path.sep);
+            splitFilePath.splice(-1, 1);
+            let modulePath = path.join.apply(path, splitFilePath);
+            let moduleName = splitFilePath[splitFilePath.length - 1];
+            s3mods.push({
+               name: moduleName,
+               rep: name,
+               path: filePath,
+               modulePath: modulePath
+            });
          }
       });
       return s3mods;
+   }
+
+   _readXmlFile(filePath) {
+      return new Promise((resolve, reject) => {
+         const parser = new xml2js.Parser();
+         let xml_string = fs.readFileSync(filePath, "utf8");
+         parser.parseString(xml_string, (error, result) => {
+            if (error === null) {
+               resolve(result);
+            }
+            else {
+               this.log(error);
+               reject(error);
+            }
+         });
+      });
+   }
+
+   async _addToModulesMap(modules) {
+      let addedModules = [];
+      await pMap(modules, (cfg) => {
+         return this._readXmlFile(path.join(this._store, reposStore, cfg.rep, cfg.path)).then((xmlObj) => {
+            if (!this._modulesMap.has(cfg.name) && xmlObj.ui_module) {
+               cfg.depends = [];
+               if (xmlObj.ui_module.depends && xmlObj.ui_module.depends[0]) {
+                  let depends = xmlObj.ui_module.depends[0];
+                  if (depends.ui_module) {
+                     depends.ui_module.forEach(function (item) {
+                        cfg.depends.push(item.$.name);
+                     })
+                  }
+                  if (depends.module) {
+                     depends.module.forEach(function (item) {
+                        cfg.depends.push(item.$.name);
+                     })
+                  }
+               }
+               addedModules.push(cfg.modulePath);
+               this._modulesMap.set(cfg.name, cfg);
+            }
+         })
+      }, {
+         concurrency: 4
+      });
+      return addedModules;
    }
 
    /**
@@ -229,24 +303,15 @@ class Cli {
     */
    _makeBuilderConfig() {
       let builderConfig = require('./builderConfig.base.json');
-      let testList = this._testList.slice();
-      testList.forEach((name) => {
-         const cfg = this._repos[name];
-         if (cfg.dependOn) {
-            cfg.dependOn.forEach((name) => {
-               if (!testList.includes(name)) {
-                  testList.push(name)
-               }
-            });
-         }
-      });
+      let testList = this._getTestList().slice();
       testList.forEach((name) => {
          builderConfig.modules.push({
             name: name + '_test',
             path: ['.', this._store, name, name + '_test'].join('/')
          });
 
-         const modules = this._getModulesByRepName(name);
+         let modules = this._getModulesFromMap(name);
+         modules = modules.concat(this._repos[name].modules || []);
 
          modules.forEach((modulePath) => {
             const moduleName = this._getModuleNameByPath(modulePath);
@@ -297,7 +362,7 @@ class Cli {
    _makeTestConfig(name) {
       let defaultPort = 10025;
       let configPorts = this._argvOptions.ports ? this._argvOptions.ports.split(',') : [];
-      return Promise.all(this._testList.map((name, i) => {
+      return Promise.all(this._getTestList().map((name, i) => {
          return new Promise(resolve => {
             let cfg = this._getTestConfig(name, 'OnNodeJs');
             fs.outputFileSync(`./testConfig_${name}.json`, JSON.stringify(cfg, null, 4));
@@ -330,6 +395,7 @@ class Cli {
          await this._linkFolder();
          this.log(`Подготовка тестов завершена успешно`);
       } catch(e) {
+         throw e;
          throw new Error(`Подготовка тестов завершена с ошибкой ${e}`);
       }
    }
@@ -354,14 +420,14 @@ class Cli {
     * @private
     */
    async _startBrowserTest(name) {
-      this.log(`Запуск тестов в браузере`, name);
       let cfg = this._repos[name];
       if (cfg.unitInBrowser) {
+         this.log(`Запуск тестов в браузере`, name);
          await this._execute(
             `node node_modules/saby-units/cli.js --browser --report --config="./testConfig_${name}InBrowser.json"`,
             __dirname,
             true,
-            `test browser {name}`
+            `test browser ${name}`
          );
          this.log(`тесты в браузере завершены`, name);
       }
@@ -374,14 +440,14 @@ class Cli {
    async startTest() {
       await this._makeTestConfig();
       await this._tslibInstall();
-      await pMap(this._testList, (name) => {
+      await pMap(this._getTestList(), (name) => {
          this.log(`Запуск тестов`, name);
          return Promise.all([
             this._execute(
                `node node_modules/saby-units/cli.js --isolated --report --config="./testConfig_${name}.json"`,
                __dirname,
                true,
-               `test ${name}`
+               `test node ${name}`
             ),
             this._startBrowserTest(name)
          ]);
@@ -445,7 +511,7 @@ class Cli {
       if (cfg.test) {
          await fs.ensureSymlink(path.join(reposPath, cfg.test), path.join(this._store, name, name + '_test'));
       }
-      const modules = this._getModulesByRepName(name);
+      const modules = await this._getModulesByRepName(name);
 
       return Promise.all(modules.map((module => {
          this.log(`копирование модуля ${name}/${module}`, name);
@@ -476,7 +542,7 @@ class Cli {
       } catch (err) {
          throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${e}`);
       }
-      if (name === this._testModule) {
+      if (name === this._testRep) {
          this.log(`Попытка смержить ветку "${checkoutBranch}" с "${this._rc}"`, name);
          try {
             await this._execute(`git merge origin/${this._rc}`, pathToRepos, `merge ${name}`);
@@ -536,7 +602,7 @@ class Cli {
             );
          }
       } else {
-         const branch = name === this._testModule ? this._testBranch : this._rc;
+         const branch = name === this._testRep ? this._testBranch : this._rc;
          return this.checkout(
             name,
             branch,

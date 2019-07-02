@@ -5,41 +5,32 @@
       "engine": {
          "url": "https://git.sbis.ru/sbis/engine.git",
          "unitInBrowser": true,
-         "test": "test/unit",
-         "dependOn":["rmi", "controls", "ui", "schemeeditor"],
-         "modulesDir": "client"
+         "test": "test/unit"
       },
       "types": {
          "url": "https://platform-git.sbis.ru/saby/Types.git",
-         "test": "test",
-         "dependTest": ["ws", "router", "ui", "app", "rmi", "engine", "controls"]
+         "test": "test"
       },
       "i18n": {
          "url": "https://platform-git.sbis.ru/saby/I18n.git",
          "test": "test",
-         "dependOn":["rmi"],
-         "unitInBrowser": true,
-         "dependTest": ["types", "controls", "router", "ui", "app", "rmi", "engine", "ws"]
+         "unitInBrowser": true
       },
       "ws": {
          "url": "https://git.sbis.ru/sbis/ws.git",
          "test": "test/unit",
          "modules": ["test/WSTests", "test/unit", "Demo"],
-         "unitInBrowser": true,
-         "dependTest": ["types", "controls", "router", "ui", "app", "rmi", "engine"]
+         "unitInBrowser": true
       },
       "controls": {
          "url": "https://git.sbis.ru/sbis/controls.git",
          "unitInBrowser": true,
          "test": "tests/unit",
-         "dependOn":["ui"],
-         "dependTest": ["engine"],
          "modules": ["tests/unit"]
       },
       "rmi": {
          "url": "https://git.sbis.ru/sbis/rmi.git",
          "test": "tests/unit",
-         "dependTest": ["router", "types", "engine"],
          "unitInBrowser": true,
          "linkFolders": {
             "/tests/unit" : "tests"
@@ -48,20 +39,17 @@
       "app": {
          "url": "https://platform-git.sbis.ru/saby/wasaby-app.git",
          "unitInBrowser": true,
-         "dependTest": ["engine"],
          "test": "test"
       },
       "router": {
          "url": "https://platform-git.sbis.ru/saby/router.git",
          "unitInBrowser": true,
-         "dependTest": ["engine"],
          "test": "RouterTest",
          "modules": ["RouterTest"]
       },
       "ui": {
          "url": "https://platform-git.sbis.ru/saby/ui.git",
          "unitInBrowser": true,
-         "dependTest": ["engine"],
          "dependOn":["controls"],
          "test": "UITest"
       },
