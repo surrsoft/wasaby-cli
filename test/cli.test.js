@@ -78,7 +78,7 @@ describe('CLI', () => {
       });
       it('should set params from argv', () => {
          chai.expect(cli._testBranch).to.equal('200/feature');
-         chai.expect(cli._testModule).to.equal('types');
+         chai.expect(cli._testRep).to.equal('types');
          chai.expect(cli._rc).to.equal('rc-200');
       });
       it('should set params from config', () => {
@@ -90,11 +90,19 @@ describe('CLI', () => {
    });
 
    describe('._makeBuilderConfig()', () => {
-      let stubfs, stubModules, stubrepos, cliTestList;
+      let stubfs, stubModules, stubrepos, cliTestList, stubTestList;
+      let testList = ['test1', 'test2'];
       beforeEach(() => {
          stubfs = sinon.stub(fs, 'outputFile').callsFake(() => {});
+         stubrepos = sinon.stub(cli, '_repos').value({
+            test1: {},
+            test2: {}
+         });
          stubModules = sinon.stub(cli, '_getModulesByRepName').callsFake((name) => {
             return [name];
+         });
+         stubTestList =  sinon.stub(cli, '_getTestList').callsFake((name) => {
+            return ['test1', 'test2'];
          });
       });
       it('should throw error when rep is empty', (done) => {
@@ -110,7 +118,7 @@ describe('CLI', () => {
       });
 
       it('should not change testList', () => {
-         stubrepos = sinon.stub(cli, '_repos').value({
+         stubrepos.value({
             test1: {},
             test2: {
                test: 'path',
@@ -125,74 +133,107 @@ describe('CLI', () => {
       afterEach(() => {
          stubModules.restore();
          stubfs.restore();
+         stubTestList.restore();
          stubrepos && stubrepos.restore();
          cliTestList && cliTestList.restore();
       });
    });
 
    describe('._makeTestConfig()', () => {
+      let stubfs, stubModules, stubrepos, stubTestList;
+      beforeEach(() => {
+         stubrepos = sinon.stub(cli, '_repos').value({
+            test1: {},
+            test2: {}
+         });
+         stubTestList =  sinon.stub(cli, '_getTestList').callsFake((name) => {
+            return ['test1', 'test2'];
+         });
+
+      });
       it('should make a config files for each modules in confing', (done) => {
          let baseConfig = require('../testConfig.base.json');
          let configFiles = {};
-         let stubfs = sinon.stub(fs, 'outputFileSync').callsFake((fileName, config) => {
+         stubArgv.value(['','']);
+         stubfs = sinon.stub(fs, 'outputFileSync').callsFake((fileName, config) => {
             configFiles[fileName] = JSON.parse(config);
          });
-         stubArgv.value(['','']);
          cli._makeTestConfig().then(() => {
-            cli._repos[cli._testModule].dependTest.forEach((key) => {
+            cli._getTestList().forEach((key) => {
                chai.expect(configFiles).to.have.property('./testConfig_'+key+'.json');
             });
-            let config = configFiles['./testConfig_types.json'];
+            let config = configFiles['./testConfig_test1.json'];
             Object.keys(baseConfig).forEach((key) => {
                chai.expect(config).to.have.property(key);
             });
             done();
          });
+      });
+      afterEach(() => {
+         stubTestList.restore();
          stubfs.restore();
+         stubrepos.restore();
       });
    });
 
    describe('._findModulesInRepDir()', () => {
-      it('should find all modules in repository', () => {
-         let stubfs = sinon.stub(fs, 'readdirSync').callsFake((path) => {
+      let stubfs, stubStat, stubrepos;
+      beforeEach(() => {
+         stubfs = sinon.stub(fs, 'readdirSync').callsFake((path) => {
             if (path.includes('tttModule')) {
                return ['ttt.txt', 'ttt.s3mod']
             }
             return ['tttModule']
          });
-         let stubStat = sinon.stub(fs, 'statSync').callsFake((path) => {
+
+         stubStat = sinon.stub(fs, 'statSync').callsFake((path) => {
             return {
                isDirectory: () => /.*tttModule$/.test(path)
             }
          });
-
-         chai.expect(['tttModule']).to.deep.equal(cli._findModulesInRepDir('types'));
-
+         stubrepos = sinon.stub(cli, '_repos').value({
+            test1: {},
+            test2: {}
+         });
+      });
+      it('should find all modules in repository', () => {
+         return chai.expect([{
+            "name":"tttModule",
+            "rep":"test1",
+            "path":path.join("tttModule","ttt.s3mod"),
+            "modulePath":"tttModule"
+         }]).to.deep.equal(cli._findModulesInRepDir('test1'));
+      });
+      afterEach(() => {
          stubfs.restore();
          stubStat.restore();
-      });
+         stubrepos.restore();
+      })
    });
    describe('._getModulesByRepName()', () => {
-      let stubFind, stubRepos;
+      let stubFind, stubRepos, stubModMap;
       beforeEach(() => {
          stubFind = sinon.stub(cli, '_findModulesInRepDir').callsFake((path) => {
-            return ['test']
+            return [{name:'test'}]
          });
          stubRepos = sinon.stub(cli, '_repos').value({
             'test': {
                modules: ['test_config']
             }
          });
+         stubModMap = sinon.stub(cli, '_addToModulesMap').callsFake((res) => {
+            return Promise.resolve([res[0].name]);
+         });
       });
       it('should concat modules from config and repository', () => {
-         chai.expect(['test', 'test_config']).to.deep.equal(cli._getModulesByRepName('test'));
-      });
-      it('should return result from cache', () => {
-         chai.expect(cli._getModulesByRepName('test')).to.equal(cli._getModulesByRepName('test'));
+         return cli._getModulesByRepName('test').then((res) => {
+            chai.expect(['test', 'test_config']).to.deep.equal(res);
+         });
       });
       afterEach(() => {
          stubFind.restore();
          stubRepos.restore();
+         stubModMap.restore();
       });
    });
 
@@ -586,7 +627,7 @@ describe('CLI', () => {
             commandsArray.push(cmd);
             return Promise.resolve();
          });
-         stubModule = sinon.stub(cli, '_testModule').value('test');
+         stubModule = sinon.stub(cli, '_testRep').value('test');
          cli.checkout('test', 'branch', 'pathToRep').then(() => {
             chai.expect(`git merge origin/${cli._rc}`).to.equal(commandsArray[1]);
             done();
@@ -601,7 +642,7 @@ describe('CLI', () => {
                return Promise.resolve();
             }
          });
-         stubModule = sinon.stub(cli, '_testModule').value('test');
+         stubModule = sinon.stub(cli, '_testRep').value('test');
          cli.checkout('test', 'branch', 'pathToRep').catch(() => {
             done();
          });
@@ -615,7 +656,7 @@ describe('CLI', () => {
                return Promise.resolve();
             }
          });
-         stubModule = sinon.stub(cli, '_testModule').value('test');
+         stubModule = sinon.stub(cli, '_testRep').value('test');
          cli.checkout('test', 'branch', 'pathToRep').catch(() => {
             done();
          });
@@ -1018,33 +1059,40 @@ describe('CLI', () => {
    });
 
    describe('._getTestList()', () => {
-      let stubrepos;
+      let stubrepos, stubTestRep, stubModulesMap;
       beforeEach(() => {
-         stubrepos = sinon.stub(cli, '_repos').value( {
+         stubrepos = sinon.stub(cli, '_repos').value({
             test1: {
                test: 'path'
             },
             test2: {
-               test: 'path',
-               dependTest: 'test1'
+               test: 'path'
             },
             test3: {}
          });
+         stubModulesMap = sinon.stub(cli, '_modulesMap').value(
+            new Map([['test11', {name:'test11', rep:'test1', depends:['test22']}], ['test22', {name:'test22', rep:'test2', depends:[]}]])
+         );
       });
       it('should return all test', () => {
-         chai.expect(cli._getTestList('all')).to.deep.equal(['test1', 'test2']);
+         stubTestRep = sinon.stub(cli, '_testRep').value('all');
+         chai.expect(cli._getTestList()).to.deep.equal(['test1', 'test2']);
       });
 
       it('should return test list for test1', () => {
-         chai.expect(cli._getTestList('test1')).to.deep.equal(['test1']);
+         stubTestRep = sinon.stub(cli, '_testRep').value('test1');
+         chai.expect(cli._getTestList()).to.deep.equal(['test1']);
       });
 
       it('should return test list for test with depend test', () => {
-         chai.expect(cli._getTestList('test2')).to.deep.equal(['test2', 'test1']);
+         stubTestRep = sinon.stub(cli, '_testRep').value('test2');
+         chai.expect(cli._getTestList()).to.deep.equal(['test2', 'test1']);
       });
 
       afterEach(() => {
          stubrepos.restore();
+         stubTestRep.restore();
+         stubModulesMap.restore();
       })
    });
 
@@ -1083,6 +1131,7 @@ describe('CLI', () => {
             return true;
          });
       });
+
       it('should return all test', (done) => {
          stubWrite.callsFake(function(name, obj) {
             chai.expect(obj.testsuite.testcase[0].$.classname).to.equal('[name]: test1');
@@ -1097,5 +1146,43 @@ describe('CLI', () => {
          stubTestReports.restore();
          fsExistsSync.restore();
       });
+   });
+
+   describe('_getModulesFromMap()',() => {
+      let stubModulesMap;
+      beforeEach(() => {
+         stubModulesMap = sinon.stub(cli, '_modulesMap').value(
+            new Map([['test11', {name:'test11', rep:'test1', depends:['test22']}], ['test22', {name:'test22', rep:'test2', depends:[]}]])
+         );
+      });
+
+      it('should return modules from map', () => {
+         chai.expect(cli._getModulesFromMap('test1')).to.deep.equal(['test11']);
+      });
+
+      afterEach(() => {
+         stubModulesMap.restore();
+      })
+   });
+
+   describe('_getModulesWithDepend()',() => {
+      let stubModulesMap;
+      beforeEach(() => {
+         stubModulesMap = sinon.stub(cli, '_modulesMap').value(
+            new Map([['test11', {name:'test11', rep:'test1', depends:['test22']}], ['test22', {name:'test22', rep:'test2', depends:[]}]])
+         );
+      });
+
+      it('should return modules for test1 and test2', () => {
+         chai.expect(cli._getModulesWithDepend(['test22'])).to.deep.equal(['test22', 'test11']);
+      });
+
+      it('should return modules for test1', () => {
+         chai.expect(cli._getModulesWithDepend(['test11'])).to.deep.equal(['test11']);
+      });
+
+      afterEach(() => {
+         stubModulesMap.restore();
+      })
    });
 });
