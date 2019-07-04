@@ -1,27 +1,27 @@
 {
-  "name": "test-cli",
-  "version": "1.0.0",
-  "description": "",
-  "main": "cli.js",
-  "scripts": {
-    "test": "mocha",
-    "test:coverage": "nyc --reporter=html npm run test",
-    "install-selenium": "yarn add selenium-standalone@6.14.x && node node_modules/selenium-standalone/bin/selenium-standalone install"
-  },
-  "author": "",
-  "dependencies": {
-    "fs-extra": "^7.0.1",
-    "p-map": "^2.1.0",
-    "saby-typescript": "git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-19.500",
-    "saby-units": "git+https://platform-git.sbis.ru/saby/Units.git#rc-19.500",
-    "sbis3-builder": "git+https://platform-git.sbis.ru/saby/Builder.git#rc-19.500",
-    "shelljs": "^0.8.3",
-    "webdriverio": "5.7.2",
-    "xml2js": "^0.4.19"
-  },
-  "devDependencies": {
-    "chai": "^4.2.0",
-    "mocha": "^6.1.4",
-    "nyc": "^14.1.1"
-  }
+   "name": "test-cli",
+   "version": "19.600.0",
+   "description": "",
+   "main": "cli.js",
+   "scripts": {
+      "test": "mocha",
+      "test:coverage": "nyc --reporter=html npm run test",
+      "install-selenium": "yarn add selenium-standalone@6.14.x && node node_modules/selenium-standalone/bin/selenium-standalone install"
+   },
+   "author": "",
+   "dependencies": {
+      "fs-extra": "^7.0.1",
+      "p-map": "^2.1.0",
+      "saby-typescript": "git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-19.600",
+      "saby-units": "git+https://platform-git.sbis.ru/saby/Units.git#rc-19.600",
+      "sbis3-builder": "git+https://platform-git.sbis.ru/saby/Builder.git#rc-19.600",
+      "shelljs": "^0.8.3",
+      "webdriverio": "5.7.2",
+      "xml2js": "^0.4.19"
+   },
+   "devDependencies": {
+      "chai": "^4.2.0",
+      "mocha": "^6.1.4",
+      "nyc": "^14.1.1"
+   }
 }
