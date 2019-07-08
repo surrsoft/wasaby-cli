@@ -395,6 +395,19 @@ describe('CLI', () => {
          });
       });
 
+      it('should return rejected promise if command result is fail and process name is defined', (done) => {
+         stubExec = sinon.stub(shell, 'exec').callsFake((cmd) => {
+            let process = getProcess();
+            setTimeout(() => {
+               process.kill(2);
+            });
+            return process;
+         });
+         cli._execute('help', 'path', 'pocess name').catch(() => {
+            done();
+         });
+      });
+
       it('should log info', (done) => {
          stubExec = sinon.stub(shell, 'exec').callsFake((cmd) => {
             let process = getProcess();
