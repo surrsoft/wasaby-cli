@@ -78,7 +78,7 @@ class Cli {
       if (this._testRep !== 'all') {
          tests = [this._testRep];
          let cfg = this._repos[this._testRep];
-         let modules = this._getModulesWithDepend(this._getModulesFromMap(this._testRep));
+         let modules = this._getParentModules(this._getModulesFromMap(this._testRep));
          modules.forEach((name) => {
             let cfg = this._modulesMap.get(name);
             if (!tests.includes(cfg.rep)) {
@@ -103,7 +103,7 @@ class Cli {
       return moduels;
    }
 
-   _getModulesWithDepend(modules) {
+   _getParentModules(modules) {
       let result = modules.slice();
       this._modulesMap.forEach(cfg => {
          if (!result.includes(cfg.name) && cfg.depends.some(dependName => result.includes(dependName))) {
@@ -111,8 +111,22 @@ class Cli {
          }
       });
       if (modules.length  !== result.length) {
-         return this._getModulesWithDepend(result);
+         return this._getParentModules(result);
       }
+      return result;
+   }
+
+   _getChildModules(modules, path) {
+      let result = modules.slice();
+      let detected = false;
+      path = path || [];
+      modules.forEach(name => {
+         if (!path.includes(name)) {
+            let cfg = this._modulesMap.get(name);
+            let depends = this._getChildModules(cfg.depends, path.concat([name]));
+            result = result.concat(depends.filter((item) => !result.includes(item)));
+         }
+      });
       return result;
    }
    /**
@@ -310,7 +324,7 @@ class Cli {
             path: ['.', this._store, name, name + '_test'].join('/')
          });
 
-         let modules = this._getModulesFromMap(name);
+         let modules = this._getChildModules(this._getModulesFromMap(name));
          modules = modules.concat(this._repos[name].modules || []);
 
          modules.forEach((modulePath) => {
