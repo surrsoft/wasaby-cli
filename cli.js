@@ -329,15 +329,12 @@ class Cli {
 
          modules.forEach((modulePath) => {
             const moduleName = this._getModuleNameByPath(modulePath);
-
             if (moduleName !== 'unit') {
                const isNameInConfig = builderConfig.modules.find((item) => (item.name == moduleName));
-               let cfg = this._modulesMap.get(moduleName);
-               let repName = cfg ? cfg.rep : name;
                if (!isNameInConfig) {
                   builderConfig.modules.push({
                      name: moduleName,
-                     path: ['.', this._store, repName, 'module', moduleName].join('/')
+                     path: ['.', this._store, name, 'module', moduleName].join('/')
                   })
                }
             }
