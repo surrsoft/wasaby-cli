@@ -665,6 +665,7 @@ class Cli {
    _execute(command, path, force, processName) {
       if (typeof force == 'string') {
          processName = force;
+         force = false;
       }
       return new Promise((resolve, reject) => {
          const cloneProcess = shell.exec(`cd ${path} && ${command}`, {
