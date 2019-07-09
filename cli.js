@@ -18,6 +18,25 @@ function walkDir(dir, callback, rootDir) {
    });
 };
 
+const reportNotExistsTemplate = {
+   testsuite:{
+      $: {
+         name:"Mocha Tests",
+         tests:"1",
+         failures:"1",
+         errors:"1"
+      },
+      testcase: [{
+         $: {
+            classname:"All tests",
+            name:"Critical error report does not exists",
+            time:"0"
+         },
+         failure: 'Critical error'
+      }]
+   }
+};
+
 /**
  * Модуль для запуска юнит тестов
  * @class Cli
@@ -124,7 +143,7 @@ class Cli {
    _writeXmlFile(filePath, obj) {
       let builder = new xml2js.Builder();
       let xml = builder.buildObject(obj);
-      fs.writeFileSync(filePath, xml);
+      fs.outputFileSync(filePath, xml);
    }
 
    /**
@@ -160,14 +179,23 @@ class Cli {
       this._testReports.forEach((path, name) => {
          if (!fs.existsSync(path)) {
             error.push(name);
+            this._writeXmlFile(path, reportNotExistsTemplate)
          }
       });
       if (error.length > 0) {
-         throw new Error(`Критическая ошибка, не удалось запустить следущие тесты: ${error.join(', ')}`);
+         this.log(`Сгенерированы отчеты с ошибками: ${error.join(', ')}`);
       }
       this.log('Проверка пройдена успешно');
    }
 
+   /**
+    * Создает отчет с ошибкой
+    * @param {String} path - путь до файла
+    * @private
+    */
+   _createReport(path) {
+
+   }
    /**
     * Закрвыает все дочерние процессы
     * @return {Promise<void>}
@@ -421,7 +449,7 @@ class Cli {
     */
    async _startBrowserTest(name) {
       let cfg = this._repos[name];
-      if (cfg.unitInBrowser) {
+      if (cfg.unitInBrowser && name !== 'engine') {
          this.log(`Запуск тестов в браузере`, name);
          await this._execute(
             `node node_modules/saby-units/cli.js --browser --report --config="./testConfig_${name}InBrowser.json"`,
