@@ -117,13 +117,13 @@ class Cli {
    }
 
    _getChildModules(modules, path) {
-      let result = modules.slice();
-      let detected = false;
+      let result = [];
       path = path || [];
       modules.forEach(name => {
-         if (!path.includes(name)) {
+         if (this._modulesMap.has(name) && !path.includes(name)) {
             let cfg = this._modulesMap.get(name);
             let depends = this._getChildModules(cfg.depends, path.concat([name]));
+            result.push(name);
             result = result.concat(depends.filter((item) => !result.includes(item)));
          }
       });
