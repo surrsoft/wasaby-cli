@@ -36,7 +36,7 @@ let getReportTemplate = (details) => {
                name:"Critical error report does not exists",
                time:"0"
             },
-            failure: 'browser: loader.getReport() An error occurred: Web page has the exception: Error: Script error for "Core/Control", needed by: EngineLanguage/Selector, ExtControls/BottomBar, Graphs/_comparison/ColumnChart, Graphs/_comparison/InfoBlock, Graphs/_comparison/LinearChart, Graphs/_comparison/View, Layout/Browser/Tabs, Layout/Browser, Layout/Browser/HintWrapper, Layout/Report/Browser, Layout/Selector/Stack, LongOperations/Views/History/View, LongOperations/Views/List/View, LongOperations/Views/Log/View, LongOperations/Views/Notifier/View, LongOperations/Views/Progress, NavigationPanels/ScrollViewer, NavigationPanels/SideMenu, RichEditor/_base/Editor, RichEditor/_imagePanels/Size, RichEditor/_base/TinyMCE, RichEditor/_extended/Toolbar/Panel/StylesWrapper http://requirejs.org/docs/errors.html#scripterror at makeError (http://localhost:10025/WS.Core/ext/requirejs/require.js:168:17) at HTMLScriptElement.onScriptError (http://localhost:10025/WS.Core/ext/requirejs/require.js:1766:36)'
+            failure: details
          }]
       }
    };
@@ -461,7 +461,7 @@ class Cli {
     */
    async _startBrowserTest(name) {
       let cfg = this._repos[name];
-      if (cfg.unitInBrowser && name !== 'engine') {
+      if (cfg.unitInBrowser) {
          this.log(`Запуск тестов в браузере`, name);
          try {
             await this._execute(
