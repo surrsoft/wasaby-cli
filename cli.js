@@ -75,8 +75,8 @@ class Cli {
     */
    async run() {
       try {
-         //await this.initStore();
-         //await this.initWorkDir();
+         await this.initStore();
+         await this.initWorkDir();
          await this.startTest();
          this.checkReport();
          this.prepareReport();
@@ -501,10 +501,10 @@ class Cli {
    async initStore() {
       this.log(`Инициализация хранилища`);
       try {
-         // await fs.remove(this._workDir);
-         // await fs.remove('builder-ui');
-         // await fs.remove(this._store);
-         // await fs.mkdirs(path.join(this._store, reposStore));
+         await fs.remove(this._workDir);
+         await fs.remove('builder-ui');
+         await fs.remove(this._store);
+         await fs.mkdirs(path.join(this._store, reposStore));
          await Promise.all(Object.keys(this._repos).map((name) => {
             if (!fs.existsSync(path.join(this._store, name))) {
                return this.initRepStore(name)
@@ -547,20 +547,20 @@ class Cli {
       let reposPath = path.join(this._store, reposStore, name);
       await fs.mkdirs(path.join(this._store, name));
       if (cfg.test) {
-         //await fs.ensureSymlink(path.join(reposPath, cfg.test), path.join(this._store, name, name + '_test'));
+         await fs.ensureSymlink(path.join(reposPath, cfg.test), path.join(this._store, name, name + '_test'));
       }
       const modules = await this._getModulesByRepName(name);
 
-      // return Promise.all(modules.map((module => {
-      //    this.log(`копирование модуля ${name}/${module}`, name);
-      //    if (this._getModuleNameByPath(module) == 'unit') {
-      //       this._unitModules.push(path.join(reposPath, module));
-      //    } else {
-      //       return fs.ensureSymlink(path.join(reposPath, module), path.join(this._store, name, 'module', this._getModuleNameByPath(module))).catch((e) => {
-      //          throw new Error(`Ошибка при копировании репозитория ${name}: ${e}`);
-      //       });
-      //    }
-      // })));
+      return Promise.all(modules.map((module => {
+         this.log(`копирование модуля ${name}/${module}`, name);
+         if (this._getModuleNameByPath(module) == 'unit') {
+            this._unitModules.push(path.join(reposPath, module));
+         } else {
+            return fs.ensureSymlink(path.join(reposPath, module), path.join(this._store, name, 'module', this._getModuleNameByPath(module))).catch((e) => {
+               throw new Error(`Ошибка при копировании репозитория ${name}: ${e}`);
+            });
+         }
+      })));
    }
 
    /**
@@ -629,24 +629,24 @@ class Cli {
     * @return {Promise<void>}
     */
    async initRepStore(name) {
-      // if (this._argvOptions[name]) {
-      //    if (fs.existsSync(this._argvOptions[name])) {
-      //       return this.copyRepToStore(this._argvOptions[name], name);
-      //    } else {
-      //       return this.checkout(
-      //          name,
-      //          this._argvOptions[name],
-      //          await this.cloneRepToStore(name, this._argvOptions[name])
-      //       );
-      //    }
-      // } else {
-      //    const branch = name === this._testRep ? this._testBranch : this._rc;
-      //    return this.checkout(
-      //       name,
-      //       branch,
-      //       await this.cloneRepToStore(name)
-      //    );
-      // }
+      if (this._argvOptions[name]) {
+         if (fs.existsSync(this._argvOptions[name])) {
+            return this.copyRepToStore(this._argvOptions[name], name);
+         } else {
+            return this.checkout(
+               name,
+               this._argvOptions[name],
+               await this.cloneRepToStore(name, this._argvOptions[name])
+            );
+         }
+      } else {
+         const branch = name === this._testRep ? this._testBranch : this._rc;
+         return this.checkout(
+            name,
+            branch,
+            await this.cloneRepToStore(name)
+         );
+      }
    }
 
    /**
