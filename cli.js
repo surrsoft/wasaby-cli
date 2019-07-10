@@ -486,7 +486,7 @@ class Cli {
       await pMap(this._getTestList(), (name) => {
          this.log(`Запуск тестов`, name);
          return Promise.all([
-            ,
+            this._startNodeTest(name),
             this._startBrowserTest(name)
          ]);
       },{
