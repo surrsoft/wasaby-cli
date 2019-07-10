@@ -74,20 +74,19 @@ class Cli {
     * @return {Promise<void>}
     */
    async run() {
-      this._writeXmlFile('C:\\sbis\\test-cli\\application\\artifacts\\engine_browser\\xunit-report.xml', reportNotExistsTemplate)
-      // try {
-      //    await this.initStore();
-      //    await this.initWorkDir();
-      //    await this.startTest();
-      //    this.checkReport();
-      //    this.prepareReport();
-      //    this.log('Закончили тестирование');
-      // } catch(e) {
-      //    await this._closeChildProcess();
-      //    this.prepareReport();
-      //    this.log(`Тестирование завершено с ошибкой ${e}`);
-      //    throw e;
-      // }
+      try {
+         await this.initStore();
+         await this.initWorkDir();
+         await this.startTest();
+         this.checkReport();
+         this.prepareReport();
+         this.log('Закончили тестирование');
+      } catch(e) {
+         await this._closeChildProcess();
+         this.prepareReport();
+         this.log(`Тестирование завершено с ошибкой ${e}`);
+         throw e;
+      }
    }
 
    /**
