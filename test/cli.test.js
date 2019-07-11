@@ -478,8 +478,8 @@ describe('CLI', () => {
    });
 
    describe('.checkReport()', () => {
-      let stubTestReports, stubexistsSync;
-      it('should throw an error', () => {
+      let stubTestReports, stubexistsSync, stubOtput;
+      it('should create report when it not exists', (done) => {
          stubTestReports = sinon.stub(cli, '_testReports').value(['test', 'test1']);
          stubexistsSync = sinon.stub(fs, 'existsSync').callsFake((name) => {
             if (name == 'test1') {
@@ -487,8 +487,11 @@ describe('CLI', () => {
             }
             return true;
          });
-
-         chai.expect(() => {cli.checkReport()}).to.throw();
+         stubOtput = sinon.stub(fs, 'outputFileSync').callsFake((name, text) => {
+            chai.expect(name).to.includes('test1');
+            done();
+         });
+         cli.checkReport();
       });
       it('should not throw an error', () => {
          stubTestReports = sinon.stub(cli, '_testReports').value(['test', 'test1']);
@@ -501,6 +504,7 @@ describe('CLI', () => {
       afterEach(() => {
          stubTestReports.restore();
          stubexistsSync.restore();
+         stubOtput && stubOtput.restore();
       });
    });
    describe('initRepStore', () => {
@@ -1119,7 +1123,7 @@ describe('CLI', () => {
          });
       });
       it('should write xml file', (done) => {
-         stubFsWrite = sinon.stub(fs, 'writeFileSync').callsFake(function(name, text) {
+         stubFsWrite = sinon.stub(fs, 'outputFileSync').callsFake(function(name, text) {
             chai.expect(text).to.equal('<testsuite><testcase name="test1"></testcase></testsuite>');
             done();
          });

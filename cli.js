@@ -8,6 +8,9 @@ const repModulesMap = new Map();
 const builderConfigName = 'builderConfig.json';
 const pMap = require('p-map');
 
+const BROWSER_SUFFIX = '_browser';
+const NODE_SUFFIX = '_node';
+
 function walkDir(dir, callback, rootDir) {
    rootDir = rootDir || dir;
    fs.readdirSync(dir).forEach(f => {
@@ -16,6 +19,27 @@ function walkDir(dir, callback, rootDir) {
       let isDirectory = fs.statSync(dirPath).isDirectory();
       isDirectory ? walkDir(dirPath, callback, rootDir) : callback(path.join(relativePath, f));
    });
+};
+
+let getReportTemplate = (details) => {
+   return {
+      testsuite:{
+         $: {
+            name:"Mocha Tests",
+            tests:"1",
+            failures:"1",
+            errors:"1"
+         },
+         testcase: [{
+            $: {
+               classname:"All tests",
+               name:"Critical error report does not exists",
+               time:"0"
+            },
+            failure: details
+         }]
+      }
+   };
 };
 
 /**
@@ -34,6 +58,7 @@ class Cli {
       this._testBranch = this._argvOptions.branch || this._argvOptions.rc || '';
       this._testRep = this._argvOptions.rep;
       this._unitModules = [];
+      this._testErrors = {};
       this._childProcessMap = [];
       this._rc = this._argvOptions.rc;
       this._modulesMap = new Map();
@@ -138,7 +163,7 @@ class Cli {
    _writeXmlFile(filePath, obj) {
       let builder = new xml2js.Builder();
       let xml = builder.buildObject(obj);
-      fs.writeFileSync(filePath, xml);
+      fs.outputFileSync(filePath, xml);
    }
 
    /**
@@ -174,10 +199,15 @@ class Cli {
       this._testReports.forEach((path, name) => {
          if (!fs.existsSync(path)) {
             error.push(name);
+            let errorText = '';
+            if (this._testErrors[name]) {
+               errorText = this._testErrors[name].join('<br/>');
+            }
+            this._writeXmlFile(path, getReportTemplate(errorText));
          }
       });
       if (error.length > 0) {
-         throw new Error(`Критическая ошибка, не удалось запустить следущие тесты: ${error.join(', ')}`);
+         this.log(`Сгенерированы отчеты с ошибками: ${error.join(', ')}`);
       }
       this.log('Проверка пройдена успешно');
    }
@@ -381,10 +411,10 @@ class Cli {
       let configPorts = this._argvOptions.ports ? this._argvOptions.ports.split(',') : [];
       return Promise.all(this._getTestList().map((name, i) => {
          return new Promise(resolve => {
-            let cfg = this._getTestConfig(name, '_node');
+            let cfg = this._getTestConfig(name, NODE_SUFFIX);
             fs.outputFileSync(`./testConfig_${name}.json`, JSON.stringify(cfg, null, 4));
             if (this._repos[name].unitInBrowser) {
-               let cfg = this._getTestConfig(name, '_browser');
+               let cfg = this._getTestConfig(name, BROWSER_SUFFIX);
                cfg.url.port = configPorts.shift() || defaultPort++;
                fs.outputFileSync(`./testConfig_${name}InBrowser.json`, JSON.stringify(cfg, null, 4));
             }
@@ -429,7 +459,17 @@ class Cli {
          'typescriptInstall'
       );
    }
-
+   async _startNodeTest(name) {
+      try {
+         await this._execute(
+            `node node_modules/saby-units/cli.js --isolated --report --config="./testConfig_${name}.json"`,
+            __dirname,
+            `test node ${name}`
+         );
+      } catch (e) {
+         this._testErrors[name+NODE_SUFFIX] = e;
+      }
+   }
    /**
     * запускает тесты в браузере
     * @param {String} name - название репозитория в конфиге
@@ -440,12 +480,15 @@ class Cli {
       let cfg = this._repos[name];
       if (cfg.unitInBrowser) {
          this.log(`Запуск тестов в браузере`, name);
-         await this._execute(
-            `node node_modules/saby-units/cli.js --browser --report --config="./testConfig_${name}InBrowser.json"`,
-            __dirname,
-            true,
-            `test browser ${name}`
-         );
+         try {
+            await this._execute(
+               `node node_modules/saby-units/cli.js --browser --report --config="./testConfig_${name}InBrowser.json"`,
+               __dirname,
+               `test browser ${name}`
+            );
+         } catch (e) {
+            this._testErrors[name+BROWSER_SUFFIX] = e;
+         }
          this.log(`тесты в браузере завершены`, name);
       }
    }
@@ -460,12 +503,7 @@ class Cli {
       await pMap(this._getTestList(), (name) => {
          this.log(`Запуск тестов`, name);
          return Promise.all([
-            this._execute(
-               `node node_modules/saby-units/cli.js --isolated --report --config="./testConfig_${name}.json"`,
-               __dirname,
-               true,
-               `test node ${name}`
-            ),
+            this._startNodeTest(name),
             this._startBrowserTest(name)
          ]);
       },{
@@ -667,6 +705,7 @@ class Cli {
          processName = force;
          force = false;
       }
+      let errors = [];
       return new Promise((resolve, reject) => {
          const cloneProcess = shell.exec(`cd ${path} && ${command}`, {
             silent: true,
@@ -679,6 +718,7 @@ class Cli {
 
          cloneProcess.stderr.on('data', (data) => {
             this.log(data, processName);
+            errors.push(data);
          });
 
          cloneProcess.on('exit', (code) => {
@@ -686,7 +726,7 @@ class Cli {
             if (force || !code && !cloneProcess.withErrorKill) {
                resolve();
             } else {
-               reject();
+               reject(errors);
             }
          });
       });
