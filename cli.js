@@ -33,7 +33,7 @@ let getReportTemplate = (details) => {
          testcase: [{
             $: {
                classname:"All tests",
-               name:"Critical error report does not exists",
+               name: "Critical error report does not exists",
                time:"0"
             },
             failure: details
@@ -177,10 +177,14 @@ class Cli {
             let xml_string = fs.readFileSync(filePath, "utf8");
             parser.parseString(xml_string, (error, result) => {
                if (error === null) {
-                  result.testsuite.testcase.forEach((item) => {
-                     item.$.classname = `[${name}]: ${item.$.classname}`;
-                  });
-                  this._writeXmlFile(filePath, result);
+                  if (result.testsuite && result.testsuite.testcase) {
+                     result.testsuite.testcase.forEach((item) => {
+                        item.$.classname = `[${name}]: ${item.$.classname}`;
+                     });
+                     this._writeXmlFile(filePath, result);
+                  } else {
+                     this._createReportWithError(filePath, `[${name}]: Сгенерирован пустой отчет`);
+                  }
                }
                else {
                   this.log(error);
@@ -203,13 +207,17 @@ class Cli {
             if (this._testErrors[name]) {
                errorText = this._testErrors[name].join('<br/>');
             }
-            this._writeXmlFile(path, getReportTemplate(errorText));
+            this._createReportWithError(path, errorText);
          }
       });
       if (error.length > 0) {
          this.log(`Сгенерированы отчеты с ошибками: ${error.join(', ')}`);
       }
       this.log('Проверка пройдена успешно');
+   }
+
+   _createReportWithError(path, errorText) {
+      this._writeXmlFile(path, getReportTemplate(errorText));
    }
 
    /**
