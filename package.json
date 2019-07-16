@@ -12,7 +12,11 @@
    "dependencies": {
       "fs-extra": "^7.0.1",
       "p-map": "^2.1.0",
-      "saby-typescript": "git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-19.510",
+      "body-parser": "^1.18.3",
+    "cookie-parser": "^1.4.3",
+    "express": "^4.16.3",
+    "serve-static": "1.11.x",
+    "saby-typescript": "git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-19.510",
       "saby-units": "git+https://platform-git.sbis.ru/saby/Units.git#rc-19.510",
       "sbis3-builder": "git+https://platform-git.sbis.ru/saby/Builder.git#rc-19.510",
       "shelljs": "^0.8.3",
