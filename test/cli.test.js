@@ -1139,19 +1139,26 @@ describe('CLI', () => {
    describe('.prepareReport()', () => {
       let stubRead, stubWrite, stubTestReports, fsExistsSync;
       beforeEach(() => {
-         stubWrite = sinon.stub(cli, '_writeXmlFile').callsFake(function() {});
+         stubWrite = sinon.stub(cli, '_writeXmlFile').callsFake(() => {});
          stubTestReports = sinon.stub(cli, '_testReports').value(new Map([['name', 'test/path']]));
-         stubRead = sinon.stub(fs, 'readFileSync').callsFake(function() {
+         stubRead = sinon.stub(fs, 'readFileSync').callsFake(() => {
             return '<testsuite><testcase classname="test1"></testcase></testsuite>';
          });
-         fsExistsSync = sinon.stub(fs, 'existsSync').callsFake(function() {
-            return true;
-         });
+         fsExistsSync = sinon.stub(fs, 'existsSync').callsFake(() => true);
       });
 
       it('should return all test', (done) => {
          stubWrite.callsFake(function(name, obj) {
             chai.expect(obj.testsuite.testcase[0].$.classname).to.equal('[name]: test1');
+            done();
+         });
+         cli.prepareReport();
+      });
+
+      it('should make failure report if it is empty', (done) => {
+         stubRead.callsFake(() => '<testsuite></testsuite>')
+         stubWrite.callsFake((name, obj) => {
+            chai.expect(obj.testsuite.testcase[0].failure).to.equal('[name]: Сгенерирован пустой отчет');
             done();
          });
          cli.prepareReport();
