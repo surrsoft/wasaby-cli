@@ -1,7 +1,7 @@
 {
-   "cache": "./builder-ui/builder-json-cache",
-   "output": "./application",
-   "logs": "./builder-ui/logs",
+   "cache": "./application/build-ui/builder-json-cache",
+   "output": "./application/unit",
+   "logs": "./application/logs",
    "typescript": true,
    "contents": true,
    "joinedMeta": true,
@@ -60,6 +60,14 @@
          "name": "Inferno",
          "path": "./store/ws/module/Inferno",
          "required": true
+      },
+      {
+         "name": "Controls-demo",
+         "path": "./store/controls/module/Controls-demo"
+      },
+      {
+         "name": "Router",
+         "path": "./store/router/module/Router"
       }
    ]
 }

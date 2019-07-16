@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<service id="43840563-0601-4828-9d48-2a92602f67f3" name="InTestUI" responsible="Ларионова А.В." system_name="intest-ps">
+
+    <directory url='/'/>
+
+    <description>InTestUI</description>
+
+    <items>
+        <ui_module id="62bf645b-207a-4e83-b06d-40e9c36d3ab2" name="Intest"                  url="../store/_repos/controls/tests/stand/Intest/Intest.s3mod"/>
+        <ui_module id="a7909725-2310-4cd7-857b-10bfd68f6758" name="Engine-demo"             url="../store/engine/module/Engine-demo/Engine-demo.s3mod"/>
+        <ui_module id="b9a1f328-a3b5-493e-bfe1-51fa05355fab" name="Graphs"                  url="../store/engine/module/Graphs/Graphs.s3mod"/>
+        <ui_module id="072e4312-e570-4f93-ae6a-0f8d0f496ee2" name="WS3ExpandPanel"          url="../store/engine/module/WS3ExpandPanel/WS3ExpandPanel.s3mod"/>
+        <ui_module id="a80b1c5a-6fee-48ab-aef6-324bf6b8d80f" name="WS3ReportFilter"         url="../store/engine/module/WS3ReportFilter/WS3ReportFilter.s3mod"/>
+        <ui_module id="c2030a1a-8f20-4e56-a489-8b1929d9ca50" name="WS3LongOperations"       url="../store/engine/module/WS3LongOperations/WS3LongOperations.s3mod"/>
+        <ui_module id="fe525af3-de20-450a-ac3b-a21fcbccf8a6" name="LongOperations"          url="../store/engine/module/LongOperations/LongOperations.s3mod"/>
+        <ui_module id="00059a25-ea9d-4fb0-b94f-d85cc9ea3f09" name="EngineUser"              url="../store/engine/module/EngineUser/EngineUser.s3mod"/>
+        <ui_module id="e3bb9b23-fb73-400f-b01c-6d543703fea5" name="WS3ExportPresets"        url="../store/engine/module/WS3ExportPresets/WS3ExportPresets.s3mod"/>
+        <ui_module id="a3339c89-72ad-4bfc-8ef8-2cfacaa3ff9e" name="WS3MiniCard"             url="../store/engine/module/WS3MiniCard/WS3MiniCard.s3mod"/>
+        <ui_module id="497c18a0-9a1e-46d4-8d80-91db14139dd4" name="WS3NavigationPanel"      url="../store/engine/module/WS3NavigationPanel/WS3NavigationPanel.s3mod"/>
+        <ui_module id="647bc173-6aaa-43fa-a417-e555c527f751" name="WS3LinkProcessor"        url="../store/engine/module/WS3LinkProcessor/WS3LinkProcessor.s3mod"/>
+        <ui_module id="49ce73bd-4216-4321-b33f-c5ccb7d81401" name="WS3Header"               url="../store/engine/module/WS3Header/WS3Header.s3mod"/>
+        <ui_module id="2a740a7b-c6fe-498c-8037-c25bf47ccb6e" name="WS3Browser"              url="../store/engine/module/WS3Browser/WS3Browser.s3mod"/>
+        <ui_module id="41f83cac-4cd9-40ab-ab1d-70ead308982a" name="WS3DialogAction"         url="../store/engine/module/WS3DialogAction/WS3DialogAction.s3mod"/>
+        <ui_module id="4ff35a3d-7c67-4c2d-8035-43bd93d29f45" name="PopupNotifications"      url="../store/engine/module/PopupNotifications/PopupNotifications.s3mod"/>
+        <ui_module id="c2a19efd-3f57-4fe7-9e66-921fd3adad54" name="ServiceUpdateNotifier"   url="../store/engine/module/ServiceUpdateNotifier/ServiceUpdateNotifier.s3mod"/>
+        <ui_module id="dadb8e21-f747-4d58-9d16-f05dc9cbd38e" name="Clipboard"               url="../store/engine/module/Clipboard/Clipboard.s3mod"/>
+        <ui_module id="4f09610b-d8c0-4e75-99b7-e733211c98df" name="Hint"                    url="../store/engine/module/Hint/Hint.s3mod"/>
+        <ui_module id="bfa4898d-5e0c-41d6-a14e-a9c4c659d9e3" name="TestPlatform"            url="../store/engine/module/TestPlatform/TestPlatform.s3mod"/>
+        <ui_module id="692689d1-da24-4033-adf0-0b670a0e6ce5" name="Summation"               url="../store/engine/module/Summation/Summation.s3mod"/>
+        <ui_module id="80505a35-197f-4688-bb85-8f0e4f52a74c" name="Unload"                  url="../store/engine/module/Unload/Unload.s3mod"/>
+        <ui_module id="2f959f46-2adb-4cc0-93d4-efcc508a6bc4" name="Printer"                 url="../store/engine/module/Printer/Printer.s3mod"/>
+        <ui_module id="d61e9307-ee6b-47f5-8a16-5d056fe644f4" name="Layout"                  url="../store/engine/module/Layout/Layout.s3mod"/>
+        <ui_module id="71152da9-29e0-4809-aa62-ccd1ce75c458" name="Layout-theme"            url="../store/engine/module/Layout-theme/Layout-theme.s3mod"/>
+        <ui_module id="6a8124d7-7a1b-4d16-b3ad-c0858e93b98e" name="ExtControls"             url="../store/engine/module/ExtControls/ExtControls.s3mod"/>
+        <ui_module id="f026eed7-c09d-4e61-a852-0575be0778e3" name="NavigationPanels"        url="../store/engine/module/NavigationPanels/NavigationPanels.s3mod"/>
+        <ui_module id="729f2d6c-e405-4146-b54a-d787b7badae0" name="EngineLanguage"          url="../store/engine/module/EngineLanguage/EngineLanguage.s3mod"/>
+        <ui_module id="cb6296b0-5b42-4794-b8cf-8fd6706ce254" name="RichEditor"              url="../store/engine/module/RichEditor/RichEditor.s3mod"/>
+        <ui_module id="b1dcb0fe-a25e-41e7-9577-6e1208fce0db" name="SchemeEditor"            url="../store/schemeeditor/module/SchemeEditor/SchemeEditor.s3mod"/>
+        <ui_module id="ede79a8b-773f-454f-8362-cfc79c6c6b2e" name="SchemeEditor-theme"      url="../store/schemeeditor/module/SchemeEditor-theme/SchemeEditor-theme.s3mod"/>
+        <ui_module id="aa1bbf7e-774a-4dc8-8bce-593f204752c6" name="ViewSettings"            url="../store/viewsettings/module/ViewSettings/ViewSettings.s3mod"/>
+        <ui_module id="69a23d3a-ab48-44e1-b9c6-1d2d900be9ce" name="Examples"                url="../store/controls/module/Examples/Examples.s3mod"/>
+        <ui_module id="62bf645b-207a-4e83-b06d-41e8c51d3ab2" name="WSTest"                  url="../store/controls/module/WSTest/WSTest.s3mod"/>
+        <ui_module id="52207d51-ba44-4737-9bc6-b8a7c9a1a5c6" name="Navigation"              url="../store/navigation-configuration/module/Navigation/Navigation.s3mod"/>
+        <ui_module id="0641abed-e0fb-4f42-990c-4c24bdbd7bd0" name="Controls-demo"           url="../store/controls/module/Controls-demo/Controls-demo.s3mod"/>
+        <ui_module id="e4bbd0f2-f7ce-404e-88b2-5130d105b770" name="ParametersWebAPI"        url="$(SBISPlatformSDK)/ui-modules/ParametersWebAPI/ParametersWebAPI.s3mod"/>
+        <ui_module id="b87dc4eb-f434-4c48-81d9-2bd8bc97d0b2" name="SbisFile"                url="$(SBISPlatformSDK)/ui-modules/SbisFile/SbisFile.s3mod"/>
+        <ui_module id="686f183d-0bcc-4732-b4e4-6016c2a67a0f" name="Types"                   url="$(SBISPlatformSDK)/ui-modules/Types/Types.s3mod"/>
+        <ui_module id="0df0fce3-53ba-47f8-987d-edf1fd078295" name="WS.Core"                 url="$(SBISPlatformSDK)/ui-modules/WS.Core/WS.Core.s3mod"/>
+        <ui_module id="07b0c2ab-d7f1-4d46-94cc-e10d1508fc59" name="WS.Deprecated"           url="$(SBISPlatformSDK)/ui-modules/WS.Deprecated/WS.Deprecated.s3mod"/>
+        <ui_module id="f6fdf353-3ab3-4dbb-8671-01c2b418bf0a" name="Controls"                url="$(SBISPlatformSDK)/ui-modules/Controls/Controls.s3mod"/>
+        <ui_module id="a857d050-c754-4d39-90ec-fca5e2ddf022" name="Router"                  url="$(SBISPlatformSDK)/ui-modules/Router/Router.s3mod"/>
+        <ui_module id="3735da8d-a287-4fc1-a22d-7d00a7732ce8" name="SBIS3.CONTROLS"          url="$(SBISPlatformSDK)/ui-modules/SBIS3.CONTROLS/SBIS3.CONTROLS.s3mod"/>
+        <ui_module id="636177e5-4d75-44fa-9173-977dc90ff191" name="File"                    url="$(SBISPlatformSDK)/ui-modules/File/File.s3mod"/>
+        <ui_module id="656177e2-4d75-42fa-9173-977dc90ff121" name="Browser"                 url="$(SBISPlatformSDK)/ui-modules/Browser/Browser.s3mod"/>
+        <ui_module id="636177e5-4d75-44fa-9173-977dc90ff111" name="Env"                     url="$(SBISPlatformSDK)/ui-modules/Env/Env.s3mod"/>
+        <ui_module id="c7d8e465-1c28-4437-858f-81968ce81dec" name="Controls-theme"          url="$(SBISPlatformSDK)/ui-modules/Controls-theme/Controls-theme.s3mod"/>
+        <ui_module id="a02354b5-8a42-4a8b-bc07-3ced62739406" name="SBIS3.Plugin"            url="../store/plugin-client/module/SBIS3.Plugin/SBIS3.Plugin.s3mod"/>
+        <ui_module id="10efeac7-0f02-4c73-9474-0d1d0db077b6" name="View"                    url="$(SBISPlatformSDK)/ui-modules/View/View.s3mod"/>
+        <ui_module id="0f5d26db-dd61-4957-9375-8861ad66f219" name="Vdom"                    url="$(SBISPlatformSDK)/ui-modules/Vdom/Vdom.s3mod"/>
+        <ui_module id="951e1c80-ee24-4022-8349-96123fae8026" name="Inferno"                 url="$(SBISPlatformSDK)/ui-modules/Inferno/Inferno.s3mod"/>
+        <ui_module id="f27abe12-19df-4c9f-b886-634bd20a0011" name="UI"                      url="$(SBISPlatformSDK)/ui-modules/UI/UI.s3mod"/>
+        <ui_module id="e76c9481-9d6f-49a4-b71f-b567061e6e38" name="Markup"                  url="$(SBISPlatformSDK)/ui-modules/Markup/Markup.s3mod"/>
+        <ui_module id="722575bb-20cd-4218-9093-245add574a8e" name="TextMarkup"              url="$(SBISPlatformSDK)/ui-modules/TextMarkup/TextMarkup.s3mod"/>
+        <ui_module id="24fe698c-de89-4825-b2ff-2c5d264543b1" name="VirtualDom"              url="$(SBISPlatformSDK)/ui-modules/VirtualDom/VirtualDom.s3mod"/>
+        <ui_module id="20900143-d257-48ef-b5db-0ccc8141fe4b" name="VirtualTreeMarkup"       url="$(SBISPlatformSDK)/ui-modules/VirtualTreeMarkup/VirtualTreeMarkup.s3mod"/>
+        <ui_module id="16b7a546-95bc-437c-af6a-77f8bbf2a724" name="WmlBuilder"              url="$(SBISPlatformSDK)/ui-modules/WmlBuilder/WmlBuilder.s3mod"/>
+        <ui_module id="832cda0a-e19c-4ffc-a1d1-47edbb6b7501" name="I18n"                    url="$(SBISPlatformSDK)/ui-modules/I18n/I18n.s3mod"/>
+        <ui_module id="323fd54f-1fab-42a6-8aea-6726d6392d53" name="Application"             url="$(SBISPlatformSDK)/ui-modules/Application/Application.s3mod"/>
+        <ui_module id="63e1a7e5-4d75-42fa-91a3-977dc90ff1e1" name="SbisEnv"                 url="$(SBISPlatformSDK)/ui-modules/SbisEnv/SbisEnv.s3mod"/>
+        <ui_module id="a10cb1cb-b23d-4ef6-a757-4f7382e0e8d1" name="SbisEnvUI"               url="$(SBISPlatformSDK)/ui-modules/SbisEnvUI/SbisEnvUI.s3mod"/>
+
+
+
+    </items>
+
+    <parent path="$(SBISPlatformSDK)/components/presentation_service.s3srv"/>
+
+    <resources/>
+
+    <parameters_packages/>
+
+</service>

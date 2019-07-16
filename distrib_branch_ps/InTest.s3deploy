@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<distribution_deploy_schema cloud="InTest" id="44948cc5-b4df-4f3e-966e-273e4df3cd7f" is_versionize_ui="1" version="1.1" deployment_type="release-lite" architecture="x86_64" os="linux" compiler="gcc" configuration="release" json_cache="builder-json-cache" is_without_symlink="1">
+
+  <site>
+    <services>
+      <service id="43840563-0601-4828-9d48-2a92602f67f3"/>
+      <service id="5f3a1a42-e328-4b40-8cea-4cf9d54b14e7"/>
+    </services>
+    <business_logic leave_extra_files="0" target_path="{site_root}"/>
+    <static_content leave_extra_files="0" target_path="{site_root}"/>
+  </site>
+
+  <localization default_language="ru-RU">
+    <language id="en-US"/>
+    <language id="ru-RU"/>
+  </localization>
+
+</distribution_deploy_schema>

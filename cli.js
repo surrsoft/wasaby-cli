@@ -7,7 +7,7 @@ const reposStore = '_repos';
 const repModulesMap = new Map();
 const builderConfigName = 'builderConfig.json';
 const pMap = require('p-map');
-
+//"C:\Program Files (x86)\SBISPlatformSDK_19500\tools\jinnee\jinnee-utility.exe" jinnee-dbg-stand-deployment300.dll --deploy_stand=C:\sbis\test-cli\distrib_branch_ps\InTest.s3deploy --logs_dir=C:\sbis\test-cli\application\logs --project=C:\sbis\test-cli\distrib_branch_ps\InTest.s3cld --webconf=C:/sbis/test-cli/distrib_branch_ps/InTest.s3webconf
 const BROWSER_SUFFIX = '_browser';
 const NODE_SUFFIX = '_node';
 
@@ -77,9 +77,9 @@ class Cli {
       try {
          await this.initStore();
          await this.initWorkDir();
-         await this.startTest();
-         this.checkReport();
-         this.prepareReport();
+         //await this.startTest();
+         //this.checkReport();
+         //this.prepareReport();
          this.log('Закончили тестирование');
       } catch(e) {
          await this._closeChildProcess();
@@ -595,7 +595,7 @@ class Cli {
          this.log(`Переключение на ветку ${checkoutBranch}`, name);
          await this._execute(`git checkout ${checkoutBranch}`, pathToRepos, `checkout ${name}`);
       } catch (err) {
-         throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${e}`);
+         throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${err}`);
       }
       if (name === this._testRep) {
          this.log(`Попытка смержить ветку "${checkoutBranch}" с "${this._rc}"`, name);

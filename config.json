@@ -1,6 +1,6 @@
 {
    "store": "store",
-   "workDir": "application",
+   "workDir": "application/unit",
    "repositories": {
       "engine": {
          "url": "https://git.sbis.ru/sbis/engine.git",
@@ -65,6 +65,15 @@
          "unitInBrowser": true,
          "dependOn":["rmi", "controls", "ui"],
          "test": "tests/unit/SchemeEditor"
+      },
+      "viewsettings": {
+         "url": "https://git.sbis.ru/engine/viewsettings.git"
+      },
+      "plugin-client": {
+         "url": "https://git.sbis.ru/sbis/plugin-client.git"
+      },
+      "navigation-configuration": {
+         "url": "https://git.sbis.ru/navigation-configuration/navigation.git"
       }
    }
 }
