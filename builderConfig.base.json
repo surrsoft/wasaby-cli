@@ -6,10 +6,21 @@
    "contents": true,
    "joinedMeta": true,
    "less": true,
+   "themes": true,
    "modules": [
       {
          "name": "WS.Core",
          "path": "./store/ws/module/WS.Core",
+         "required": true
+      },
+      {
+         "name": "Controls-demo",
+         "path": "./store/controls/module/Controls-demo",
+         "required": true
+      },
+      {
+         "name": "Router",
+         "path": "./store/router/module/Router",
          "required": true
       },
       {
