@@ -6,8 +6,8 @@
       <service id="43840563-0601-4828-9d48-2a92602f67f3"/>
       <service id="5f3a1a42-e328-4b40-8cea-4cf9d54b14e7"/>
     </services>
-    <business_logic leave_extra_files="0" target_path="{site_root}"/>
-    <static_content leave_extra_files="0" target_path="{site_root}"/>
+    <business_logic leave_extra_files="0" target_path="C:/sbis/test-cli/application"/>
+    <static_content leave_extra_files="0" target_path="C:/sbis/test-cli/application"/>
   </site>
 
   <localization default_language="ru-RU">

@@ -7,7 +7,10 @@ const reposStore = '_repos';
 const repModulesMap = new Map();
 const builderConfigName = 'builderConfig.json';
 const pMap = require('p-map');
-//"C:\Program Files (x86)\SBISPlatformSDK_19500\tools\jinnee\jinnee-utility.exe" jinnee-dbg-stand-deployment300.dll --deploy_stand=C:\sbis\test-cli\distrib_branch_ps\InTest.s3deploy --logs_dir=C:\sbis\test-cli\application\logs --project=C:\sbis\test-cli\distrib_branch_ps\InTest.s3cld --webconf=C:/sbis/test-cli/distrib_branch_ps/InTest.s3webconf
+const geniePath = 'tools/jinnee';
+const genieUtility = 'jinnee-utility.exe';
+const resourcesPath = 'intest-ps/ui/resources';
+//"C:\Program Files (x86)\SBISPlatformSDK_19500\tools\jinnee\jinnee-utility.exe"
 const BROWSER_SUFFIX = '_browser';
 const NODE_SUFFIX = '_node';
 
@@ -42,6 +45,18 @@ let getReportTemplate = (details) => {
    };
 };
 
+let getModuleTemplate = (name, id) => {
+   return {
+      ui_module:{
+         $: {
+            name: name,
+            id: id,
+         },
+         description: 'test module'
+      }
+   };
+};
+
 /**
  * Модуль для запуска юнит тестов
  * @class Cli
@@ -53,6 +68,7 @@ class Cli {
       this._repos = config.repositories;
       this._store = config.store;
       this._workDir = config.workDir;
+      this._resources = path.join(config.workDir, resourcesPath);
       this._testReports = new Map();
       this._argvOptions = this._getArgvOptions();
       this._testBranch = this._argvOptions.branch || this._argvOptions.rc || '';
@@ -63,6 +79,7 @@ class Cli {
       this._rc = this._argvOptions.rc;
       this._modulesMap = new Map();
       this._dependTest = {};
+      this._withBuilder = false;
       this._testList = undefined;
       if (!this._testRep) {
          throw new Error('Параметр --rep не передан');
@@ -77,9 +94,9 @@ class Cli {
       try {
          await this.initStore();
          await this.initWorkDir();
-         //await this.startTest();
-         //this.checkReport();
-         //this.prepareReport();
+         await this.startTest();
+         this.checkReport();
+         this.prepareReport();
          this.log('Закончили тестирование');
       } catch(e) {
          await this._closeChildProcess();
@@ -423,6 +440,59 @@ class Cli {
       }));
    }
 
+   async _initWithBuilder() {
+      await this._makeBuilderConfig();
+      await this._execute(
+         `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${pathToCfg}`,
+         __dirname,
+         true,
+         'builder'
+      );
+   }
+
+   async readSrv() {
+      let srvFolder = 'C:\\sbis\\test-cli\\distrib_branch_ps';
+      let srvPath = path.join(srvFolder, 'InTestUI.s3srv');
+      let srv = await this._readXmlFile(srvPath);
+      let srvModules = [];
+      srv.service.items[0].ui_module.forEach((item) => {
+         if (this._modulesMap.has(item.$.name)) {
+            let cfg = this._modulesMap.get(item.$.name);
+            if (!cfg.test) {
+               item.$.url = path.relative(srvFolder, path.join(process.cwd(), this._store, reposStore, cfg.rep, cfg.path));
+               srvModules.push(cfg.name);
+            }
+         }
+      });
+      this._getTestList().forEach((name) => {
+         let module = name+'_test';
+         let cfg = this._modulesMap.get(module);
+         srv.service.items[0].ui_module.push({
+            $: {
+               id: cfg.id,
+               name: module,
+               url: path.relative(srvFolder, path.join(process.cwd(), this._store, name, module, module +'.s3mod'))
+            }
+         });
+      });
+      this._writeXmlFile(srvPath, srv);
+   }
+
+   async _initWithGenie() {
+      this.readSrv();
+      // let genieFolder = path.join(process.env.SBISPlatformSDK_19500, geniePath);
+      // let deploy = 'C:\\sbis\\test-cli\\distrib_branch_ps\\InTest.s3deploy';
+      // let logs = 'C:\\sbis\\test-cli\\application\\logs';
+      // let project = 'C:\\sbis\\test-cli\\distrib_branch_ps\\InTest.s3cld';
+      // let conf = 'C:\\sbis\\test-cli\\distrib_branch_ps\\InTest.s3webconf';
+      // await this._execute(
+      //    `"${path.join(genieFolder, genieUtility)}" jinnee-dbg-stand-deployment300.dll --deploy_stand=${deploy} --logs_dir=${logs} --project=${project} --webconf=${conf}`,
+      //    genieFolder,
+      //    true,
+      //    'builder'
+      // );
+   }
+
    /**
     * инициализирует рабочую директорию: запускает билдер, копирует тесты
     * @return {Promise<void>}
@@ -431,13 +501,11 @@ class Cli {
       this.log(`Подготовка тестов`);
       let pathToCfg = path.join(process.cwd(), 'builderConfig.json');
       try {
-         await this._makeBuilderConfig();
-         await this._execute(
-            `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${pathToCfg}`,
-            __dirname,
-            true,
-            'builder'
-         );
+         if (this._withBuilder) {
+            await this._initWithBuilder();
+         } else {
+            await this._initWithGenie();
+         }
          this._copyUnit();
          await this._linkFolder();
          this.log(`Подготовка тестов завершена успешно`);
@@ -516,6 +584,10 @@ class Cli {
     * @return {Promise<void>}
     */
    async initStore() {
+      // return Promise.all(Object.keys(this._repos).map((name) => {
+      //    return this._getModulesByRepName(name);
+      // }));
+
       this.log(`Инициализация хранилища`);
       try {
          await fs.remove(this._workDir);
@@ -523,6 +595,7 @@ class Cli {
          await fs.remove(this._store);
          await fs.mkdirs(path.join(this._store, reposStore));
          await Promise.all(Object.keys(this._repos).map((name) => {
+            //return this.copy(name);
             if (!fs.existsSync(path.join(this._store, name))) {
                return this.initRepStore(name)
                   .then(
@@ -547,13 +620,19 @@ class Cli {
             for (const pathOriginal in this._repos[name].linkFolders) {
 
                const pathDir = path.join(this._store, reposStore, name, pathOriginal);
-               const pathLink =  path.join(this._workDir, this._repos[name].linkFolders[pathOriginal]);
+               const pathLink =  path.join(this._resources, this._repos[name].linkFolders[pathOriginal]);
                await fs.ensureSymlink(pathDir, pathLink);
             }
          }
       }
    }
-
+   getGuid() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+         const r = Math.random() * 16 | 0;
+         const v = c === 'x' ? r : (r & 0x3 | 0x8);
+         return v.toString(16);
+      });
+   }
    /**
     * создает симлинки для модулей
     * @param {String} name - название репозитория в конфиге
@@ -564,7 +643,16 @@ class Cli {
       let reposPath = path.join(this._store, reposStore, name);
       await fs.mkdirs(path.join(this._store, name));
       if (cfg.test) {
-         await fs.ensureSymlink(path.join(reposPath, cfg.test), path.join(this._store, name, name + '_test'));
+         let testName = name + '_test';
+         await fs.ensureSymlink(path.join(reposPath, cfg.test), path.join(this._store, name, testName));
+         let id = this.getGuid();
+         this._writeXmlFile(path.join(this._store, name, name + '_test', testName + '.s3mod'), getModuleTemplate(testName, id));
+         this._modulesMap.set(testName, {
+            id: id,
+            name: testName,
+            rep: name,
+            test: true
+         })
       }
       const modules = await this._getModulesByRepName(name);
 
@@ -574,7 +662,7 @@ class Cli {
             this._unitModules.push(path.join(reposPath, module));
          } else {
             return fs.ensureSymlink(path.join(reposPath, module), path.join(this._store, name, 'module', this._getModuleNameByPath(module))).catch((e) => {
-               throw new Error(`Ошибка при копировании репозитория ${name}: ${e}`);
+               throw new Error(`Ошибка при копировании репозитория ${name/module}: ${e}`);
             });
          }
       })));
@@ -674,7 +762,7 @@ class Cli {
       this._unitModules.forEach((source) => {
          walkDir(source, (filePath) => {
             if (!filePath.includes('.test.')) {
-               fs.copySync(path.join(source, filePath), path.join(this._workDir, 'unit', filePath));
+               fs.copySync(path.join(source, filePath), path.join(this._resources, 'unit', filePath));
             }
          });
       });

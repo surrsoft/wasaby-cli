@@ -1,6 +1,6 @@
 {
    "store": "store",
-   "workDir": "application/unit",
+   "workDir": "application",
    "repositories": {
       "engine": {
          "url": "https://git.sbis.ru/sbis/engine.git",
@@ -44,8 +44,7 @@
       "router": {
          "url": "https://platform-git.sbis.ru/saby/router.git",
          "unitInBrowser": true,
-         "test": "RouterTest",
-         "modules": ["RouterTest"]
+         "test": "RouterTest"
       },
       "ui": {
          "url": "https://platform-git.sbis.ru/saby/ui.git",
