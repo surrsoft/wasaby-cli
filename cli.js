@@ -356,6 +356,17 @@ class Cli {
    _makeBuilderConfig() {
       let builderConfig = require('./builderConfig.base.json');
       let testList = this._getTestList().slice();
+      //удалить по этой задаче https://online.sbis.ru/opendoc.html?guid=79e5557f-b621-40bf-ae79-86b6fc5930b6
+      testList.forEach((name) => {
+         const cfg = this._repos[name];
+         if (cfg.dependOn) {
+            cfg.dependOn.forEach((name) => {
+               if (!testList.includes(name)) {
+                  testList.push(name)
+               }
+            });
+         }
+      });
       testList.forEach((name) => {
          builderConfig.modules.push({
             name: name + '_test',
