@@ -30,6 +30,7 @@
     <ui_module id="71152da9-29e0-4809-aa62-ccd1ce75c458" name="Layout-theme" url="..\store\_repos\engine\client\Layout-theme\Layout-theme.s3mod"/>
     <ui_module id="6a8124d7-7a1b-4d16-b3ad-c0858e93b98e" name="ExtControls" url="..\store\_repos\engine\client\ExtControls\ExtControls.s3mod"/>
     <ui_module id="f026eed7-c09d-4e61-a852-0575be0778e3" name="NavigationPanels" url="..\store\_repos\engine\client\NavigationPanels\NavigationPanels.s3mod"/>
+    <ui_module id="3f5dd9d6-8544-49ec-a5eb-a730896bd70d" name="Wizard" url="..\store\_repos\engine\client\Wizard\Wizard.s3mod"/>
     <ui_module id="729f2d6c-e405-4146-b54a-d787b7badae0" name="EngineLanguage" url="..\store\_repos\engine\client\EngineLanguage\EngineLanguage.s3mod"/>
     <ui_module id="cb6296b0-5b42-4794-b8cf-8fd6706ce254" name="RichEditor" url="..\store\_repos\engine\client\RichEditor\RichEditor.s3mod"/>
     <ui_module id="b1dcb0fe-a25e-41e7-9577-6e1208fce0db" name="SchemeEditor" url="..\store\_repos\schemeeditor\client\SchemeEditor\SchemeEditor.s3mod"/>
@@ -65,26 +66,6 @@
     <ui_module id="323fd54f-1fab-42a6-8aea-6726d6392d53" name="Application" url="..\store\_repos\app\src\Application\Application.s3mod"/>
     <ui_module id="63e1a7e5-4d75-42fa-91a3-977dc90ff1e1" name="SbisEnv" url="..\store\_repos\rmi\src\client\SbisEnv\SbisEnv.s3mod"/>
     <ui_module id="a10cb1cb-b23d-4ef6-a757-4f7382e0e8d1" name="SbisEnvUI" url="..\store\_repos\rmi\src\client\SbisEnvUI\SbisEnvUI.s3mod"/>
-    <ui_module id="85ff94b9-61f7-4f18-b5f0-5b6e8db6c147" name="engine_test" url="..\store\engine\engine_test\engine_test.s3mod"/>
-    <ui_module id="26f76708-b4e1-4d7d-a0a3-bdd66dadafbb" name="types_test" url="..\store\types\types_test\types_test.s3mod"/>
-    <ui_module id="daf338e8-d0db-4dfc-8c3a-d90d2102644c" name="i18n_test" url="..\store\i18n\i18n_test\i18n_test.s3mod"/>
-    <ui_module id="9a5e7d10-b139-448b-82cf-36894e9695f6" name="ws_test" url="..\store\ws\ws_test\ws_test.s3mod"/>
-    <ui_module id="e7f5107f-2a86-4b2f-add3-646569aff72b" name="controls_test" url="..\store\controls\controls_test\controls_test.s3mod"/>
-    <ui_module id="30bf5e9d-5254-496b-8f2a-3e457ef00a49" name="rmi_test" url="..\store\rmi\rmi_test\rmi_test.s3mod"/>
-    <ui_module id="e3a112f9-3326-4593-8f09-485bc67e30a9" name="app_test" url="..\store\app\app_test\app_test.s3mod"/>
-    <ui_module id="b7910d77-2899-4f89-a19d-2189a456035a" name="router_test" url="..\store\router\router_test\router_test.s3mod"/>
-    <ui_module id="6d20b895-63a9-4633-8f06-dcfdb0801968" name="ui_test" url="..\store\ui\ui_test\ui_test.s3mod"/>
-    <ui_module id="11d6c635-1f1f-4397-977b-272afa132e82" name="schemeeditor_test" url="..\store\schemeeditor\schemeeditor_test\schemeeditor_test.s3mod"/>
-    <ui_module id="711d88ee-6322-4ad0-a992-adb28e3284b7" name="engine_test" url="..\store\engine\engine_test\engine_test.s3mod"/>
-    <ui_module id="f6833987-a978-44ad-b0a6-ea6e40cb26fa" name="types_test" url="..\store\types\types_test\types_test.s3mod"/>
-    <ui_module id="6baa0394-9ca3-488b-9a2f-d22d259a8127" name="i18n_test" url="..\store\i18n\i18n_test\i18n_test.s3mod"/>
-    <ui_module id="7545a044-a78b-46c2-a55b-2ea4da3dc4c5" name="ws_test" url="..\store\ws\ws_test\ws_test.s3mod"/>
-    <ui_module id="6a5a69fc-7a52-4a9f-8d8d-168fb788ec83" name="controls_test" url="..\store\controls\controls_test\controls_test.s3mod"/>
-    <ui_module id="057f862d-b2eb-4fde-8bd8-d4f1b252d00a" name="rmi_test" url="..\store\rmi\rmi_test\rmi_test.s3mod"/>
-    <ui_module id="a0c4f7b2-dfdb-4d15-93e2-00dd0c13e0b6" name="app_test" url="..\store\app\app_test\app_test.s3mod"/>
-    <ui_module id="4f6eef79-e0ac-4c24-8d58-1d4d0d94b9bb" name="router_test" url="..\store\router\router_test\router_test.s3mod"/>
-    <ui_module id="b349d96a-1853-43a7-938e-2e66883b9823" name="ui_test" url="..\store\ui\ui_test\ui_test.s3mod"/>
-    <ui_module id="68d8b1e1-562c-4e78-a132-c59d3d1c36a7" name="schemeeditor_test" url="..\store\schemeeditor\schemeeditor_test\schemeeditor_test.s3mod"/>
   </items>
   <parent path="$(SBISPlatformSDK)/components/presentation_service.s3srv"/>
   <resources/>
