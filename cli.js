@@ -8,7 +8,6 @@ const repModulesMap = new Map();
 const builderConfigName = 'builderConfig.json';
 const pMap = require('p-map');
 const geniePath = 'tools/jinnee';
-const genieUtility = 'jinnee-utility.exe';
 const resourcesPath = 'intest-ps/ui/resources';
 //"C:\Program Files (x86)\SBISPlatformSDK_19500\tools\jinnee\jinnee-utility.exe"
 const BROWSER_SUFFIX = '_browser';
@@ -81,6 +80,7 @@ class Cli {
       this._dependTest = {};
       this._withBuilder = false;
       this._testList = undefined;
+      this._buiderCfg = path.join(process.cwd(), 'builderConfig.json');
       if (!this._testRep) {
          throw new Error('Параметр --rep не передан');
       }
@@ -410,7 +410,7 @@ class Cli {
       let cfg = Object.assign({}, testConfig);
       let fullName = name + (suffix||'');
       cfg.tests = name + '_test';
-
+      cfg.root = this._resources;
       cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('${module}', fullName);
       cfg.jsonCoverageReport = cfg.jsonCoverageReport.replace('${module}', fullName);
       cfg.report = cfg.report.replace('${module}', fullName );
@@ -443,7 +443,7 @@ class Cli {
    async _initWithBuilder() {
       await this._makeBuilderConfig();
       await this._execute(
-         `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${pathToCfg}`,
+         `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._buiderCfg}`,
          __dirname,
          true,
          'builder'
@@ -464,33 +464,57 @@ class Cli {
             }
          }
       });
-      this._getTestList().forEach((name) => {
-         let module = name+'_test';
-         let cfg = this._modulesMap.get(module);
-         srv.service.items[0].ui_module.push({
-            $: {
-               id: cfg.id,
-               name: module,
-               url: path.relative(srvFolder, path.join(process.cwd(), this._store, name, module, module +'.s3mod'))
-            }
-         });
-      });
+      this._makeBuilderTestConfig();
+
       this._writeXmlFile(srvPath, srv);
    }
-
+   _makeBuilderTestConfig() {
+      let builderConfig = require('./builderConfig.base.json');
+      this._getTestList().forEach((name) => {
+         let module = name+'_test';
+         builderConfig.modules.push({
+            name: name + '_test',
+            path: ['.', this._store, name, name + '_test'].join('/')
+         });
+      });
+      builderConfig.output = './' + this._resources;
+      return fs.outputFile(`./${builderConfigName}`, JSON.stringify(builderConfig, null, 4));
+   }
    async _initWithGenie() {
       this.readSrv();
-      // let genieFolder = path.join(process.env.SBISPlatformSDK_19500, geniePath);
-      // let deploy = 'C:\\sbis\\test-cli\\distrib_branch_ps\\InTest.s3deploy';
-      // let logs = 'C:\\sbis\\test-cli\\application\\logs';
-      // let project = 'C:\\sbis\\test-cli\\distrib_branch_ps\\InTest.s3cld';
-      // let conf = 'C:\\sbis\\test-cli\\distrib_branch_ps\\InTest.s3webconf';
-      // await this._execute(
-      //    `"${path.join(genieFolder, genieUtility)}" jinnee-dbg-stand-deployment300.dll --deploy_stand=${deploy} --logs_dir=${logs} --project=${project} --webconf=${conf}`,
-      //    genieFolder,
-      //    true,
-      //    'builder'
-      // );
+      let sdkVersion = this._rc.replace('rc-', '').replace('.','');
+      let genieFolder = path.join(process.env['SBISPlatformSDK_' + sdkVersion], geniePath);
+      let distr = path.join(process.cwd(), 'distrib_branch_ps');
+      let deploy = '';
+      let logs = path.join(this._workDir, 'logs');
+      let project = path.join(distr, 'InTest.s3cld');
+      let conf = path.join(distr, 'InTest.s3webconf');
+      let genieCli = '';
+      if (process.platform == 'win32') {
+         genieCli = `"${path.join(genieFolder, 'jinnee-utility.exe')}" jinnee-dbg-stand-deployment300.dll`;
+         deploy = path.join(distr, 'config/InTest.s3deploy');
+      } else  {
+         genieCli = `${path.join(genieFolder, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
+         deploy = path.join(distr, 'InTest.s3deploy');
+      }
+      await this._execute(
+         `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project} --webconf=${conf}`,
+         genieFolder,
+         true,
+         'builder'
+      );
+      await this._execute(
+         `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._buiderCfg}`,
+         __dirname,
+         true,
+         'builder'
+      );
+      // fs.readdirSync(path.join(this._workDir, 'builder_test')).forEach(f => {
+      //    let dirPath = path.join(this._workDir, 'builder_test', f);
+      //    if (fs.statSync(dirPath).isDirectory()) {
+      //       fs.ensureSymlink(dirPath, path.join(this._resources, f));
+      //    }
+      // });
    }
 
    /**
@@ -499,7 +523,7 @@ class Cli {
     */
    async initWorkDir() {
       this.log(`Подготовка тестов`);
-      let pathToCfg = path.join(process.cwd(), 'builderConfig.json');
+
       try {
          if (this._withBuilder) {
             await this._initWithBuilder();
@@ -520,8 +544,9 @@ class Cli {
     * @private
     */
    _tslibInstall() {
+      let tslib = path.join(this._resources, '/WS.Core/ext/tslib.js');
       return this._execute(
-         `node node_modules/saby-typescript/install.js --tslib=application/WS.Core/ext/tslib.js`,
+         `node node_modules/saby-typescript/install.js --tslib=${tslib}`,
          __dirname,
          true,
          'typescriptInstall'
@@ -683,7 +708,11 @@ class Cli {
          this.log(`Переключение на ветку ${checkoutBranch}`, name);
          await this._execute(`git checkout ${checkoutBranch}`, pathToRepos, `checkout ${name}`);
       } catch (err) {
-         throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${err}`);
+         if (/rc-.*00/.test(checkoutBranch)) {
+            await this._execute(`git checkout ${checkoutBranch.replace('00', '10')}`, pathToRepos, `checkout ${name}`);
+         } else {
+            throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${err}`);
+         }
       }
       if (name === this._testRep) {
          this.log(`Попытка смержить ветку "${checkoutBranch}" с "${this._rc}"`, name);
