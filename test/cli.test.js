@@ -34,18 +34,20 @@ let getProcess = () => {
 };
 
 let stubConsoleLog;
-
+let stubBuilder;
 describe('CLI', () => {
    beforeEach(() => {
       stubArgv = sinon.stub(process, 'argv');
       stubArgv.value(['','', '--rep=types', '--branch=200/feature', '--rc=rc-200']);
       cli = new Cli();
       stubConsoleLog = sinon.stub(cli, 'log').callsFake((log) => {});
+      stubBuilder = sinon.stub(cli, '_withBuilder').value(true);
    });
 
    afterEach(() => {
       stubArgv.restore();
       stubConsoleLog.restore();
+      stubBuilder.restore();
    });
 
    describe('.constructor()', () => {
@@ -997,7 +999,7 @@ describe('CLI', () => {
          });
          cli._linkFolder().then(() => {
             chai.expect(from).to.equal(path.join('store', '_repos', 'test', '/'));
-            chai.expect(to).to.equal(path.join('application', 'cdn'));
+            chai.expect(to).to.equal(path.join('application', 'intest-ps', 'ui', 'resources', 'cdn'));
             done();
          });
       });
@@ -1065,7 +1067,7 @@ describe('CLI', () => {
             return Promise.resolve();
          });
          cli._tslibInstall().then(() => {
-            chai.expect(cmd).to.equal('node node_modules/saby-typescript/install.js --tslib=application/WS.Core/ext/tslib.js');
+            chai.expect(cmd).to.includes('tslib.js');
             done();
          });
       });
