@@ -356,7 +356,7 @@ class Cli {
             }
          })
       }, {
-         concurrency: 1
+         concurrency: 4
       });
       return addedModules;
    }
@@ -528,7 +528,7 @@ class Cli {
             this._startBrowserTest(name)
          ]);
       },{
-         concurrency: 1
+         concurrency: 4
       });
    }
 
