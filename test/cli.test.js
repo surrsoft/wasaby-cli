@@ -1137,10 +1137,11 @@ describe('CLI', () => {
    });
 
    describe('.prepareReport()', () => {
-      let stubRead, stubWrite, stubTestReports, fsExistsSync;
+      let stubRead, stubWrite, stubTestReports, fsExistsSync, stubTestError;
       beforeEach(() => {
          stubWrite = sinon.stub(cli, '_writeXmlFile').callsFake(() => {});
          stubTestReports = sinon.stub(cli, '_testReports').value(new Map([['name', 'test/path']]));
+         stubTestError = sinon.stub(cli, '_testErrors').value({});
          stubRead = sinon.stub(fs, 'readFileSync').callsFake(() => {
             return '<testsuite><testcase classname="test1"></testcase></testsuite>';
          });
@@ -1156,9 +1157,11 @@ describe('CLI', () => {
       });
 
       it('should make failure report if it is empty', (done) => {
-         stubRead.callsFake(() => '<testsuite></testsuite>')
+         stubRead.callsFake(() => '<testsuite></testsuite>');
+         stubTestReports._error = sinon.stub(cli, '_testReports').value(new Map([['name', 'test/path']]));
+         stubTestError.value({name: ['error']});
          stubWrite.callsFake((name, obj) => {
-            chai.expect(obj.testsuite.testcase[0].failure).to.equal('[name]: Сгенерирован пустой отчет');
+            chai.expect(obj.testsuite.testcase[0].failure).to.equal('error');
             done();
          });
          cli.prepareReport();
@@ -1169,6 +1172,7 @@ describe('CLI', () => {
          stubRead.restore();
          stubTestReports.restore();
          fsExistsSync.restore();
+         stubTestError.restore();
       });
    });
 
