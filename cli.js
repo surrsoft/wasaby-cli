@@ -21,7 +21,7 @@ function walkDir(dir, callback, rootDir) {
    });
 };
 
-let getReportTemplate = (details) => {
+let getReportTemplate = () => {
    return {
       testsuite:{
          $: {
@@ -30,16 +30,20 @@ let getReportTemplate = (details) => {
             failures:"1",
             errors:"1"
          },
-         testcase: [{
-            $: {
-               classname:"All tests",
-               name: "Critical error report does not exists",
-               time:"0"
-            },
-            failure: details
-         }]
+         testcase: []
       }
    };
+};
+
+let getErrorTestCase = (name, details) => {
+   return {
+      $: {
+         classname: `[${name}]: Test runtime error`,
+         name: "Some test has not been run, see details",
+         time: "0"
+      },
+      failure: details
+   }
 };
 
 /**
@@ -175,16 +179,29 @@ class Cli {
          if (fs.existsSync(filePath)) {
             const parser = new xml2js.Parser();
             let xml_string = fs.readFileSync(filePath, "utf8");
+            let errorText = '';
+            if (this._testErrors[name]) {
+               errorText = this._testErrors[name].join('<br/>');
+            }
             parser.parseString(xml_string, (error, result) => {
                if (error === null) {
                   if (result.testsuite && result.testsuite.testcase) {
                      result.testsuite.testcase.forEach((item) => {
                         item.$.classname = `[${name}]: ${item.$.classname}`;
                      });
-                     this._writeXmlFile(filePath, result);
                   } else {
-                     this._createReportWithError(filePath, `[${name}]: Сгенерирован пустой отчет`);
+                     result = {
+                        testsuite: {
+                           testcase: []
+                        }
+                     }
                   }
+
+                  if (errorText) {
+                     result.testsuite.testcase.push(getErrorTestCase(name, errorText));
+                  }
+
+                     this._writeXmlFile(filePath, result);
                }
                else {
                   this.log(error);
@@ -203,11 +220,7 @@ class Cli {
       this._testReports.forEach((path, name) => {
          if (!fs.existsSync(path)) {
             error.push(name);
-            let errorText = '';
-            if (this._testErrors[name]) {
-               errorText = this._testErrors[name].join('<br/>');
-            }
-            this._createReportWithError(path, errorText);
+            this._createReport(path);
          }
       });
       if (error.length > 0) {
@@ -216,8 +229,8 @@ class Cli {
       this.log('Проверка пройдена успешно');
    }
 
-   _createReportWithError(path, errorText) {
-      this._writeXmlFile(path, getReportTemplate(errorText));
+   _createReport(path) {
+      this._writeXmlFile(path, getReportTemplate());
    }
 
    /**
@@ -539,6 +552,7 @@ class Cli {
          }));
          this.log(`Инициализация хранилища завершена успешно`);
       } catch (e) {
+         throw e;
          throw new Error(`Инициализация хранилища завершена с ошибкой ${e}`);
       }
    }
@@ -602,26 +616,26 @@ class Cli {
     * переключает репозиторий на нужную ветку
     * @param {String} name - название репозитория в конфиге
     * @param {String} checkoutBranch - ветка на которую нужно переключиться
-    * @param {String} pathToRepos - путь до репозитория
     * @return {Promise<void>}
     */
-   async checkout(name, checkoutBranch, pathToRepos) {
+   async checkout(name, checkoutBranch) {
+      let pathToRepos = path.join(this._store, reposStore, name);
       if (!checkoutBranch) {
          throw new Error(`Не удалось определить ветку для репозитория ${name}`);
       }
       try {
          this.log(`Переключение на ветку ${checkoutBranch}`, name);
-         await this._execute(`git reset --hard HEAD`, pathToRepos, `checkout ${name}`);
-         //await this._execute(`git clean -fdx`, pathToRepos, `checkout ${name}`);
-         //await this._execute(`git fetch`, pathToRepos, `checkout ${name}`);
-         //await this._execute(`git checkout ${checkoutBranch}`, pathToRepos, `checkout ${name}`);
+         await this._execute(`git reset --hard HEAD`, pathToRepos, `git_reset ${name}`);
+         await this._execute(`git clean -fdx`, pathToRepos, `git_clean ${name}`);
+         await this._execute(`git fetch`, pathToRepos, `git_fetch ${name}`);
+         await this._execute(`git checkout ${checkoutBranch}`, pathToRepos, `git_checkout ${name}`);
       } catch (err) {
          throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${err}`);
       }
       if (name === this._testRep) {
          this.log(`Попытка смержить ветку "${checkoutBranch}" с "${this._rc}"`, name);
          try {
-            await this._execute(`git merge origin/${this._rc}`, pathToRepos, `merge ${name}`);
+            await this._execute(`git merge origin/${this._rc}`, pathToRepos, `git_merge ${name}`);
          } catch (e) {
             throw new Error(`При мерже "${checkoutBranch}" в "${this._rc}" произошел конфликт`);
          }
@@ -637,9 +651,7 @@ class Cli {
       if (!fs.existsSync(path.join(this._store, reposStore, name))) {
          try {
             this.log(`git clone ${this._repos[name].url}`, name);
-
             await this._execute(`git clone ${this._repos[name].url} ${name}`, path.join(this._store, reposStore), `clone ${name}`);
-
          } catch (err) {
             throw new Error(`Ошибка при клонировании репозитория ${name}: ${err}`);
          }
@@ -652,11 +664,11 @@ class Cli {
     * @param {String} name - название репозитория в конфиге
     * @return {Promise<void>}
     */
-   async copyRepToStore(pathToOriginal, name, repPath) {
+   async copyRepToStore(pathToOriginal, name) {
       try {
          this.log(`Копирование репозитория`, name);
 
-         await fs.ensureSymlink(pathToOriginal, repPath);
+         await fs.ensureSymlink(pathToOriginal, path.join(this._store, reposStore, name));
       } catch (err) {
          throw new Error(`Ошибка при копировании репозитория ${name}: ${err}`);
       }

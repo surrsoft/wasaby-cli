@@ -510,10 +510,9 @@ describe('CLI', () => {
    describe('initRepStore', () => {
       var stubCheckout, stubClone;
       it('initRepStore', (done) => {
-         stubCheckout = sinon.stub(cli, 'checkout').callsFake((name, branch, pathToRepos) => {
+         stubCheckout = sinon.stub(cli, 'checkout').callsFake((name, branch) => {
             chai.expect(name).to.equal('test');
             chai.expect(branch).to.equal(cli._rc);
-            chai.expect(pathToRepos).to.equal('testPath');
             done();
          });
          stubClone = sinon.stub(cli, 'cloneRepToStore').callsFake((name) => {
@@ -623,9 +622,11 @@ describe('CLI', () => {
       let stubExecute, stubModule;
 
       it('should checkout branch', (done) => {
-         stubExecute = sinon.stub(cli, '_execute').callsFake((cmd) => {
-            chai.expect(cmd).to.equal('git checkout branch');
-            done();
+         stubExecute = sinon.stub(cli, '_execute').callsFake((cmd, path, label) => {
+            if (label.includes('git_checkout')) {
+               chai.expect(cmd).to.equal('git checkout branch');
+               done();
+            }
             return Promise.resolve();
          });
 
@@ -646,7 +647,7 @@ describe('CLI', () => {
          });
          stubModule = sinon.stub(cli, '_testRep').value('test');
          cli.checkout('test', 'branch', 'pathToRep').then(() => {
-            chai.expect(`git merge origin/${cli._rc}`).to.equal(commandsArray[1]);
+            chai.expect(`git merge origin/${cli._rc}`).to.equal(commandsArray[4]);
             done();
          });
       });
@@ -778,7 +779,6 @@ describe('CLI', () => {
          stubRepos = sinon.stub(cli, '_repos').value({});
          cli.initStore().then(() => {
             chai.expect(removeArray).to.includes('builder-ui');
-            chai.expect(removeArray).to.includes('store');
             chai.expect(removeArray).to.includes('application');
             done();
          });
@@ -1137,10 +1137,11 @@ describe('CLI', () => {
    });
 
    describe('.prepareReport()', () => {
-      let stubRead, stubWrite, stubTestReports, fsExistsSync;
+      let stubRead, stubWrite, stubTestReports, fsExistsSync, stubTestError;
       beforeEach(() => {
          stubWrite = sinon.stub(cli, '_writeXmlFile').callsFake(() => {});
          stubTestReports = sinon.stub(cli, '_testReports').value(new Map([['name', 'test/path']]));
+         stubTestError = sinon.stub(cli, '_testErrors').value({});
          stubRead = sinon.stub(fs, 'readFileSync').callsFake(() => {
             return '<testsuite><testcase classname="test1"></testcase></testsuite>';
          });
@@ -1156,9 +1157,11 @@ describe('CLI', () => {
       });
 
       it('should make failure report if it is empty', (done) => {
-         stubRead.callsFake(() => '<testsuite></testsuite>')
+         stubRead.callsFake(() => '<testsuite></testsuite>');
+         stubTestReports._error = sinon.stub(cli, '_testReports').value(new Map([['name', 'test/path']]));
+         stubTestError.value({name: ['error']});
          stubWrite.callsFake((name, obj) => {
-            chai.expect(obj.testsuite.testcase[0].failure).to.equal('[name]: Сгенерирован пустой отчет');
+            chai.expect(obj.testsuite.testcase[0].failure).to.equal('error');
             done();
          });
          cli.prepareReport();
@@ -1169,6 +1172,7 @@ describe('CLI', () => {
          stubRead.restore();
          stubTestReports.restore();
          fsExistsSync.restore();
+         stubTestError.restore();
       });
    });
 
@@ -1247,4 +1251,43 @@ describe('CLI', () => {
          stubModulesMap.restore();
       })
    });
+
+   describe('_clearStore', function () {
+      let stubFsReaddir, fsRemove;
+      beforeEach(() => {
+         stubFsReaddir = sinon.stub(fs, 'readdir').callsFake(() => {
+            return Promise.resolve(['_repos', 'test1', 'test2']);
+         });
+         fsRemove = sinon.stub(fs, 'remove').callsFake(() => {});
+      });
+
+      it('should remove repos work directory', (done) => {
+         let removePaths = [];
+         fsRemove.callsFake((p) => {
+            removePaths.push(p);
+         });
+         cli._clearStore().then(() => {
+            chai.expect(removePaths).to.includes(path.join('store', 'test1'));
+            chai.expect(removePaths).to.includes(path.join('store', 'test2'));
+            done();
+         });
+      });
+
+      it('should not remove repos store', (done) => {
+         let removePaths = [];
+         fsRemove.callsFake((p) => {
+            removePaths.push(p);
+         });
+         cli._clearStore().then(() => {
+            chai.expect(removePaths).to.not.includes(path.join('store', '_repos'));
+            done();
+         });
+
+      });
+
+      afterEach(() => {
+         stubFsReaddir.restore();
+         fsRemove.restore();
+      })
+   })
 });
