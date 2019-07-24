@@ -198,7 +198,7 @@ class Cli {
                      result.testsuite.testcase.push(getErrorTestCase(name, errorText));
                   }
 
-                     this._writeXmlFile(filePath, result);
+                  this._writeXmlFile(filePath, result);
                }
                else {
                   this.log(error);
@@ -554,7 +554,6 @@ class Cli {
          }));
          this.log(`Инициализация хранилища завершена успешно`);
       } catch (e) {
-         throw e;
          throw new Error(`Инициализация хранилища завершена с ошибкой ${e}`);
       }
    }
