@@ -475,7 +475,6 @@ class Cli {
          await this._linkFolder();
          this.log(`Подготовка тестов завершена успешно`);
       } catch(e) {
-         throw e;
          throw new Error(`Подготовка тестов завершена с ошибкой ${e}`);
       }
    }
@@ -553,7 +552,7 @@ class Cli {
       try {
          await fs.remove(this._workDir);
          await fs.remove('builder-ui');
-         await fs.remove(this._store);
+         await this._clearStore();
          await fs.mkdirs(path.join(this._store, reposStore));
          await Promise.all(Object.keys(this._repos).map((name) => {
             if (!fs.existsSync(path.join(this._store, name))) {
@@ -569,6 +568,17 @@ class Cli {
       }
    }
 
+   async _clearStore() {
+      return fs.readdir(this._store).then(folders => {
+         return pMap(folders, (folder) => {
+            if (folder !== reposStore) {
+               return fs.remove(path.join(this._store, folder));
+            }
+         }, {
+            concurrency: 4
+         })
+      });
+   }
    /**
     * Создает симлинки в рабочей директории, после прогона билдера
     * @return {Promise<void>}
@@ -617,23 +627,26 @@ class Cli {
     * переключает репозиторий на нужную ветку
     * @param {String} name - название репозитория в конфиге
     * @param {String} checkoutBranch - ветка на которую нужно переключиться
-    * @param {String} pathToRepos - путь до репозитория
     * @return {Promise<void>}
     */
-   async checkout(name, checkoutBranch, pathToRepos) {
+   async checkout(name, checkoutBranch) {
+      let pathToRepos = path.join(this._store, reposStore, name);
       if (!checkoutBranch) {
          throw new Error(`Не удалось определить ветку для репозитория ${name}`);
       }
       try {
          this.log(`Переключение на ветку ${checkoutBranch}`, name);
-         await this._execute(`git checkout ${checkoutBranch}`, pathToRepos, `checkout ${name}`);
+         await this._execute(`git reset --hard HEAD`, pathToRepos, `git_reset ${name}`);
+         await this._execute(`git clean -fdx`, pathToRepos, `git_clean ${name}`);
+         await this._execute(`git fetch`, pathToRepos, `git_fetch ${name}`);
+         await this._execute(`git checkout ${checkoutBranch}`, pathToRepos, `git_checkout ${name}`);
       } catch (err) {
-         throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${e}`);
+         throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${err}`);
       }
       if (this._testRep.includes(name)) {
          this.log(`Попытка смержить ветку "${checkoutBranch}" с "${this._rc}"`, name);
          try {
-            await this._execute(`git merge origin/${this._rc}`, pathToRepos, `merge ${name}`);
+            await this._execute(`git merge origin/${this._rc}`, pathToRepos, `git_merge ${name}`);
          } catch (e) {
             throw new Error(`При мерже "${checkoutBranch}" в "${this._rc}" произошел конфликт`);
          }
@@ -646,14 +659,13 @@ class Cli {
     * @return {Promise<*|string>}
     */
    async cloneRepToStore(name) {
-      try {
-         this.log(`git clone ${this._repos[name].url}`, name);
-
-         await this._execute(`git clone ${this._repos[name].url} ${name}`, path.join(this._store, reposStore), `clone ${name}`);
-
-         return path.join(this._store, reposStore, name);
-      } catch (err) {
-         throw new Error(`Ошибка при клонировании репозитория ${name}: ${err}`);
+      if (!fs.existsSync(path.join(this._store, reposStore, name))) {
+         try {
+            this.log(`git clone ${this._repos[name].url}`, name);
+            await this._execute(`git clone ${this._repos[name].url} ${name}`, path.join(this._store, reposStore), `clone ${name}`);
+         } catch (err) {
+            throw new Error(`Ошибка при клонировании репозитория ${name}: ${err}`);
+         }
       }
    }
 
