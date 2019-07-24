@@ -569,15 +569,17 @@ class Cli {
    }
 
    async _clearStore() {
-      return fs.readdir(this._store).then(folders => {
-         return pMap(folders, (folder) => {
-            if (folder !== reposStore) {
-               return fs.remove(path.join(this._store, folder));
-            }
-         }, {
-            concurrency: 4
-         })
-      });
+      if (fs.existsSync(fs.readdir)) {
+         return fs.readdir(this._store).then(folders => {
+            return pMap(folders, (folder) => {
+               if (folder !== reposStore) {
+                  return fs.remove(path.join(this._store, folder));
+               }
+            }, {
+               concurrency: 4
+            })
+         });
+      }
    }
    /**
     * Создает симлинки в рабочей директории, после прогона билдера

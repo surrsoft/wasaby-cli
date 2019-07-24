@@ -765,9 +765,9 @@ describe('CLI', () => {
    });
 
    describe('.initStore()', () => {
-      let stubmkdirs, stubRemove, stubRepos, stubExistsSync, initRepStore, stubCopy;
+      let stubmkdirs, stubRemove, stubRepos, stubExistsSync, initRepStore, stubCopy, stubclearStore;
       beforeEach(() => {
-
+         stubclearStore = sinon.stub(cli, '_clearStore').callsFake(() => {});
       });
       it('should remove work dirs', (done) => {
          let removeArray = [];
@@ -777,6 +777,7 @@ describe('CLI', () => {
             removeArray.push(path);
          });
          stubRepos = sinon.stub(cli, '_repos').value({});
+
          cli.initStore().then(() => {
             chai.expect(removeArray).to.includes('builder-ui');
             chai.expect(removeArray).to.includes('application');
@@ -872,6 +873,7 @@ describe('CLI', () => {
       });
 
       afterEach(() => {
+         stubclearStore.restore();
          stubmkdirs && stubmkdirs.restore();
          stubRemove && stubRemove.restore();
          stubRepos && stubRepos.restore();
@@ -1299,12 +1301,15 @@ describe('CLI', () => {
    });
 
    describe('_clearStore', function () {
-      let stubFsReaddir, fsRemove;
+      let stubFsReaddir, fsRemove, stubExistsSync;
       beforeEach(() => {
          stubFsReaddir = sinon.stub(fs, 'readdir').callsFake(() => {
             return Promise.resolve(['_repos', 'test1', 'test2']);
          });
          fsRemove = sinon.stub(fs, 'remove').callsFake(() => {});
+         stubExistsSync = sinon.stub(fs, 'existsSync').callsFake((path) => {
+            return true;
+         });
       });
 
       it('should remove repos work directory', (done) => {
@@ -1334,6 +1339,7 @@ describe('CLI', () => {
       afterEach(() => {
          stubFsReaddir.restore();
          fsRemove.restore();
+         stubExistsSync.restore();
       })
    })
 });
