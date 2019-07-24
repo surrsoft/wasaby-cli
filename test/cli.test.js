@@ -765,9 +765,9 @@ describe('CLI', () => {
    });
 
    describe('.initStore()', () => {
-      let stubmkdirs, stubRemove, stubRepos, stubExistsSync, initRepStore, stubCopy;
+      let stubmkdirs, stubRemove, stubRepos, stubExistsSync, initRepStore, stubCopy, stubclearStore;
       beforeEach(() => {
-
+         stubclearStore = sinon.stub(cli, '_clearStore').callsFake(() => {});
       });
       it('should remove work dirs', (done) => {
          let removeArray = [];
@@ -777,6 +777,7 @@ describe('CLI', () => {
             removeArray.push(path);
          });
          stubRepos = sinon.stub(cli, '_repos').value({});
+
          cli.initStore().then(() => {
             chai.expect(removeArray).to.includes('builder-ui');
             chai.expect(removeArray).to.includes('application');
@@ -872,6 +873,7 @@ describe('CLI', () => {
       });
 
       afterEach(() => {
+         stubclearStore.restore();
          stubmkdirs && stubmkdirs.restore();
          stubRemove && stubRemove.restore();
          stubRepos && stubRepos.restore();
