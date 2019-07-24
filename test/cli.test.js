@@ -65,9 +65,9 @@ describe('CLI', () => {
 
    describe('._getArgvOptions()', () => {
       it('should return argv options', () => {
-         stubArgv.value(['','','--a=12', '--b=15']);
+         stubArgv.value(['','','--rep=12', '--b=15']);
          let config = cli._getArgvOptions();
-         chai.expect(config).to.be.an('object').to.deep.equal({a:'12',b:'15'});
+         chai.expect(config).to.be.an('object').to.deep.equal({rep:'12',b:'15'});
       });
    });
 
@@ -78,7 +78,7 @@ describe('CLI', () => {
       });
       it('should set params from argv', () => {
          chai.expect(cli._testBranch).to.equal('200/feature');
-         chai.expect(cli._testRep).to.equal('types');
+         chai.expect(cli._testRep[0]).to.equal('types');
          chai.expect(cli._rc).to.equal('rc-200');
       });
       it('should set params from config', () => {
@@ -1088,22 +1088,31 @@ describe('CLI', () => {
             test3: {}
          });
          stubModulesMap = sinon.stub(cli, '_modulesMap').value(
-            new Map([['test11', {name:'test11', rep:'test1', depends:['test22']}], ['test22', {name:'test22', rep:'test2', depends:[]}]])
+            new Map([
+               ['test11', {name:'test11', rep:'test1', depends:['test22']}],
+               ['test22', {name:'test22', rep:'test2', depends:[]}],
+               ['test33', {name:'test33', rep:'test3', depends:[]}],
+            ])
          );
       });
       it('should return all test', () => {
-         stubTestRep = sinon.stub(cli, '_testRep').value('all');
+         stubTestRep = sinon.stub(cli, '_testRep').value(['all']);
          chai.expect(cli._getTestList()).to.deep.equal(['test1', 'test2']);
       });
 
       it('should return test list for test1', () => {
-         stubTestRep = sinon.stub(cli, '_testRep').value('test1');
+         stubTestRep = sinon.stub(cli, '_testRep').value(['test1']);
          chai.expect(cli._getTestList()).to.deep.equal(['test1']);
       });
 
       it('should return test list for test with depend test', () => {
-         stubTestRep = sinon.stub(cli, '_testRep').value('test2');
+         stubTestRep = sinon.stub(cli, '_testRep').value(['test2']);
          chai.expect(cli._getTestList()).to.deep.equal(['test2', 'test1']);
+      });
+
+      it('should return test list if check two unliked tests', () => {
+         stubTestRep = sinon.stub(cli, '_testRep').value(['test1','test3']);
+         chai.expect(cli._getTestList()).to.deep.equal(['test1', 'test3']);
       });
 
       afterEach(() => {
@@ -1213,8 +1222,7 @@ describe('CLI', () => {
          stubModulesMap.restore();
       })
    });
-
-   describe(' _getChildModules()',() => {
+   describe('_getChildModules()',() => {
       let stubModulesMap;
       beforeEach(() => {
          stubModulesMap = sinon.stub(cli, '_modulesMap').value(
