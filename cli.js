@@ -60,17 +60,13 @@ class Cli {
       this._testReports = new Map();
       this._argvOptions = this._getArgvOptions();
       this._testBranch = this._argvOptions.branch || this._argvOptions.rc || '';
-      this._testRep = this._argvOptions.rep;
+      this._testRep = this._argvOptions.rep.split(',');
       this._unitModules = [];
       this._testErrors = {};
       this._childProcessMap = [];
       this._rc = this._argvOptions.rc;
       this._modulesMap = new Map();
-      this._dependTest = {};
       this._testList = undefined;
-      if (!this._testRep) {
-         throw new Error('Параметр --rep не передан');
-      }
    }
 
    /**
@@ -102,17 +98,17 @@ class Cli {
       if (this._testList) {
          return this._testList;
       }
-
       let tests = [];
-      if (this._testRep !== 'all') {
-         tests = [this._testRep];
-         let cfg = this._repos[this._testRep];
-         let modules = this._getParentModules(this._getModulesFromMap(this._testRep));
-         modules.forEach((name) => {
-            let cfg = this._modulesMap.get(name);
-            if (!tests.includes(cfg.rep)) {
-               tests.push(cfg.rep);
-            }
+      if (!this._testRep.includes('all')) {
+         this._testRep.forEach((testRep) => {
+            let modules = this._getParentModules(this._getModulesFromMap(testRep));
+            tests.push(testRep);
+            modules.forEach((name) => {
+               let cfg = this._modulesMap.get(name);
+               if (!tests.includes(cfg.rep)) {
+                  tests.push(cfg.rep);
+               }
+            });
          });
       } else {
          tests = Object.keys(this._repos).filter((name) => {
@@ -273,6 +269,11 @@ class Cli {
             options[name] = value === undefined ? true : value;
          }
       });
+
+      if (!options.rep) {
+         throw new Error('Параметр --rep не передан');
+      }
+
       return options;
    }
 
@@ -629,7 +630,7 @@ class Cli {
       } catch (err) {
          throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${e}`);
       }
-      if (name === this._testRep) {
+      if (this._testRep.includes(name)) {
          this.log(`Попытка смержить ветку "${checkoutBranch}" с "${this._rc}"`, name);
          try {
             await this._execute(`git merge origin/${this._rc}`, pathToRepos, `merge ${name}`);
@@ -678,24 +679,15 @@ class Cli {
     * @return {Promise<void>}
     */
    async initRepStore(name) {
-      if (this._argvOptions[name]) {
-         if (fs.existsSync(this._argvOptions[name])) {
-            return this.copyRepToStore(this._argvOptions[name], name);
-         } else {
-            return this.checkout(
-               name,
-               this._argvOptions[name],
-               await this.cloneRepToStore(name, this._argvOptions[name])
-            );
-         }
-      } else {
-         const branch = name === this._testRep ? this._testBranch : this._rc;
-         return this.checkout(
-            name,
-            branch,
-            await this.cloneRepToStore(name)
-         );
+      let branch = this._argvOptions[name] || this._rc;
+      if (fs.existsSync(branch)) {
+         return this.copyRepToStore(this._argvOptions[name], name);
       }
+      return this.checkout(
+         name,
+         branch,
+         await this.cloneRepToStore(name)
+      );
    }
 
    /**
