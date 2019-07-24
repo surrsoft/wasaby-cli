@@ -1263,12 +1263,15 @@ describe('CLI', () => {
    });
 
    describe('_clearStore', function () {
-      let stubFsReaddir, fsRemove;
+      let stubFsReaddir, fsRemove, stubExistsSync;
       beforeEach(() => {
          stubFsReaddir = sinon.stub(fs, 'readdir').callsFake(() => {
             return Promise.resolve(['_repos', 'test1', 'test2']);
          });
          fsRemove = sinon.stub(fs, 'remove').callsFake(() => {});
+         stubExistsSync = sinon.stub(fs, 'existsSync').callsFake((path) => {
+            return true;
+         });
       });
 
       it('should remove repos work directory', (done) => {
@@ -1298,6 +1301,7 @@ describe('CLI', () => {
       afterEach(() => {
          stubFsReaddir.restore();
          fsRemove.restore();
+         stubExistsSync.restore();
       })
    })
 });
