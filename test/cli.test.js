@@ -65,9 +65,9 @@ describe('CLI', () => {
 
    describe('._getArgvOptions()', () => {
       it('should return argv options', () => {
-         stubArgv.value(['','','--a=12', '--b=15']);
+         stubArgv.value(['','','--rep=12', '--b=15']);
          let config = cli._getArgvOptions();
-         chai.expect(config).to.be.an('object').to.deep.equal({a:'12',b:'15'});
+         chai.expect(config).to.be.an('object').to.deep.equal({rep:'12',b:'15'});
       });
    });
 
@@ -78,7 +78,7 @@ describe('CLI', () => {
       });
       it('should set params from argv', () => {
          chai.expect(cli._testBranch).to.equal('200/feature');
-         chai.expect(cli._testRep).to.equal('types');
+         chai.expect(cli._testRep[0]).to.equal('types');
          chai.expect(cli._rc).to.equal('rc-200');
       });
       it('should set params from config', () => {
@@ -510,10 +510,9 @@ describe('CLI', () => {
    describe('initRepStore', () => {
       var stubCheckout, stubClone;
       it('initRepStore', (done) => {
-         stubCheckout = sinon.stub(cli, 'checkout').callsFake((name, branch, pathToRepos) => {
+         stubCheckout = sinon.stub(cli, 'checkout').callsFake((name, branch) => {
             chai.expect(name).to.equal('test');
             chai.expect(branch).to.equal(cli._rc);
-            chai.expect(pathToRepos).to.equal('testPath');
             done();
          });
          stubClone = sinon.stub(cli, 'cloneRepToStore').callsFake((name) => {
@@ -623,9 +622,11 @@ describe('CLI', () => {
       let stubExecute, stubModule;
 
       it('should checkout branch', (done) => {
-         stubExecute = sinon.stub(cli, '_execute').callsFake((cmd) => {
-            chai.expect(cmd).to.equal('git checkout branch');
-            done();
+         stubExecute = sinon.stub(cli, '_execute').callsFake((cmd, path, label) => {
+            if (label.includes('git_checkout')) {
+               chai.expect(cmd).to.equal('git checkout branch');
+               done();
+            }
             return Promise.resolve();
          });
 
@@ -646,7 +647,7 @@ describe('CLI', () => {
          });
          stubModule = sinon.stub(cli, '_testRep').value('test');
          cli.checkout('test', 'branch', 'pathToRep').then(() => {
-            chai.expect(`git merge origin/${cli._rc}`).to.equal(commandsArray[1]);
+            chai.expect(`git merge origin/${cli._rc}`).to.equal(commandsArray[4]);
             done();
          });
       });
@@ -764,9 +765,9 @@ describe('CLI', () => {
    });
 
    describe('.initStore()', () => {
-      let stubmkdirs, stubRemove, stubRepos, stubExistsSync, initRepStore, stubCopy;
+      let stubmkdirs, stubRemove, stubRepos, stubExistsSync, initRepStore, stubCopy, stubclearStore;
       beforeEach(() => {
-
+         stubclearStore = sinon.stub(cli, '_clearStore').callsFake(() => {});
       });
       it('should remove work dirs', (done) => {
          let removeArray = [];
@@ -776,9 +777,9 @@ describe('CLI', () => {
             removeArray.push(path);
          });
          stubRepos = sinon.stub(cli, '_repos').value({});
+
          cli.initStore().then(() => {
             chai.expect(removeArray).to.includes('builder-ui');
-            chai.expect(removeArray).to.includes('store');
             chai.expect(removeArray).to.includes('application');
             done();
          });
@@ -872,6 +873,7 @@ describe('CLI', () => {
       });
 
       afterEach(() => {
+         stubclearStore.restore();
          stubmkdirs && stubmkdirs.restore();
          stubRemove && stubRemove.restore();
          stubRepos && stubRepos.restore();
@@ -1088,22 +1090,31 @@ describe('CLI', () => {
             test3: {}
          });
          stubModulesMap = sinon.stub(cli, '_modulesMap').value(
-            new Map([['test11', {name:'test11', rep:'test1', depends:['test22']}], ['test22', {name:'test22', rep:'test2', depends:[]}]])
+            new Map([
+               ['test11', {name:'test11', rep:'test1', depends:['test22']}],
+               ['test22', {name:'test22', rep:'test2', depends:[]}],
+               ['test33', {name:'test33', rep:'test3', depends:[]}],
+            ])
          );
       });
       it('should return all test', () => {
-         stubTestRep = sinon.stub(cli, '_testRep').value('all');
+         stubTestRep = sinon.stub(cli, '_testRep').value(['all']);
          chai.expect(cli._getTestList()).to.deep.equal(['test1', 'test2']);
       });
 
       it('should return test list for test1', () => {
-         stubTestRep = sinon.stub(cli, '_testRep').value('test1');
+         stubTestRep = sinon.stub(cli, '_testRep').value(['test1']);
          chai.expect(cli._getTestList()).to.deep.equal(['test1']);
       });
 
       it('should return test list for test with depend test', () => {
-         stubTestRep = sinon.stub(cli, '_testRep').value('test2');
+         stubTestRep = sinon.stub(cli, '_testRep').value(['test2']);
          chai.expect(cli._getTestList()).to.deep.equal(['test2', 'test1']);
+      });
+
+      it('should return test list if check two unliked tests', () => {
+         stubTestRep = sinon.stub(cli, '_testRep').value(['test1','test3']);
+         chai.expect(cli._getTestList()).to.deep.equal(['test1', 'test3']);
       });
 
       afterEach(() => {
@@ -1213,8 +1224,7 @@ describe('CLI', () => {
          stubModulesMap.restore();
       })
    });
-
-   describe(' _getChildModules()',() => {
+   describe('_getChildModules()',() => {
       let stubModulesMap;
       beforeEach(() => {
          stubModulesMap = sinon.stub(cli, '_modulesMap').value(
@@ -1251,4 +1261,47 @@ describe('CLI', () => {
          stubModulesMap.restore();
       })
    });
+
+   describe('_clearStore', function () {
+      let stubFsReaddir, fsRemove, stubExistsSync;
+      beforeEach(() => {
+         stubFsReaddir = sinon.stub(fs, 'readdir').callsFake(() => {
+            return Promise.resolve(['_repos', 'test1', 'test2']);
+         });
+         fsRemove = sinon.stub(fs, 'remove').callsFake(() => {});
+         stubExistsSync = sinon.stub(fs, 'existsSync').callsFake((path) => {
+            return true;
+         });
+      });
+
+      it('should remove repos work directory', (done) => {
+         let removePaths = [];
+         fsRemove.callsFake((p) => {
+            removePaths.push(p);
+         });
+         cli._clearStore().then(() => {
+            chai.expect(removePaths).to.includes(path.join('store', 'test1'));
+            chai.expect(removePaths).to.includes(path.join('store', 'test2'));
+            done();
+         });
+      });
+
+      it('should not remove repos store', (done) => {
+         let removePaths = [];
+         fsRemove.callsFake((p) => {
+            removePaths.push(p);
+         });
+         cli._clearStore().then(() => {
+            chai.expect(removePaths).to.not.includes(path.join('store', '_repos'));
+            done();
+         });
+
+      });
+
+      afterEach(() => {
+         stubFsReaddir.restore();
+         fsRemove.restore();
+         stubExistsSync.restore();
+      })
+   })
 });
