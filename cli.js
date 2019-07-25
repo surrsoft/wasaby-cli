@@ -476,6 +476,7 @@ class Cli {
    }
 
    async readSrv() {
+      //await copyProject()
       let srvFolder = path.join(process.cwd(), 'distrib_branch_ps');
       let srvPath = path.join(srvFolder, 'InTestUI.s3srv');
       let srv = await this._readXmlFile(srvPath);
