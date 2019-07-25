@@ -516,6 +516,7 @@ class Cli {
 
    async _initWithGenie() {
       this.readSrv();
+
       let sdkVersion = this._rc.replace('rc-', '').replace('.','');
       let sdkPath = process.env['SDK'];
       process.env['SBISPlatformSDK_' + sdkVersion] = process.env['SDK'];
@@ -562,7 +563,7 @@ class Cli {
     */
    async initWorkDir() {
       this.log(`Подготовка тестов`);
-
+      await this._tslibInstall();
       try {
          if (this._withBuilder) {
             await this._initWithBuilder();
@@ -581,8 +582,8 @@ class Cli {
     * копирует tslib
     * @private
     */
-   _tslibInstall() {
-      let tslib = path.join(this._resources, '/WS.Core/ext/tslib.js');
+   async _tslibInstall() {
+      let tslib = path.join(this._store, reposStore, 'ws', '/WS.Core/ext/tslib.js');
       return this._execute(
          `node node_modules/saby-typescript/install.js --tslib=${tslib}`,
          __dirname,
@@ -630,7 +631,6 @@ class Cli {
     */
    async startTest() {
       await this._makeTestConfig();
-      await this._tslibInstall();
       await pMap(this._getTestList(), (name) => {
          this.log(`Запуск тестов`, name);
          return Promise.all([
