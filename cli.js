@@ -435,7 +435,7 @@ class Cli {
       let cfg = Object.assign({}, testConfig);
       let fullName = name + (suffix||'');
       cfg.tests = name + '_test';
-      cfg.root = this._resources;
+      cfg.root = './' + this._resources;
       cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('${module}', fullName);
       cfg.jsonCoverageReport = cfg.jsonCoverageReport.replace('${module}', fullName);
       cfg.report = cfg.report.replace('${module}', fullName );
