@@ -535,7 +535,7 @@ class Cli {
          genieFolder = path.join('..','jinnee');
          genieCli = `${path.join(genieFolder, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
          deploy = path.join(distr, 'InTest.s3deploy');
-         await this._prepareDeployCfg(deploy);
+         this._prepareDeployCfg(deploy);
       }
       await this._execute(
          `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
