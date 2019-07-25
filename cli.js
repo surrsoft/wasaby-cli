@@ -543,18 +543,18 @@ class Cli {
          genieFolder,
          'genie'
       );
-      // await this._execute(
-      //    `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._buiderCfg}`,
-      //    __dirname,
-      //    true,
-      //    'builder'
-      // );
-      // fs.readdirSync(path.join(this._workDir, 'builder_test')).forEach(f => {
-      //    let dirPath = path.join(this._workDir, 'builder_test', f);
-      //    if (fs.statSync(dirPath).isDirectory()) {
-      //       fs.ensureSymlink(dirPath, path.join(this._resources, f));
-      //    }
-      // });
+      await this._execute(
+         `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._buiderCfg}`,
+         __dirname,
+         true,
+         'builder'
+      );
+      fs.readdirSync(path.join(this._workDir, 'builder_test')).forEach(f => {
+         let dirPath = path.join(this._workDir, 'builder_test', f);
+         if (fs.statSync(dirPath).isDirectory()) {
+            fs.ensureSymlink(dirPath, path.join(this._resources, f));
+         }
+      });
    }
 
    /**
