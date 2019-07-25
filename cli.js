@@ -508,7 +508,8 @@ class Cli {
    async _initWithGenie() {
       this.readSrv();
       let sdkVersion = this._rc.replace('rc-', '').replace('.','');
-      let genieFolder = path.join(process.env['SBISPlatformSDK_' + sdkVersion], geniePath);
+      let sdkPath = '../link_to_sdk';
+      let genieFolder = path.join(sdkPath, geniePath);
       let distr = path.join(process.cwd(), 'distrib_branch_ps');
       let deploy = '';
       let logs = path.join(this._workDir, 'logs');
@@ -519,6 +520,8 @@ class Cli {
          genieCli = `"${path.join(genieFolder, 'jinnee-utility.exe')}" jinnee-dbg-stand-deployment300.dll`;
          deploy = path.join(distr, 'config/InTest.s3deploy');
       } else  {
+         await this._execute(`7za x ${path.join(sdkPath,'tools','jinnee.zip')} -o${path.join('..','jinnee')}`, __dirname);
+         genieFolder = path.join('..','jinnee');
          genieCli = `${path.join(genieFolder, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
          deploy = path.join(distr, 'InTest.s3deploy');
       }
