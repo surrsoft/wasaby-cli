@@ -523,13 +523,13 @@ class Cli {
          genieCli = `"${path.join(genieFolder, 'jinnee-utility.exe')}" jinnee-dbg-stand-deployment300.dll`;
          deploy = path.join(distr, 'config/InTest.s3deploy');
       } else  {
-         await this._execute(`7za x ${path.join(sdkPath,'tools','jinnee','jinnee.zip')} -o${path.join('..','jinnee')}`, __dirname);
+         await this._execute(`7za x ${path.join(sdkPath,'tools','jinnee','jinnee.zip')} -o${path.join('../','jinnee')}`, __dirname);
          genieFolder = path.join('..','jinnee');
          genieCli = `${path.join(genieFolder, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
          deploy = path.join(distr, 'InTest.s3deploy');
       }
       await this._execute(
-         `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project} --webconf=${conf}`,
+         `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
          genieFolder,
          'genie'
       );
