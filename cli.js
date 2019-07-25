@@ -510,7 +510,7 @@ class Cli {
 
    _prepareDeployCfg(filePath) {
       let cfg_string = fs.readFileSync(filePath, "utf8");
-      cfg_string = cfg_string.replace(/\{site_root\}/g, path.join(process.cwd, this._workDir));
+      cfg_string = cfg_string.replace(/\{site_root\}/g, path.join(process.cwd(), this._workDir));
       fs.outputFileSync(filePath, cfg_string);
    }
 
