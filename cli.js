@@ -476,8 +476,7 @@ class Cli {
    }
 
    async readSrv() {
-      let srvFolder = 'C:\\sbis\\test-cli\\distrib_branch_ps';
-      let srvPath = path.join(srvFolder, 'InTestUI.s3srv');
+      let srvPath = path.join('distrib_branch_ps', 'InTestUI.s3srv');
       let srv = await this._readXmlFile(srvPath);
       let srvModules = [];
       srv.service.items[0].ui_module.forEach((item) => {
