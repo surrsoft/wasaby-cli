@@ -716,7 +716,8 @@ class Cli {
             id: id,
             name: testName,
             rep: name,
-            test: true
+            test: true,
+            depends: []
          })
       }
       const modules = await this._getModulesByRepName(name);
