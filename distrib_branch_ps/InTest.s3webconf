@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<web_server>
-
-  <site name="InTest" port="2001" root="C:/sbis/test-cli/application" use_redirect_to_preprocessor="0">
-    <service alias="/" is_ui="1" name="InTestUI" path="C:/sbis/test-cli/application/intest-ps/sbis-rpc-service300.dll"/>
-    <service alias="/service/" is_ui="0" name="InTest" path="C:/sbis/test-cli/application/intest/sbis-rpc-service300.dll"/>
-  </site>
-
-</web_server>
