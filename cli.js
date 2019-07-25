@@ -476,14 +476,15 @@ class Cli {
    }
 
    async readSrv() {
-      let srvPath = path.join('distrib_branch_ps', 'InTestUI.s3srv');
+      let srvFolder = path.join(process.cwd(), 'distrib_branch_ps');
+      let srvPath = path.join(srvFolder, 'InTestUI.s3srv');
       let srv = await this._readXmlFile(srvPath);
       let srvModules = [];
       srv.service.items[0].ui_module.forEach((item) => {
          if (this._modulesMap.has(item.$.name)) {
             let cfg = this._modulesMap.get(item.$.name);
             if (!cfg.test) {
-               item.$.url = path.relative('distrib_branch_ps', path.join(process.cwd(), this._store, reposStore, cfg.rep, cfg.path));
+               item.$.url = path.relative(srvFolder, path.join(process.cwd(), this._store, reposStore, cfg.rep, cfg.path));
                srvModules.push(cfg.name);
             }
          }
