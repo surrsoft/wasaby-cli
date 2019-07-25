@@ -23,7 +23,7 @@ function walkDir(dir, callback, rootDir) {
    });
 };
 
-let getReportTemplate = (details) => {
+let getReportTemplate = () => {
    return {
       testsuite:{
          $: {
@@ -32,16 +32,20 @@ let getReportTemplate = (details) => {
             failures:"1",
             errors:"1"
          },
-         testcase: [{
-            $: {
-               classname:"All tests",
-               name:"Critical error report does not exists",
-               time:"0"
-            },
-            failure: details
-         }]
+         testcase: []
       }
    };
+};
+
+let getErrorTestCase = (name, details) => {
+   return {
+      $: {
+         classname: `[${name}]: Test runtime error`,
+         name: "Some test has not been run, see details",
+         time: "0"
+      },
+      failure: details
+   }
 };
 
 let getModuleTemplate = (name, id) => {
@@ -71,7 +75,7 @@ class Cli {
       this._testReports = new Map();
       this._argvOptions = this._getArgvOptions();
       this._testBranch = this._argvOptions.branch || this._argvOptions.rc || '';
-      this._testRep = this._argvOptions.rep;
+      this._testRep = this._argvOptions.rep.split(',');
       this._unitModules = [];
       this._testErrors = {};
       this._childProcessMap = [];
@@ -81,9 +85,7 @@ class Cli {
       this._withBuilder = false;
       this._testList = undefined;
       this._buiderCfg = path.join(process.cwd(), 'builderConfig.json');
-      if (!this._testRep) {
-         throw new Error('Параметр --rep не передан');
-      }
+
    }
 
    /**
@@ -117,15 +119,16 @@ class Cli {
       }
 
       let tests = [];
-      if (this._testRep !== 'all') {
-         tests = [this._testRep];
-         let cfg = this._repos[this._testRep];
-         let modules = this._getParentModules(this._getModulesFromMap(this._testRep));
-         modules.forEach((name) => {
-            let cfg = this._modulesMap.get(name);
-            if (!tests.includes(cfg.rep)) {
-               tests.push(cfg.rep);
-            }
+      if (!this._testRep.includes('all')) {
+         this._testRep.forEach((testRep) => {
+            let modules = this._getParentModules(this._getModulesFromMap(testRep));
+            tests.push(testRep);
+            modules.forEach((name) => {
+               let cfg = this._modulesMap.get(name);
+               if (!tests.includes(cfg.rep)) {
+                  tests.push(cfg.rep);
+               }
+            });
          });
       } else {
          tests = Object.keys(this._repos).filter((name) => {
@@ -192,11 +195,28 @@ class Cli {
          if (fs.existsSync(filePath)) {
             const parser = new xml2js.Parser();
             let xml_string = fs.readFileSync(filePath, "utf8");
+            let errorText = '';
+            if (this._testErrors[name]) {
+               errorText = this._testErrors[name].join('<br/>');
+            }
             parser.parseString(xml_string, (error, result) => {
                if (error === null) {
-                  result.testsuite.testcase.forEach((item) => {
-                     item.$.classname = `[${name}]: ${item.$.classname}`;
-                  });
+                  if (result.testsuite && result.testsuite.testcase) {
+                     result.testsuite.testcase.forEach((item) => {
+                        item.$.classname = `[${name}]: ${item.$.classname}`;
+                     });
+                  } else {
+                     result = {
+                        testsuite: {
+                           testcase: []
+                        }
+                     }
+                  }
+
+                  if (errorText) {
+                     result.testsuite.testcase.push(getErrorTestCase(name, errorText));
+                  }
+
                   this._writeXmlFile(filePath, result);
                }
                else {
@@ -216,17 +236,17 @@ class Cli {
       this._testReports.forEach((path, name) => {
          if (!fs.existsSync(path)) {
             error.push(name);
-            let errorText = '';
-            if (this._testErrors[name]) {
-               errorText = this._testErrors[name].join('<br/>');
-            }
-            this._writeXmlFile(path, getReportTemplate(errorText));
+            this._createReport(path);
          }
       });
       if (error.length > 0) {
          this.log(`Сгенерированы отчеты с ошибками: ${error.join(', ')}`);
       }
       this.log('Проверка пройдена успешно');
+   }
+
+   _createReport(path) {
+      this._writeXmlFile(path, getReportTemplate());
    }
 
    /**
@@ -269,6 +289,11 @@ class Cli {
             options[name] = value === undefined ? true : value;
          }
       });
+
+      if (!options.rep) {
+         throw new Error('Параметр --rep не передан');
+      }
+
       return options;
    }
 
@@ -534,7 +559,6 @@ class Cli {
          await this._linkFolder();
          this.log(`Подготовка тестов завершена успешно`);
       } catch(e) {
-         throw e;
          throw new Error(`Подготовка тестов завершена с ошибкой ${e}`);
       }
    }
@@ -617,7 +641,7 @@ class Cli {
       try {
          await fs.remove(this._workDir);
          await fs.remove('builder-ui');
-         await fs.remove(this._store);
+         await this._clearStore();
          await fs.mkdirs(path.join(this._store, reposStore));
          await Promise.all(Object.keys(this._repos).map((name) => {
             //return this.copy(name);
@@ -634,6 +658,19 @@ class Cli {
       }
    }
 
+   async _clearStore() {
+      if (fs.existsSync(fs.readdir)) {
+         return fs.readdir(this._store).then(folders => {
+            return pMap(folders, (folder) => {
+               if (folder !== reposStore) {
+                  return fs.remove(path.join(this._store, folder));
+               }
+            }, {
+               concurrency: 4
+            })
+         });
+      }
+   }
    /**
     * Создает симлинки в рабочей директории, после прогона билдера
     * @return {Promise<void>}
@@ -697,16 +734,19 @@ class Cli {
     * переключает репозиторий на нужную ветку
     * @param {String} name - название репозитория в конфиге
     * @param {String} checkoutBranch - ветка на которую нужно переключиться
-    * @param {String} pathToRepos - путь до репозитория
     * @return {Promise<void>}
     */
-   async checkout(name, checkoutBranch, pathToRepos) {
+   async checkout(name, checkoutBranch) {
+      let pathToRepos = path.join(this._store, reposStore, name);
       if (!checkoutBranch) {
          throw new Error(`Не удалось определить ветку для репозитория ${name}`);
       }
       try {
          this.log(`Переключение на ветку ${checkoutBranch}`, name);
-         await this._execute(`git checkout ${checkoutBranch}`, pathToRepos, `checkout ${name}`);
+         await this._execute(`git reset --hard HEAD`, pathToRepos, `git_reset ${name}`);
+         await this._execute(`git clean -fdx`, pathToRepos, `git_clean ${name}`);
+         await this._execute(`git fetch`, pathToRepos, `git_fetch ${name}`);
+         await this._execute(`git checkout ${checkoutBranch}`, pathToRepos, `git_checkout ${name}`);
       } catch (err) {
          if (/rc-.*00/.test(checkoutBranch)) {
             await this._execute(`git checkout ${checkoutBranch.replace('00', '10')}`, pathToRepos, `checkout ${name}`);
@@ -714,10 +754,10 @@ class Cli {
             throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${err}`);
          }
       }
-      if (name === this._testRep) {
+      if (this._testRep.includes(name)) {
          this.log(`Попытка смержить ветку "${checkoutBranch}" с "${this._rc}"`, name);
          try {
-            await this._execute(`git merge origin/${this._rc}`, pathToRepos, `merge ${name}`);
+            await this._execute(`git merge origin/${this._rc}`, pathToRepos, `git_merge ${name}`);
          } catch (e) {
             throw new Error(`При мерже "${checkoutBranch}" в "${this._rc}" произошел конфликт`);
          }
@@ -730,14 +770,13 @@ class Cli {
     * @return {Promise<*|string>}
     */
    async cloneRepToStore(name) {
-      try {
-         this.log(`git clone ${this._repos[name].url}`, name);
-
-         await this._execute(`git clone ${this._repos[name].url} ${name}`, path.join(this._store, reposStore), `clone ${name}`);
-
-         return path.join(this._store, reposStore, name);
-      } catch (err) {
-         throw new Error(`Ошибка при клонировании репозитория ${name}: ${err}`);
+      if (!fs.existsSync(path.join(this._store, reposStore, name))) {
+         try {
+            this.log(`git clone ${this._repos[name].url}`, name);
+            await this._execute(`git clone ${this._repos[name].url} ${name}`, path.join(this._store, reposStore), `clone ${name}`);
+         } catch (err) {
+            throw new Error(`Ошибка при клонировании репозитория ${name}: ${err}`);
+         }
       }
    }
 
@@ -763,24 +802,15 @@ class Cli {
     * @return {Promise<void>}
     */
    async initRepStore(name) {
-      if (this._argvOptions[name]) {
-         if (fs.existsSync(this._argvOptions[name])) {
-            return this.copyRepToStore(this._argvOptions[name], name);
-         } else {
-            return this.checkout(
-               name,
-               this._argvOptions[name],
-               await this.cloneRepToStore(name, this._argvOptions[name])
-            );
-         }
-      } else {
-         const branch = name === this._testRep ? this._testBranch : this._rc;
-         return this.checkout(
-            name,
-            branch,
-            await this.cloneRepToStore(name)
-         );
+      let branch = this._argvOptions[name] || this._rc;
+      if (fs.existsSync(branch)) {
+         return this.copyRepToStore(this._argvOptions[name], name);
       }
+      await this.cloneRepToStore(name);
+      return this.checkout(
+         name,
+         branch
+      );
    }
 
    /**
