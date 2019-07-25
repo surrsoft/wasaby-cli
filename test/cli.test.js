@@ -731,7 +731,7 @@ describe('CLI', () => {
    });
 
    describe('.startTest()', () => {
-      let stubmakeTestConfig, stubtslibInstall, stubstartBrowserTest, stubtestList, stubExecute;
+      let stubmakeTestConfig, stubtslibInstall, stubstartBrowserTest, stubtestList, stubExecute, stubSetContents;
       beforeEach(() => {
          stubmakeTestConfig = sinon.stub(cli, '_makeTestConfig').callsFake(() => {
             return Promise.resolve();
@@ -743,6 +743,7 @@ describe('CLI', () => {
             return Promise.resolve();
          });
          stubtestList = sinon.stub(cli, '_testList').value(['engine']);
+         stubSetContents = sinon.stub(cli, '_setContents').callsFake(() => {});
       });
       it('should start test', (done) => {
          let commandsArray = [];
@@ -759,6 +760,7 @@ describe('CLI', () => {
 
       afterEach(() => {
          stubmakeTestConfig.restore();
+         stubSetContents.restore();
          stubtslibInstall.restore();
          stubstartBrowserTest.restore();
          stubtestList.restore();
