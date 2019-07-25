@@ -504,7 +504,7 @@ class Cli {
             path: ['.', this._store, name, name + '_test'].join('/')
          });
       });
-      builderConfig.output = './' + this._resources;
+      builderConfig.output = './' + path.join(this._workDir, 'builder_test');
       return fs.outputFile(`./${builderConfigName}`, JSON.stringify(builderConfig, null, 4));
    }
 
