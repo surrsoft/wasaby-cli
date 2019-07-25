@@ -508,7 +508,7 @@ class Cli {
    async _initWithGenie() {
       this.readSrv();
       let sdkVersion = this._rc.replace('rc-', '').replace('.','');
-      let sdkPath = '../link_to_sdk';
+      let sdkPath = process.env['SDK'];
       let genieFolder = path.join(sdkPath, geniePath);
       let distr = path.join(process.cwd(), 'distrib_branch_ps');
       let deploy = '';
