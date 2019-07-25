@@ -624,12 +624,19 @@ class Cli {
          this.log(`тесты в браузере завершены`, name);
       }
    }
-
+   async _setContents(value) {
+      let resources = 'application';
+      let contents = await fs.readJson(path.join(this.resources, 'contents.json'), "utf8");
+      contents.buildMode = value;
+      await fs.outputFile(`./${path.join(this.resources, 'contents.js')}`, `contents=${JSON.stringify(contents)};`);
+      await fs.outputFile(`./${path.join(this.resources, 'contents.json')}`, JSON.stringify(contents));
+   }
    /**
     * Запускает тестирование
     * @return {Promise<void>}
     */
    async startTest() {
+      await this._setContents('debug');
       await this._makeTestConfig();
       await pMap(this._getTestList(), (name) => {
          this.log(`Запуск тестов`, name);
@@ -640,6 +647,7 @@ class Cli {
       },{
          concurrency: 4
       });
+      await this._setContents('release')
    }
 
    /**
