@@ -625,11 +625,10 @@ class Cli {
       }
    }
    async _setContents(value) {
-      let resources = 'application';
-      let contents = await fs.readJson(path.join(this.resources, 'contents.json'), "utf8");
+      let contents = await fs.readJson(path.join(this._resources, 'contents.json'), "utf8");
       contents.buildMode = value;
-      await fs.outputFile(`./${path.join(this.resources, 'contents.js')}`, `contents=${JSON.stringify(contents)};`);
-      await fs.outputFile(`./${path.join(this.resources, 'contents.json')}`, JSON.stringify(contents));
+      await fs.outputFile(`./${path.join(this._resources, 'contents.js')}`, `contents=${JSON.stringify(contents)};`);
+      await fs.outputFile(`./${path.join(this._resources, 'contents.json')}`, JSON.stringify(contents));
    }
    /**
     * Запускает тестирование
