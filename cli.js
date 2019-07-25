@@ -483,7 +483,7 @@ class Cli {
          if (this._modulesMap.has(item.$.name)) {
             let cfg = this._modulesMap.get(item.$.name);
             if (!cfg.test) {
-               item.$.url = path.relative(srvFolder, path.join(process.cwd(), this._store, reposStore, cfg.rep, cfg.path));
+               item.$.url = path.relative('distrib_branch_ps', path.join(process.cwd(), this._store, reposStore, cfg.rep, cfg.path));
                srvModules.push(cfg.name);
             }
          }
@@ -519,7 +519,7 @@ class Cli {
          genieCli = `"${path.join(genieFolder, 'jinnee-utility.exe')}" jinnee-dbg-stand-deployment300.dll`;
          deploy = path.join(distr, 'config/InTest.s3deploy');
       } else  {
-         await this._execute(`7za x ${path.join(sdkPath,'tools','jinnee.zip')} -o${path.join('..','jinnee')}`, __dirname);
+         await this._execute(`7za x ${path.join(sdkPath,'tools','jinnee','jinnee.zip')} -o${path.join('..','jinnee')}`, __dirname);
          genieFolder = path.join('..','jinnee');
          genieCli = `${path.join(genieFolder, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
          deploy = path.join(distr, 'InTest.s3deploy');
