@@ -494,6 +494,7 @@ class Cli {
 
       this._writeXmlFile(srvPath, srv);
    }
+
    _makeBuilderTestConfig() {
       let builderConfig = require('./builderConfig.base.json');
       this._getTestList().forEach((name) => {
@@ -506,6 +507,13 @@ class Cli {
       builderConfig.output = './' + this._resources;
       return fs.outputFile(`./${builderConfigName}`, JSON.stringify(builderConfig, null, 4));
    }
+
+   _prepareDeployCfg(filePath) {
+      let cfg_string = fs.readFileSync(filePath, "utf8");
+      cfg_string = cfg_string.replace(/\{site_root\}/g, path.join(process.cwd, this._workDir));
+      fs.outputFileSync(filePath, cfg_string);
+   }
+
    async _initWithGenie() {
       this.readSrv();
       let sdkVersion = this._rc.replace('rc-', '').replace('.','');
@@ -527,6 +535,7 @@ class Cli {
          genieFolder = path.join('..','jinnee');
          genieCli = `${path.join(genieFolder, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
          deploy = path.join(distr, 'InTest.s3deploy');
+         await this._prepareDeployCfg(deploy);
       }
       await this._execute(
          `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
