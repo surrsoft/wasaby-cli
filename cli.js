@@ -531,8 +531,7 @@ class Cli {
       await this._execute(
          `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project} --webconf=${conf}`,
          genieFolder,
-         true,
-         'builder'
+         'genie'
       );
       // await this._execute(
       //    `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._buiderCfg}`,
