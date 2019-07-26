@@ -5,6 +5,7 @@
       "engine": {
          "url": "https://git.sbis.ru/sbis/engine.git",
          "unitInBrowser": true,
+         "module": ["EngineLink"],
          "test": "test/unit"
       },
       "types": {
