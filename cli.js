@@ -308,8 +308,12 @@ class Cli {
       let allModules = this._findModulesInRepDir(name);
       let uiModules = await this._addToModulesMap(allModules);
       repModulesMap.set(name, uiModules);
-
-      return uiModules.concat(cfg.modules || []);
+      if (cfg.modules) {
+         uiModules = uiModules.concat(cfg.modules.filter((name) => {
+            return !this._modulesMap.has(this._getModuleNameByPath(name));
+         }))
+      }
+      return  uiModules
    }
 
    /**
@@ -694,12 +698,13 @@ class Cli {
          }));
          this.log(`Инициализация хранилища завершена успешно`);
       } catch (e) {
+         throw e;
          throw new Error(`Инициализация хранилища завершена с ошибкой ${e}`);
       }
    }
 
    async _clearStore() {
-      if (fs.existsSync(fs.readdir)) {
+      if (fs.existsSync(this._store)) {
          return fs.readdir(this._store).then(folders => {
             return pMap(folders, (folder) => {
                if (folder !== reposStore) {
