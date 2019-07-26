@@ -536,26 +536,26 @@ class Cli {
       this.readSrv();
 
       let sdkVersion = this._rc.replace('rc-', '').replace('.','');
-      let sdkPath = process.env['SDK'];
-      process.env['SBISPlatformSDK_' + sdkVersion] = process.env['SDK'];
-      this.log(`sdk path ${sdkPath}`, 'set path');
-      let genieFolder = path.join(sdkPath, geniePath);
+
+      let genieFolder = '';
       let distr = path.join(process.cwd(), 'distrib_branch_ps');
-      let deploy = '';
+      let deploy = path.join(distr, 'InTest.s3deploy');;
       let logs = path.join(this._workDir, 'logs');
       let project = path.join(distr, 'InTest.s3cld');
       let conf = path.join(distr, 'InTest.s3webconf');
       let genieCli = '';
       if (process.platform == 'win32') {
+         let sdkPath = process.env['SBISPlatformSDK_' + sdkVersion];
+         genieFolder = path.join(sdkPath, geniePath);
          genieCli = `"${path.join(genieFolder, 'jinnee-utility.exe')}" jinnee-dbg-stand-deployment300.dll`;
-         deploy = path.join(distr, 'config/InTest.s3deploy');
       } else  {
+         let sdkPath = process.env['SDK'];
+         process.env['SBISPlatformSDK_' + sdkVersion] = process.env['SDK'];
          await this._execute(`7za x ${path.join(sdkPath,'tools','jinnee','jinnee.zip')} -o${path.join('../','jinnee')}`, __dirname);
          genieFolder = path.join('..','jinnee');
          genieCli = `${path.join(genieFolder, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
-         deploy = path.join(distr, 'InTest.s3deploy');
-         this._prepareDeployCfg(deploy);
       }
+      this._prepareDeployCfg(path.join(distr, 'InTest.s3deploy'));
       await this._execute(
          `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
          genieFolder,
@@ -592,6 +592,7 @@ class Cli {
          await this._linkFolder();
          this.log(`Подготовка тестов завершена успешно`);
       } catch(e) {
+         throw e;
          throw new Error(`Подготовка тестов завершена с ошибкой ${e}`);
       }
    }
