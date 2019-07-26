@@ -596,7 +596,6 @@ class Cli {
          await this._linkFolder();
          this.log(`Подготовка тестов завершена успешно`);
       } catch(e) {
-         throw e;
          throw new Error(`Подготовка тестов завершена с ошибкой ${e}`);
       }
    }
@@ -648,10 +647,12 @@ class Cli {
       }
    }
    async _setContents(value) {
-      let contents = await fs.readJson(path.join(this._resources, 'contents.json'), "utf8");
-      contents.buildMode = value;
-      await fs.outputFile(`./${path.join(this._resources, 'contents.js')}`, `contents=${JSON.stringify(contents)};`);
-      await fs.outputFile(`./${path.join(this._resources, 'contents.json')}`, JSON.stringify(contents));
+      if (fs.existsSync(path.join(this._resources, 'contents.json'))) {
+         let contents = await fs.readJson(path.join(this._resources, 'contents.json'), "utf8");
+         contents.buildMode = value;
+         await fs.outputFile(`./${path.join(this._resources, 'contents.js')}`, `contents=${JSON.stringify(contents)};`);
+         await fs.outputFile(`./${path.join(this._resources, 'contents.json')}`, JSON.stringify(contents));
+      }
    }
    /**
     * Запускает тестирование
@@ -733,13 +734,7 @@ class Cli {
          }
       }
    }
-   getGuid() {
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-         const r = Math.random() * 16 | 0;
-         const v = c === 'x' ? r : (r & 0x3 | 0x8);
-         return v.toString(16);
-      });
-   }
+
    /**
     * создает симлинки для модулей
     * @param {String} name - название репозитория в конфиге
@@ -752,15 +747,6 @@ class Cli {
       if (cfg.test) {
          let testName = name + '_test';
          await fs.ensureSymlink(path.join(reposPath, cfg.test), path.join(this._store, name, testName));
-         let id = this.getGuid();
-         this._writeXmlFile(path.join(this._store, name, name + '_test', testName + '.s3mod'), getModuleTemplate(testName, id));
-         this._modulesMap.set(testName, {
-            id: id,
-            name: testName,
-            rep: name,
-            test: true,
-            depends: []
-         })
       }
       const modules = await this._getModulesByRepName(name);
 
