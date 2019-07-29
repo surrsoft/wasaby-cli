@@ -69,11 +69,12 @@ class Cli {
    constructor() {
       let config = this.readConfig();
       this._repos = config.repositories;
-      this._store = config.store;
-      this._workDir = config.workDir;
+
       this._resources = path.join(config.workDir, resourcesPath);
       this._testReports = new Map();
       this._argvOptions = this._getArgvOptions();
+      this._workDir = this._argvOptions.workDir || path.join(process.cwd(), config.workDir);
+      this._store = this._argvOptions.store || path.join(process.cwd(), config.store);
       this._testBranch = this._argvOptions.branch || this._argvOptions.rc || '';
       this._testRep = this._argvOptions.rep.split(',');
       this._unitModules = [];
@@ -81,7 +82,6 @@ class Cli {
       this._childProcessMap = [];
       this._rc = this._argvOptions.rc;
       this._modulesMap = new Map();
-      this._dependTest = {};
       this._withBuilder = false;
       this._testList = undefined;
       this._buiderCfg = path.join(process.cwd(), 'builderConfig.json');
@@ -397,7 +397,7 @@ class Cli {
       testList.forEach((name) => {
          builderConfig.modules.push({
             name: name + '_test',
-            path: ['.', this._store, name, name + '_test'].join('/')
+            path: path.join(this._store, name, name + '_test')
          });
 
          let modules = this._getChildModules(this._getModulesFromMap(name));
@@ -413,7 +413,7 @@ class Cli {
                if (!isNameInConfig) {
                   builderConfig.modules.push({
                      name: moduleName,
-                     path: ['.', this._store, repName, 'module', moduleName].join('/')
+                     path: path.join(this._store, repName, 'module', moduleName)
                   })
                }
             }
@@ -489,7 +489,7 @@ class Cli {
          if (this._modulesMap.has(item.$.name)) {
             let cfg = this._modulesMap.get(item.$.name);
             if (!cfg.test) {
-               item.$.url = path.relative(srvFolder, path.join(process.cwd(), this._store, reposStore, cfg.rep, cfg.path));
+               item.$.url = path.relative(srvFolder, path.join(this._store, reposStore, cfg.rep, cfg.path));
                srvModules.push(cfg.name);
             }
          }
@@ -505,7 +505,7 @@ class Cli {
          let module = name+'_test';
          builderConfig.modules.push({
             name: name + '_test',
-            path: ['.', this._store, name, name + '_test'].join('/')
+            path: path.join(this._store, name, name + '_test')
          });
          let modules = this._repos[name].modules || [];
 
@@ -519,20 +519,20 @@ class Cli {
                if (!isNameInConfig) {
                   builderConfig.modules.push({
                      name: moduleName,
-                     path: ['.', this._store, repName, 'module', moduleName].join('/')
+                     path: path.join(this._store, repName, 'module', moduleName)
                   })
                }
             }
          });
       });
 
-      builderConfig.output = './' + path.join(this._workDir, 'builder_test');
-      return fs.outputFile(`./${builderConfigName}`, JSON.stringify(builderConfig, null, 4));
+      builderConfig.output = path.join(this._workDir, 'builder_test');
+      return fs.outputFile(`${builderConfigName}`, JSON.stringify(builderConfig, null, 4));
    }
 
    _prepareDeployCfg(filePath) {
       let cfg_string = fs.readFileSync(filePath, "utf8");
-      cfg_string = cfg_string.replace(/\{site_root\}/g, path.join(process.cwd(), this._workDir));
+      cfg_string = cfg_string.replace(/\{site_root\}/g, this._workDir);
       fs.outputFileSync(filePath, cfg_string);
    }
 
@@ -543,7 +543,7 @@ class Cli {
 
       let genieFolder = '';
       let distr = path.join(process.cwd(), 'distrib_branch_ps');
-      let deploy = path.join(distr, 'InTest.s3deploy');;
+      let deploy = path.join(distr, 'InTest.s3deploy');
       let logs = path.join(this._workDir, 'logs');
       let project = path.join(distr, 'InTest.s3cld');
       let conf = path.join(distr, 'InTest.s3webconf');
@@ -563,6 +563,7 @@ class Cli {
       await this._execute(
          `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
          genieFolder,
+         true,
          'genie'
       );
       await this._execute(
@@ -684,8 +685,8 @@ class Cli {
 
       this.log(`Инициализация хранилища`);
       try {
-         await fs.remove(this._workDir);
-         await fs.remove('builder-ui');
+         //await fs.remove(this._workDir);
+         //await fs.remove('builder-ui');
          await this._clearStore();
          await fs.mkdirs(path.join(this._store, reposStore));
          await Promise.all(Object.keys(this._repos).map((name) => {
