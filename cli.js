@@ -78,6 +78,7 @@ class Cli {
       this._store = this._argvOptions.store || path.join(process.cwd(), config.store);
       this._testBranch = this._argvOptions.branch || this._argvOptions.rc || '';
       this._testRep = this._argvOptions.rep.split(',');
+      this._workspace = this._argvOptions.workspace;
       this._unitModules = [];
       this._testErrors = {};
       this._childProcessMap = [];
@@ -553,8 +554,8 @@ class Cli {
       } else  {
          let sdkPath = process.env['SDK'];
          process.env['SBISPlatformSDK_' + sdkVersion] = process.env['SDK'];
-         await this._execute(`7za x ${path.join(sdkPath,'tools','jinnee','jinnee.zip')} -o${path.join('../','jinnee')}`, __dirname);
-         genieFolder = path.join('..','jinnee');
+         genieFolder = path.join(this._workspace, 'jinnee');
+         await this._execute(`7za x ${path.join(sdkPath,'tools','jinnee','jinnee.zip')} -o${genieFolder}`, __dirname);
          genieCli = `${path.join(genieFolder, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
       }
       this._prepareDeployCfg(path.join(this._projectDir, 'InTest.s3deploy'));
