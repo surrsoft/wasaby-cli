@@ -74,6 +74,7 @@ class Cli {
       this._testReports = new Map();
       this._argvOptions = this._getArgvOptions();
       this._workDir = this._argvOptions.workDir || path.join(process.cwd(), config.workDir);
+      this._projectDir = this._argvOptions.projectDir;
       this._store = this._argvOptions.store || path.join(process.cwd(), config.store);
       this._testBranch = this._argvOptions.branch || this._argvOptions.rc || '';
       this._testRep = this._argvOptions.rep.split(',');
@@ -85,7 +86,6 @@ class Cli {
       this._withBuilder = false;
       this._testList = undefined;
       this._buiderCfg = path.join(process.cwd(), 'builderConfig.json');
-
    }
 
    /**
@@ -481,15 +481,14 @@ class Cli {
 
    async readSrv() {
       //await copyProject()
-      let srvFolder = path.join(process.cwd(), 'distrib_branch_ps');
-      let srvPath = path.join(srvFolder, 'InTestUI.s3srv');
+      let srvPath = path.join(this._projectDir, 'InTestUI.s3srv');
       let srv = await this._readXmlFile(srvPath);
       let srvModules = [];
       srv.service.items[0].ui_module.forEach((item) => {
          if (this._modulesMap.has(item.$.name)) {
             let cfg = this._modulesMap.get(item.$.name);
             if (!cfg.test) {
-               item.$.url = path.relative(srvFolder, path.join(this._store, reposStore, cfg.rep, cfg.path));
+               item.$.url = path.relative(this._projectDir, path.join(this._store, reposStore, cfg.rep, cfg.path));
                srvModules.push(cfg.name);
             }
          }
@@ -542,11 +541,10 @@ class Cli {
       let sdkVersion = this._rc.replace('rc-', '').replace('.','');
 
       let genieFolder = '';
-      let distr = path.join(process.cwd(), 'distrib_branch_ps');
-      let deploy = path.join(distr, 'InTest.s3deploy');
+      let deploy = path.join(this._projectDir, 'InTest.s3deploy');
       let logs = path.join(this._workDir, 'logs');
-      let project = path.join(distr, 'InTest.s3cld');
-      let conf = path.join(distr, 'InTest.s3webconf');
+      let project = path.join(this._projectDir, 'InTest.s3cld');
+      let conf = path.join(this._projectDir, 'InTest.s3webconf');
       let genieCli = '';
       if (process.platform == 'win32') {
          let sdkPath = process.env['SBISPlatformSDK_' + sdkVersion];
@@ -559,17 +557,15 @@ class Cli {
          genieFolder = path.join('..','jinnee');
          genieCli = `${path.join(genieFolder, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
       }
-      this._prepareDeployCfg(path.join(distr, 'InTest.s3deploy'));
+      this._prepareDeployCfg(path.join(this._projectDir, 'InTest.s3deploy'));
       await this._execute(
          `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
          genieFolder,
-         true,
          'genie'
       );
       await this._execute(
          `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._buiderCfg}`,
          __dirname,
-         true,
          'builder'
       );
       fs.readdirSync(path.join(this._workDir, 'builder_test')).forEach(f => {
