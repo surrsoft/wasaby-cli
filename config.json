@@ -75,9 +75,6 @@
       },
       "navigation-configuration": {
          "url": "https://git.sbis.ru/navigation-configuration/navigation.git"
-      },
-      "platform_tests": {
-         "url": "https://git.sbis.ru/autotests/platform_tests.git"
       }
    }
 }

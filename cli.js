@@ -361,7 +361,7 @@ class Cli {
       let addedModules = [];
       await pMap(modules, (cfg) => {
          return this._readXmlFile(path.join(this._store, reposStore, cfg.rep, cfg.path)).then((xmlObj) => {
-            if (!this._modulesMap.has(cfg.name) && xmlObj.ui_module) {
+            if (!this._modulesMap.has(cfg.name) && xmlObj.ui_module && cfg.name !== 'Intest') {
                cfg.depends = [];
                if (xmlObj.ui_module.depends && xmlObj.ui_module.depends[0]) {
                   let depends = xmlObj.ui_module.depends[0];
