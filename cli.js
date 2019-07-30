@@ -70,10 +70,11 @@ class Cli {
       let config = this.readConfig();
       this._repos = config.repositories;
 
-      this._resources = path.join(config.workDir, resourcesPath);
+
       this._testReports = new Map();
       this._argvOptions = this._getArgvOptions();
       this._workDir = this._argvOptions.workDir || path.join(process.cwd(), config.workDir);
+      this._resources = path.join(config.workDir, resourcesPath);
       this._projectDir = this._argvOptions.projectDir;
       this._store = this._argvOptions.store || path.join(process.cwd(), config.store);
       this._testBranch = this._argvOptions.branch || this._argvOptions.rc || '';
@@ -440,7 +441,7 @@ class Cli {
       let cfg = Object.assign({}, testConfig);
       let fullName = name + (suffix||'');
       cfg.tests = name + '_test';
-      cfg.root = './' + this._resources;
+      cfg.root = this._resources;
       cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('${module}', fullName);
       cfg.jsonCoverageReport = cfg.jsonCoverageReport.replace('${module}', fullName);
       cfg.report = cfg.report.replace('${module}', fullName );
