@@ -571,12 +571,12 @@ class Cli {
          true,
          'builder'
       );
-      fs.readdirSync(path.join(this._workDir, 'builder_test')).forEach(f => {
-         let dirPath = path.join(this._workDir, 'builder_test', f);
-         if (fs.statSync(dirPath).isDirectory()) {
-            fs.ensureSymlink(dirPath, path.join(this._resources, f));
-         }
-      });
+      //fs.readdirSync(path.join(this._workDir, 'builder_test')).forEach(f => {
+      let dirPath = path.join(this._workDir, 'builder_test', f);
+      if (fs.statSync(dirPath).isDirectory()) {
+         fs.ensureSymlink(dirPath, path.join(this._resources, f));
+      }
+      //});
    }
 
    /**
@@ -648,12 +648,12 @@ class Cli {
       }
    }
    async _setContents(value) {
-      if (fs.existsSync(path.join(this._resources, 'contents.json'))) {
-         let contents = await fs.readJson(path.join(this._resources, 'contents.json'), "utf8");
-         contents.buildMode = value;
-         await fs.outputFile(`./${path.join(this._resources, 'contents.js')}`, `contents=${JSON.stringify(contents)};`);
-         await fs.outputFile(`./${path.join(this._resources, 'contents.json')}`, JSON.stringify(contents));
-      }
+      //if (fs.existsSync(path.join(this._resources, 'contents.json'))) {
+      let contents = await fs.readJson(path.join(this._resources, 'contents.json'), "utf8");
+      contents.buildMode = value;
+      await fs.outputFile(`./${path.join(this._resources, 'contents.js')}`, `contents=${JSON.stringify(contents)};`);
+      await fs.outputFile(`./${path.join(this._resources, 'contents.json')}`, JSON.stringify(contents));
+      //}
    }
    /**
     * Запускает тестирование
