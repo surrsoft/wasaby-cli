@@ -604,6 +604,7 @@ class Cli {
     */
    async _tslibInstall() {
       let tslib = path.relative(process.cwd(), path.join(this._store, reposStore, 'ws', '/WS.Core/ext/tslib.js'));
+      this.log(tslib, 'tslib_path')
       return this._execute(
          `node node_modules/saby-typescript/install.js --tslib=${tslib}`,
          __dirname,
