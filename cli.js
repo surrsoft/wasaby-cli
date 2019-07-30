@@ -79,7 +79,7 @@ class Cli {
       this._store = this._argvOptions.store || path.join(process.cwd(), config.store);
       this._testBranch = this._argvOptions.branch || this._argvOptions.rc || '';
       this._testRep = this._argvOptions.rep.split(',');
-      this._workspace = this._argvOptions.workspace;
+      this._workspace = this._argvOptions.workspace || './application';
       this._unitModules = [];
       this._testErrors = {};
       this._childProcessMap = [];
@@ -442,9 +442,9 @@ class Cli {
       let fullName = name + (suffix||'');
       cfg.tests = name + '_test';
       cfg.root = this._resources;
-      cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('${module}', fullName);
-      cfg.jsonCoverageReport = cfg.jsonCoverageReport.replace('${module}', fullName);
-      cfg.report = cfg.report.replace('${module}', fullName );
+      cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('${module}', fullName).replace('${workspace}', this._workspace);
+      cfg.jsonCoverageReport = cfg.jsonCoverageReport.replace('${module}', fullName).replace('${workspace}', this._workspace);
+      cfg.report = cfg.report.replace('${module}', fullName).replace('${workspace}', this._workspace);
       this._testReports.set(fullName, cfg.report);
       return cfg;
    }
