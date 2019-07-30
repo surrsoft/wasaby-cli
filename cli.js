@@ -567,6 +567,7 @@ class Cli {
       await this._execute(
          `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._buiderCfg}`,
          __dirname,
+         true,
          'builder'
       );
       fs.readdirSync(path.join(this._workDir, 'builder_test')).forEach(f => {
