@@ -977,8 +977,8 @@ describe('CLI', () => {
             return Promise.resolve();
          });
          cli._linkFolder().then(() => {
-            chai.expect(from).to.equal(path.join(process.cwd(),'store', '_repos', 'test', '/'));
-            chai.expect(to).to.equal(path.join('application', 'intest-ps', 'ui', 'resources', 'cdn'));
+            chai.expect(from).to.equal(path.join(process.cwd(), 'store', '_repos', 'test', '/'));
+            chai.expect(to).to.equal(path.join(process.cwd(),'application', 'intest-ps', 'ui', 'resources', 'cdn'));
             done();
          });
       });
