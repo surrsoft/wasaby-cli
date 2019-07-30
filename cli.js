@@ -649,10 +649,11 @@ class Cli {
    }
    async _setContents(value) {
       //if (fs.existsSync(path.join(this._resources, 'contents.json'))) {
+      this.log(`Замена buildMode в contents на ${value} путь "${path.join(this._resources, 'contents.js')}"`, 'replace_contents');
       let contents = await fs.readJson(path.join(this._resources, 'contents.json'), "utf8");
       contents.buildMode = value;
-      await fs.outputFile(`./${path.join(this._resources, 'contents.js')}`, `contents=${JSON.stringify(contents)};`);
-      await fs.outputFile(`./${path.join(this._resources, 'contents.json')}`, JSON.stringify(contents));
+      await fs.outputFile(`${path.join(this._resources, 'contents.js')}`, `contents=${JSON.stringify(contents)};`);
+      await fs.outputFile(`${path.join(this._resources, 'contents.json')}`, JSON.stringify(contents));
       //}
    }
    /**
