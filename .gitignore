@@ -13,3 +13,4 @@
 /application
 /tslint.json
 /testConfig_.*.json
+/app.js
