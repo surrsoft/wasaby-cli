@@ -17,7 +17,7 @@
       "express": "^4.16.3",
       "serve-static": "1.11.x",
       "saby-typescript": "git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-19.600",
-      "saby-units": "git+https://platform-git.sbis.ru/saby/Units.git#19.600/feature/support-path-to-tests-in-array",
+      "saby-units": "git+https://platform-git.sbis.ru/saby/Units.git",
       "sbis3-builder": "git+https://platform-git.sbis.ru/saby/Builder.git#rc-19.600",
       "shelljs": "^0.8.3",
       "webdriverio": "5.7.2",
