@@ -299,7 +299,7 @@ class Cli {
       let uiModules = await this._addToModulesMap(allModules);
       repModulesMap.set(name, uiModules);
 
-      return uiModules.concat(cfg.modules || []);
+      return uiModules.concat((cfg.modules || []).filter((name) => !uiModules.includes(name)));
    }
 
    /**
@@ -405,7 +405,9 @@ class Cli {
          }
 
          let modules = this._getChildModules(this._getModulesFromMap(name));
-         modules = modules.concat(this._repos[name].modules || []);
+         modules = modules.concat((this._repos[name].modules || []).filter((modulePath) => {
+            return fs.existsSync(path.join(this._store, name, 'module', this._getModuleNameByPath(modulePath)));
+         }));
 
          modules.forEach((modulePath) => {
             const moduleName = this._getModuleNameByPath(modulePath);
@@ -636,7 +638,9 @@ class Cli {
       return Promise.all(modules.map((module => {
          this.log(`копирование модуля ${name}/${module}`, name);
          if (this._getModuleNameByPath(module) == 'unit') {
-            this._unitModules.push(path.join(reposPath, module));
+            if (fs.existsSync(path.join(reposPath, module))) {
+               this._unitModules.push(path.join(reposPath, module));
+            }
          } else {
             return fs.ensureSymlink(path.join(reposPath, module), path.join(this._store, name, 'module', this._getModuleNameByPath(module))).catch((e) => {
                throw new Error(`Ошибка при копировании репозитория ${name}: ${e}`);

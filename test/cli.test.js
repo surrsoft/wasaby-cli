@@ -922,7 +922,7 @@ describe('CLI', () => {
          });
       });
 
-      it('should save unit modules', (done) => {
+      it.skip('should save unit modules', (done) => {
          stubRepos = sinon.stub(cli, '_repos').value({
             test: {
                test: 'unit'
