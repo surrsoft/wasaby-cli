@@ -19,7 +19,6 @@
       "ws": {
          "url": "https://git.sbis.ru/sbis/ws.git",
          "test": "test/unit",
-         "modules": ["test/WSTests", "test/unit", "Demo"],
          "unitInBrowser": true
       },
       "controls": {
