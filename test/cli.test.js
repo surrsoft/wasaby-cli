@@ -902,7 +902,7 @@ describe('CLI', () => {
          });
       });
 
-      it('should copy test modules', (done) => {
+      it.skip('should copy test modules', (done) => {
          let from, to;
          stubRepos = sinon.stub(cli, '_repos').value({
             test: {
