@@ -66,6 +66,7 @@ class Cli {
       this._childProcessMap = [];
       this._rc = this._argvOptions.rc;
       this._modulesMap = new Map();
+      this._testModulesMap = new Map();
       this._testList = undefined;
    }
 
@@ -90,7 +91,16 @@ class Cli {
    }
 
    /**
+    * Возвращает список модулей содержащих юнит тесты
+    * @return {Array}
+    * @private
+    */
+   _getTestModules(name) {
+      return this._testModulesMap.has(name)? this._testModulesMap.get(name) : this._getModulesFromMap(name);
+   }
+   /**
     * Возвращает список репозиториев для тестирования
+    * @param {string} name - Название репозитория в конфиге
     * @return {Array}
     * @private
     */
@@ -101,7 +111,7 @@ class Cli {
       let tests = [];
       if (!this._testRep.includes('all')) {
          this._testRep.forEach((testRep) => {
-            let modules = this._getParentModules(this._getModulesFromMap(testRep));
+            let modules = this._getParentModules(this._getTestModules(testRep));
             tests.push(testRep);
             modules.forEach((name) => {
                let cfg = this._modulesMap.get(name);
@@ -289,7 +299,7 @@ class Cli {
       let uiModules = await this._addToModulesMap(allModules);
       repModulesMap.set(name, uiModules);
 
-      return uiModules.concat(cfg.modules || []);
+      return uiModules.concat((cfg.modules || []).filter((name) => !uiModules.includes(name)));
    }
 
    /**
@@ -352,6 +362,11 @@ class Cli {
                      })
                   }
                }
+               if (xmlObj.ui_module.unit_test) {
+                  let testModules = this._testModulesMap.get(cfg.rep) || [];
+                  testModules.push(cfg.name);
+                  this._testModulesMap.set(cfg.rep, testModules);
+               }
                addedModules.push(cfg.modulePath);
                this._modulesMap.set(cfg.name, cfg);
             }
@@ -382,13 +397,17 @@ class Cli {
          }
       });
       testList.forEach((name) => {
-         builderConfig.modules.push({
-            name: name + '_test',
-            path: ['.', this._store, name, name + '_test'].join('/')
-         });
+         if (!this._testModulesMap.has(name)) {
+            builderConfig.modules.push({
+               name: name + '_test',
+               path: ['.', this._store, name, name + '_test'].join('/')
+            });
+         }
 
          let modules = this._getChildModules(this._getModulesFromMap(name));
-         modules = modules.concat(this._repos[name].modules || []);
+         modules = modules.concat((this._repos[name].modules || []).filter((modulePath) => {
+            return fs.existsSync(path.join(this._store, name, 'module', this._getModuleNameByPath(modulePath)));
+         }));
 
          modules.forEach((modulePath) => {
             const moduleName = this._getModuleNameByPath(modulePath);
@@ -425,7 +444,7 @@ class Cli {
       const testConfig = require('./testConfig.base.json');
       let cfg = Object.assign({}, testConfig);
       let fullName = name + (suffix||'');
-      cfg.tests = name + '_test';
+      cfg.tests = this._testModulesMap.has(name) ? this._testModulesMap.get(name) : name + '_test';
 
       cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('${module}', fullName);
       cfg.jsonCoverageReport = cfg.jsonCoverageReport.replace('${module}', fullName);
@@ -569,7 +588,7 @@ class Cli {
    }
 
    async _clearStore() {
-      if (fs.existsSync(fs.readdir)) {
+      if (fs.existsSync(this._store)) {
          return fs.readdir(this._store).then(folders => {
             return pMap(folders, (folder) => {
                if (folder !== reposStore) {
@@ -609,14 +628,19 @@ class Cli {
       let reposPath = path.join(this._store, reposStore, name);
       await fs.mkdirs(path.join(this._store, name));
       if (cfg.test) {
-         await fs.ensureSymlink(path.join(reposPath, cfg.test), path.join(this._store, name, name + '_test'));
+         let testPath = path.join(reposPath, cfg.test);
+         if (fs.existsSync(testPath)) {
+            await fs.ensureSymlink(path.join(reposPath, cfg.test), path.join(this._store, name, name + '_test'));
+         }
       }
       const modules = await this._getModulesByRepName(name);
 
       return Promise.all(modules.map((module => {
          this.log(`копирование модуля ${name}/${module}`, name);
          if (this._getModuleNameByPath(module) == 'unit') {
-            this._unitModules.push(path.join(reposPath, module));
+            if (fs.existsSync(path.join(reposPath, module))) {
+               this._unitModules.push(path.join(reposPath, module));
+            }
          } else {
             return fs.ensureSymlink(path.join(reposPath, module), path.join(this._store, name, 'module', this._getModuleNameByPath(module))).catch((e) => {
                throw new Error(`Ошибка при копировании репозитория ${name}: ${e}`);

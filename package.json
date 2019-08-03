@@ -6,7 +6,7 @@
    "scripts": {
       "test": "mocha",
       "test:coverage": "nyc --reporter=html npm run test",
-      "install-selenium": "yarn add selenium-standalone@6.14.x && node node_modules/selenium-standalone/bin/selenium-standalone install"
+      "install-selenium": "npm install selenium-standalone@6.14.x && node node_modules/selenium-standalone/bin/selenium-standalone install"
    },
    "author": "",
    "dependencies": {
