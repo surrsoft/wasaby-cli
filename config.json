@@ -20,6 +20,7 @@
          "url": "https://git.sbis.ru/sbis/ws.git",
          "test": "test/unit",
          "modules": ["test/WSTests", "test/unit", "Demo"],
+         "dependOn":["permission"],
          "unitInBrowser": true
       },
       "controls": {
@@ -66,6 +67,9 @@
          "unitInBrowser": true,
          "dependOn":["rmi", "controls", "ui"],
          "test": "tests/unit/SchemeEditor"
+      },
+      "permission": {
+         "url": "http://git.sbis.ru/sbis/permission.git"
       }
    }
 }

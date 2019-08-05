@@ -397,7 +397,7 @@ class Cli {
          }
       });
       testList.forEach((name) => {
-         if (!this._testModulesMap.has(name)) {
+         if (!this._testModulesMap.has(name) && this._repos[name].test) {
             builderConfig.modules.push({
                name: name + '_test',
                path: ['.', this._store, name, name + '_test'].join('/')
