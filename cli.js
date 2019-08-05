@@ -382,10 +382,12 @@ class Cli {
          }
       });
       testList.forEach((name) => {
-         builderConfig.modules.push({
-            name: name + '_test',
-            path: ['.', this._store, name, name + '_test'].join('/')
-         });
+         if (this._repos[name] && this._repos[name].test) {
+            builderConfig.modules.push({
+               name: name + '_test',
+               path: ['.', this._store, name, name + '_test'].join('/')
+            });
+         }
 
          let modules = this._getChildModules(this._getModulesFromMap(name));
          modules = modules.concat(this._repos[name].modules || []);
