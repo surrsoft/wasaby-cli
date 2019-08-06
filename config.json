@@ -69,7 +69,7 @@
          "test": "tests/unit/SchemeEditor"
       },
       "permission": {
-         "url": "http://git.sbis.ru/sbis/permission.git"
+         "url": "https://git.sbis.ru/sbis/permission.git"
       }
    }
 }
