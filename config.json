@@ -8,52 +8,35 @@
          "test": "test/unit"
       },
       "types": {
-         "url": "https://platform-git.sbis.ru/saby/Types.git",
-         "test": "test"
+         "url": "https://platform-git.sbis.ru/saby/Types.git"
       },
       "i18n": {
          "url": "https://platform-git.sbis.ru/saby/I18n.git",
-         "test": "test",
          "unitInBrowser": true
       },
       "ws": {
          "url": "https://git.sbis.ru/sbis/ws.git",
-         "test": "test/unit",
-         "modules": ["test/WSTests", "test/unit", "Demo"],
-         "dependOn":["permission"],
          "unitInBrowser": true
       },
       "controls": {
          "url": "https://git.sbis.ru/sbis/controls.git",
-         "unitInBrowser": true,
-         "test": "tests/unit",
-         "modules": ["tests/unit"]
+         "unitInBrowser": true
       },
       "rmi": {
          "url": "https://git.sbis.ru/sbis/rmi.git",
-         "test": "tests/unit",
-         "unitInBrowser": true,
-         "linkFolders": {
-            "/tests/unit" : "tests"
-         }
+         "unitInBrowser": true
       },
       "app": {
          "url": "https://platform-git.sbis.ru/saby/wasaby-app.git",
-         "unitInBrowser": true,
-         "test": "test"
+         "unitInBrowser": true
       },
       "router": {
          "url": "https://platform-git.sbis.ru/saby/router.git",
-         "unitInBrowser": true,
-         "dependOn":["ui"],
-         "test": "RouterTest",
-         "modules": ["RouterTest"]
+         "unitInBrowser": true
       },
       "ui": {
          "url": "https://platform-git.sbis.ru/saby/ui.git",
-         "unitInBrowser": true,
-         "dependOn":["controls"],
-         "test": "UITest"
+         "unitInBrowser": true
       },
       "cdn": {
          "url": "https://platform-git.sbis.ru/saby/wasaby-cdn.git",
@@ -65,7 +48,6 @@
       "schemeeditor": {
          "url": "https://git.sbis.ru/engine/schemeeditor.git",
          "unitInBrowser": true,
-         "dependOn":["rmi", "controls", "ui"],
          "test": "tests/unit/SchemeEditor"
       },
       "permission": {
