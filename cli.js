@@ -473,11 +473,11 @@ class Cli {
          return new Promise(resolve => {
             let cfg = this._getTestConfig(name, NODE_SUFFIX);
             fs.outputFileSync(`./testConfig_${name}.json`, JSON.stringify(cfg, null, 4));
-            // if (this._repos[name].unitInBrowser) {
-            //    let cfg = this._getTestConfig(name, BROWSER_SUFFIX);
-            //    cfg.url.port = configPorts.shift() || defaultPort++;
-            //    fs.outputFileSync(`./testConfig_${name}InBrowser.json`, JSON.stringify(cfg, null, 4));
-            // }
+            if (this._repos[name].unitInBrowser) {
+               let cfg = this._getTestConfig(name, BROWSER_SUFFIX);
+               cfg.url.port = configPorts.shift() || defaultPort++;
+               fs.outputFileSync(`./testConfig_${name}InBrowser.json`, JSON.stringify(cfg, null, 4));
+            }
             resolve();
          });
       }));
