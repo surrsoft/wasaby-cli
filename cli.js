@@ -655,6 +655,12 @@ class Cli {
             throw new Error(`При мерже "${checkoutBranch}" в "${this._rc}" произошел конфликт`);
          }
       }
+      if (name == 'controls') {
+         if (!fs.existsSync(path.join(this._store, reposStore, name, this._repos[name].test))) {
+            this._repos[name].test = 'tests/ControlsUnit';//перенос тестов контролов в 510 чтобы не было конфликтов
+            this._repos[name].modules = [];
+         }
+      }
    }
 
    /**
