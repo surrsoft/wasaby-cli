@@ -115,7 +115,9 @@ class Cli {
             return !!this._repos[name].test;
          });
       }
-      return this._testList = tests;
+      return this._testList = tests.filter((name) => {
+         return !this._repos[name].onlyLoad
+      });
    }
 
    _getModulesFromMap(repName) {
