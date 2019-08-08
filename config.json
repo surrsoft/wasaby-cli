@@ -52,7 +52,8 @@
          "test": "tests/unit/SchemeEditor"
       },
       "permission": {
-         "url": "https://git.sbis.ru/sbis/permission.git"
+         "url": "https://git.sbis.ru/sbis/permission.git",
+         "onlyLoad": true
       }
    }
 }
