@@ -7,7 +7,8 @@ const reposStore = '_repos';
 const repModulesMap = new Map();
 const builderConfigName = 'builderConfig.json';
 const pMap = require('p-map');
-
+const geniePath = 'tools/jinnee';
+const resourcesPath = 'intest-ps/ui/resources';
 const BROWSER_SUFFIX = '_browser';
 const NODE_SUFFIX = '_node';
 
@@ -46,6 +47,18 @@ let getErrorTestCase = (name, details) => {
    }
 };
 
+let getModuleTemplate = (name, id) => {
+   return {
+      ui_module:{
+         $: {
+            name: name,
+            id: id,
+         },
+         description: 'test module'
+      }
+   };
+};
+
 /**
  * Модуль для запуска юнит тестов
  * @class Cli
@@ -55,19 +68,26 @@ class Cli {
    constructor() {
       let config = this.readConfig();
       this._repos = config.repositories;
-      this._store = config.store;
-      this._workDir = config.workDir;
+
+
       this._testReports = new Map();
       this._argvOptions = this._getArgvOptions();
+      this._workDir = this._argvOptions.workDir || path.join(process.cwd(), config.workDir);
+      this._resources = path.join(this._workDir, resourcesPath);
+      this._projectDir = this._argvOptions.projectDir;
+      this._store = this._argvOptions.store || path.join(process.cwd(), config.store);
       this._testBranch = this._argvOptions.branch || this._argvOptions.rc || '';
       this._testRep = this._argvOptions.rep.split(',');
+      this._workspace = this._argvOptions.workspace || './application';
       this._unitModules = [];
       this._testErrors = {};
       this._childProcessMap = [];
       this._rc = this._argvOptions.rc;
       this._modulesMap = new Map();
+      this._withBuilder = false;
       this._testModulesMap = new Map();
       this._testList = undefined;
+      this._buiderCfg = path.join(process.cwd(), 'builderConfig.json');
    }
 
    /**
@@ -357,7 +377,7 @@ class Cli {
       let addedModules = [];
       await pMap(modules, (cfg) => {
          return this._readXmlFile(path.join(this._store, reposStore, cfg.rep, cfg.path)).then((xmlObj) => {
-            if (!this._modulesMap.has(cfg.name) && xmlObj.ui_module) {
+            if (!this._modulesMap.has(cfg.name) && xmlObj.ui_module && cfg.name !== 'Intest') {
                cfg.depends = [];
                if (xmlObj.ui_module.depends && xmlObj.ui_module.depends[0]) {
                   let depends = xmlObj.ui_module.depends[0];
@@ -410,7 +430,7 @@ class Cli {
          if (!this._testModulesMap.has(name) && this._repos[name].test) {
             builderConfig.modules.push({
                name: name + '_test',
-               path: ['.', this._store, name, name + '_test'].join('/')
+               path: path.join(this._store, name, name + '_test')
             });
          }
 
@@ -429,7 +449,7 @@ class Cli {
                if (!isNameInConfig) {
                   builderConfig.modules.push({
                      name: moduleName,
-                     path: ['.', this._store, repName, 'module', moduleName].join('/')
+                     path: path.join(this._store, repName, 'module', moduleName)
                   })
                }
             }
@@ -455,10 +475,10 @@ class Cli {
       let cfg = Object.assign({}, testConfig);
       let fullName = name + (suffix||'');
       cfg.tests = this._testModulesMap.has(name) ? this._testModulesMap.get(name) : name + '_test';
-
-      cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('${module}', fullName);
-      cfg.jsonCoverageReport = cfg.jsonCoverageReport.replace('${module}', fullName);
-      cfg.report = cfg.report.replace('${module}', fullName );
+      cfg.root = this._resources;
+      cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('${module}', fullName).replace('${workspace}', this._workspace);
+      cfg.jsonCoverageReport = cfg.jsonCoverageReport.replace('${module}', fullName).replace('${workspace}', this._workspace);
+      cfg.report = cfg.report.replace('${module}', fullName).replace('${workspace}', this._workspace);
       this._testReports.set(fullName, cfg.report);
       return cfg;
    }
@@ -485,21 +505,127 @@ class Cli {
       }));
    }
 
+   async _initWithBuilder() {
+      await this._makeBuilderConfig();
+      await this._execute(
+         `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._buiderCfg}`,
+         __dirname,
+         true,
+         'builder'
+      );
+   }
+
+   async readSrv() {
+      //await copyProject()
+      let srvPath = path.join(this._projectDir, 'InTestUI.s3srv');
+      let srv = await this._readXmlFile(srvPath);
+      let srvModules = [];
+      srv.service.items[0].ui_module.forEach((item) => {
+         if (this._modulesMap.has(item.$.name)) {
+            let cfg = this._modulesMap.get(item.$.name);
+            if (!cfg.test) {
+               item.$.url = path.relative(this._projectDir, path.join(this._store, reposStore, cfg.rep, cfg.path));
+               srvModules.push(cfg.name);
+            }
+         }
+      });
+      this._makeBuilderTestConfig();
+
+      this._writeXmlFile(srvPath, srv);
+   }
+
+   _makeBuilderTestConfig() {
+      let builderConfig = require('./builderConfig.base.json');
+      this._getTestList().forEach((name) => {
+         let module = name+'_test';
+         builderConfig.modules.push({
+            name: name + '_test',
+            path: path.join(this._store, name, name + '_test')
+         });
+         let modules = this._repos[name].modules || [];
+
+         modules.forEach((modulePath) => {
+            const moduleName = this._getModuleNameByPath(modulePath);
+
+            if (moduleName !== 'unit') {
+               const isNameInConfig = builderConfig.modules.find((item) => (item.name == moduleName));
+               let cfg = this._modulesMap.get(moduleName);
+               let repName = cfg ? cfg.rep : name;
+               if (!isNameInConfig) {
+                  builderConfig.modules.push({
+                     name: moduleName,
+                     path: path.join(this._store, repName, 'module', moduleName)
+                  })
+               }
+            }
+         });
+      });
+
+      builderConfig.output = path.join(this._workDir, 'builder_test');
+      return fs.outputFile(`${builderConfigName}`, JSON.stringify(builderConfig, null, 4));
+   }
+
+   _prepareDeployCfg(filePath) {
+      let cfg_string = fs.readFileSync(filePath, "utf8");
+      cfg_string = cfg_string.replace(/\{site_root\}/g, this._workDir);
+      fs.outputFileSync(filePath, cfg_string);
+   }
+
+   async _initWithGenie() {
+      this.readSrv();
+
+      let sdkVersion = this._rc.replace('rc-', '').replace('.','');
+
+      let genieFolder = '';
+      let deploy = path.join(this._projectDir, 'InTest.s3deploy');
+      let logs = path.join(this._workDir, 'logs');
+      let project = path.join(this._projectDir, 'InTest.s3cld');
+      let conf = path.join(this._projectDir, 'InTest.s3webconf');
+      let genieCli = '';
+      if (process.platform == 'win32') {
+         let sdkPath = process.env['SBISPlatformSDK_' + sdkVersion];
+         genieFolder = path.join(sdkPath, geniePath);
+         genieCli = `"${path.join(genieFolder, 'jinnee-utility.exe')}" jinnee-dbg-stand-deployment300.dll`;
+      } else  {
+         let sdkPath = process.env['SDK'];
+         process.env['SBISPlatformSDK_' + sdkVersion] = process.env['SDK'];
+         genieFolder = path.join(this._workspace, 'jinnee');
+         await this._execute(`7za x ${path.join(sdkPath,'tools','jinnee','jinnee.zip')} -o${genieFolder}`, __dirname);
+         genieCli = `${path.join(genieFolder, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
+      }
+      this._prepareDeployCfg(path.join(this._projectDir, 'InTest.s3deploy'));
+      await this._execute(
+         `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
+         genieFolder,
+         'jinnee'
+      );
+      await this._execute(
+         `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._buiderCfg}`,
+         __dirname,
+         true,
+         'builder'
+      );
+      fs.readdirSync(path.join(this._workDir, 'builder_test')).forEach(f => {
+         let dirPath = path.join(this._workDir, 'builder_test', f);
+         if (fs.statSync(dirPath).isDirectory()) {
+            fs.ensureSymlink(dirPath, path.join(this._resources, f));
+         }
+      });
+   }
+
    /**
     * инициализирует рабочую директорию: запускает билдер, копирует тесты
     * @return {Promise<void>}
     */
    async initWorkDir() {
       this.log(`Подготовка тестов`);
-      let pathToCfg = path.join(process.cwd(), 'builderConfig.json');
+      await this._tslibInstall();
       try {
-         await this._makeBuilderConfig();
-         await this._execute(
-            `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${pathToCfg}`,
-            __dirname,
-            true,
-            'builder'
-         );
+         if (this._withBuilder) {
+            await this._initWithBuilder();
+         } else {
+            await this._initWithGenie();
+         }
          this._copyUnit();
          await this._linkFolder();
          this.log(`Подготовка тестов завершена успешно`);
@@ -512,9 +638,11 @@ class Cli {
     * копирует tslib
     * @private
     */
-   _tslibInstall() {
+   async _tslibInstall() {
+      let tslib = path.relative(process.cwd(), path.join(this._store, reposStore, 'ws', '/WS.Core/ext/tslib.js'));
+      this.log(tslib, 'tslib_path')
       return this._execute(
-         `node node_modules/saby-typescript/install.js --tslib=application/WS.Core/ext/tslib.js`,
+         `node node_modules/saby-typescript/install.js --tslib=${tslib}`,
          __dirname,
          true,
          'typescriptInstall'
@@ -553,14 +681,22 @@ class Cli {
          this.log(`тесты в браузере завершены`, name);
       }
    }
-
+   async _setContents(value) {
+      //if (fs.existsSync(path.join(this._resources, 'contents.json'))) {
+      this.log(`Замена buildMode в contents на ${value} путь "${path.join(this._resources, 'contents.js')}"`, 'replace_contents');
+      let contents = await fs.readJson(path.join(this._resources, 'contents.json'), "utf8");
+      contents.buildMode = value;
+      await fs.outputFile(`${path.join(this._resources, 'contents.js')}`, `contents=${JSON.stringify(contents)};`);
+      await fs.outputFile(`${path.join(this._resources, 'contents.json')}`, JSON.stringify(contents));
+      //}
+   }
    /**
     * Запускает тестирование
     * @return {Promise<void>}
     */
    async startTest() {
+      await this._setContents('debug');
       await this._makeTestConfig();
-      await this._tslibInstall();
       await pMap(this._getTestList(), (name) => {
          this.log(`Запуск тестов`, name);
          return Promise.all([
@@ -570,6 +706,7 @@ class Cli {
       },{
          concurrency: 4
       });
+      await this._setContents('release')
    }
 
    /**
@@ -577,13 +714,18 @@ class Cli {
     * @return {Promise<void>}
     */
    async initStore() {
+      // return Promise.all(Object.keys(this._repos).map((name) => {
+      //    return this._getModulesByRepName(name);
+      // }));
+
       this.log(`Инициализация хранилища`);
       try {
-         await fs.remove(this._workDir);
-         await fs.remove('builder-ui');
+         //await fs.remove(this._workDir);
+         //await fs.remove('builder-ui');
          await this._clearStore();
          await fs.mkdirs(path.join(this._store, reposStore));
          await Promise.all(Object.keys(this._repos).map((name) => {
+            //return this.copy(name);
             if (!fs.existsSync(path.join(this._store, name))) {
                return this.initRepStore(name)
                   .then(
@@ -593,6 +735,7 @@ class Cli {
          }));
          this.log(`Инициализация хранилища завершена успешно`);
       } catch (e) {
+         throw e;
          throw new Error(`Инициализация хранилища завершена с ошибкой ${e}`);
       }
    }
@@ -621,7 +764,7 @@ class Cli {
             for (const pathOriginal in this._repos[name].linkFolders) {
 
                const pathDir = path.join(this._store, reposStore, name, pathOriginal);
-               const pathLink =  path.join(this._workDir, this._repos[name].linkFolders[pathOriginal]);
+               const pathLink =  path.join(this._resources, this._repos[name].linkFolders[pathOriginal]);
                await fs.ensureSymlink(pathDir, pathLink);
             }
          }
@@ -653,7 +796,7 @@ class Cli {
             }
          } else {
             return fs.ensureSymlink(path.join(reposPath, module), path.join(this._store, name, 'module', this._getModuleNameByPath(module))).catch((e) => {
-               throw new Error(`Ошибка при копировании репозитория ${name}: ${e}`);
+               throw new Error(`Ошибка при копировании репозитория ${name/module}: ${e}`);
             });
          }
       })));
@@ -677,7 +820,11 @@ class Cli {
          await this._execute(`git fetch`, pathToRepos, `git_fetch ${name}`);
          await this._execute(`git checkout ${checkoutBranch}`, pathToRepos, `git_checkout ${name}`);
       } catch (err) {
-         throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${err}`);
+         if (/rc-.*00/.test(checkoutBranch)) {
+            await this._execute(`git checkout ${checkoutBranch.replace('00', '10')}`, pathToRepos, `checkout ${name}`);
+         } else {
+            throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${err}`);
+         }
       }
       if (this._testRep.includes(name)) {
          this.log(`Попытка смержить ветку "${checkoutBranch}" с "${this._rc}"`, name);
@@ -746,7 +893,7 @@ class Cli {
       this._unitModules.forEach((source) => {
          walkDir(source, (filePath) => {
             if (!filePath.includes('.test.')) {
-               fs.copySync(path.join(source, filePath), path.join(this._workDir, 'unit', filePath));
+               fs.copySync(path.join(source, filePath), path.join(this._resources, 'unit', filePath));
             }
          });
       });

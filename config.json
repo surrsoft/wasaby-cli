@@ -52,8 +52,16 @@
          "test": "tests/unit/SchemeEditor"
       },
       "permission": {
-         "url": "https://git.sbis.ru/sbis/permission.git",
-         "onlyLoad": true
+         "url": "https://git.sbis.ru/sbis/permission.git"
+      },
+      "viewsettings": {
+         "url": "https://git.sbis.ru/engine/viewsettings.git"
+      },
+      "plugin-client": {
+         "url": "https://git.sbis.ru/sbis/plugin-client.git"
+      },
+      "navigation-configuration": {
+         "url": "https://git.sbis.ru/navigation-configuration/navigation.git"
       }
    }
 }
