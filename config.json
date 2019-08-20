@@ -43,8 +43,7 @@
          "url": "https://platform-git.sbis.ru/saby/wasaby-cdn.git",
          "linkFolders": {
             "/" : "cdn"
-         },
-         "modules": []
+         }
       },
       "schemeeditor": {
          "url": "https://git.sbis.ru/engine/schemeeditor.git",
