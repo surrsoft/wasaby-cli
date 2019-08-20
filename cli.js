@@ -62,12 +62,12 @@ class Cli {
       this._repos = config.repositories;
       this._argvOptions = this._getArgvOptions();
       this._store = this._argvOptions.store || path.join(process.cwd(), config.store);
-      this._rc = this._argvOptions.rc;
       this._testRep = this._argvOptions.rep.split(',');
+      this._workDir = this._argvOptions.workDir || path.join(process.cwd(), config.workDir);
       // this._testReports = new Map();
       //
-      // this._workDir = this._argvOptions.workDir || path.join(process.cwd(), config.workDir);
-      // this._resources = path.join(this._workDir, resourcesPath);
+      //
+      // this._resources = ;
       // this._projectDir = this._argvOptions.projectDir;
       //
       // this._testBranch = this._argvOptions.branch || this._argvOptions.rc || '';
@@ -108,8 +108,7 @@ class Cli {
       let build = new Build({
          store: this._store,
          repos: this._repos,
-         rc: this._rc,
-         testRep: this._testRep
+         resources: path.join(this._workDir, resourcesPath)
       });
 
       await build.run();
@@ -120,7 +119,7 @@ class Cli {
          store: this._store,
          argvOptions: this._argvOptions,
          repos: this._repos,
-         rc: this._rc,
+         rc: this._argvOptions.rc,
          testRep: this._testRep
       });
 

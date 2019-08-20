@@ -1,10 +1,13 @@
 const fs = require('fs-extra');
+const path = require('path');
 const logger = require('./util/logger');
 const Shell = require('./util/shell');
 
 class Build {
-   constructor() {
+   constructor(cfg) {
       this._shell = new Shell();
+      this._store = cfg.store;
+      this._repos = cfg.repos;
    }
 
    /**
@@ -47,7 +50,7 @@ class Build {
          if (this._modulesMap.has(item.$.name)) {
             let cfg = this._modulesMap.get(item.$.name);
             if (!cfg.test) {
-               item.$.url = path.relative(this._projectDir, path.join(this._store, reposStore, cfg.rep, cfg.path));
+               item.$.url = path.relative(this._projectDir, path.join(this._store, cfg.rep, cfg.path));
                srvModules.push(cfg.name);
             }
          }
@@ -144,7 +147,7 @@ class Build {
     * @private
     */
    async _tslibInstall() {
-      let tslib = path.relative(process.cwd(), path.join(this._store, reposStore, 'ws', '/WS.Core/ext/tslib.js'));
+      let tslib = path.relative(process.cwd(), path.join(this._store, 'ws', '/WS.Core/ext/tslib.js'));
       logger.log(tslib, 'tslib_path');
       return this._shell.execute(
          `node node_modules/saby-typescript/install.js --tslib=${tslib}`,
@@ -163,7 +166,7 @@ class Build {
       for (const name in this._repos) {
          if (this._repos[name].linkFolders) {
             for (const pathOriginal in this._repos[name].linkFolders) {
-               const pathDir = path.join(this._store, reposStore, name, pathOriginal);
+               const pathDir = path.join(this._store, name, pathOriginal);
                const pathLink =  path.join(this._resources, this._repos[name].linkFolders[pathOriginal]);
                await fs.ensureSymlink(pathDir, pathLink);
             }
