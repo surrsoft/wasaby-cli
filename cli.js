@@ -48,18 +48,6 @@ let getErrorTestCase = (name, details) => {
    }
 };
 
-let getModuleTemplate = (name, id) => {
-   return {
-      ui_module:{
-         $: {
-            name: name,
-            id: id,
-         },
-         description: 'test module'
-      }
-   };
-};
-
 /**
  * Модуль для запуска юнит тестов
  * @class Cli
@@ -86,8 +74,8 @@ class Cli {
       this._rc = this._argvOptions.rc;
       this._modulesMap = new Map();
       this._withBuilder = false;
+      this._testModulesMap = new Map();
       this._testList = undefined;
-      this._buiderCfg = path.join(process.cwd(), 'builderConfig.json');
    }
 
    /**
@@ -111,7 +99,24 @@ class Cli {
    }
 
    /**
+    * Возвращает список модулей содержащих юнит тесты
+    * @return {Array}
+    * @private
+    */
+   _getTestModules(name) {
+      if (this._testModulesMap.has(name)) {
+         let result = [];
+         this._testModulesMap.get(name).forEach((moduleName) => {
+            let cfg = this._modulesMap.get(moduleName);
+            result = result.concat(cfg.depends || []);
+            result.push(moduleName);
+         });
+      }
+      return this._getModulesFromMap(name);
+   }
+   /**
     * Возвращает список репозиториев для тестирования
+    * @param {string} name - Название репозитория в конфиге
     * @return {Array}
     * @private
     */
@@ -119,11 +124,10 @@ class Cli {
       if (this._testList) {
          return this._testList;
       }
-
       let tests = [];
       if (!this._testRep.includes('all')) {
          this._testRep.forEach((testRep) => {
-            let modules = this._getParentModules(this._getModulesFromMap(testRep));
+            let modules = this._getParentModules(this._getTestModules(testRep));
             tests.push(testRep);
             modules.forEach((name) => {
                let cfg = this._modulesMap.get(name);
@@ -137,7 +141,9 @@ class Cli {
             return !!this._repos[name].test;
          });
       }
-      return this._testList = tests;
+      return this._testList = tests.filter((name) => {
+         return !this._repos[name].onlyLoad
+      });
    }
 
    _getModulesFromMap(repName) {
@@ -310,12 +316,8 @@ class Cli {
       let allModules = this._findModulesInRepDir(name);
       let uiModules = await this._addToModulesMap(allModules);
       repModulesMap.set(name, uiModules);
-      if (cfg.modules) {
-         uiModules = uiModules.concat(cfg.modules.filter((name) => {
-            return !this._modulesMap.has(this._getModuleNameByPath(name));
-         }))
-      }
-      return  uiModules
+
+      return uiModules.concat((cfg.modules || []).filter((name) => !uiModules.includes(name)));
    }
 
    /**
@@ -378,6 +380,11 @@ class Cli {
                      })
                   }
                }
+               if (xmlObj.ui_module.unit_test) {
+                  let testModules = this._testModulesMap.get(cfg.rep) || [];
+                  testModules.push(cfg.name);
+                  this._testModulesMap.set(cfg.rep, testModules);
+               }
                addedModules.push(cfg.modulePath);
                this._modulesMap.set(cfg.name, cfg);
             }
@@ -396,14 +403,29 @@ class Cli {
    _makeBuilderConfig() {
       let builderConfig = require('./builderConfig.base.json');
       let testList = this._getTestList().slice();
+      //удалить по этой задаче https://online.sbis.ru/opendoc.html?guid=79e5557f-b621-40bf-ae79-86b6fc5930b6
       testList.forEach((name) => {
-         builderConfig.modules.push({
-            name: name + '_test',
-            path: path.join(this._store, name, name + '_test')
-         });
+         const cfg = this._repos[name];
+         if (cfg.dependOn) {
+            cfg.dependOn.forEach((name) => {
+               if (!testList.includes(name)) {
+                  testList.push(name)
+               }
+            });
+         }
+      });
+      testList.forEach((name) => {
+         if (!this._testModulesMap.has(name) && this._repos[name].test) {
+            builderConfig.modules.push({
+               name: name + '_test',
+               path: ['.', this._store, name, name + '_test'].join('/')
+            });
+         }
 
          let modules = this._getChildModules(this._getModulesFromMap(name));
-         modules = modules.concat(this._repos[name].modules || []);
+         modules = modules.concat((this._repos[name].modules || []).filter((modulePath) => {
+            return fs.existsSync(path.join(this._store, name, 'module', this._getModuleNameByPath(modulePath)));
+         }));
 
          modules.forEach((modulePath) => {
             const moduleName = this._getModuleNameByPath(modulePath);
@@ -440,7 +462,7 @@ class Cli {
       const testConfig = require('./testConfig.base.json');
       let cfg = Object.assign({}, testConfig);
       let fullName = name + (suffix||'');
-      cfg.tests = name + '_test';
+      cfg.tests = this._testModulesMap.has(name) ? this._testModulesMap.get(name) : name + '_test';
       cfg.root = this._resources;
       cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('${module}', fullName).replace('${workspace}', this._workspace);
       cfg.jsonCoverageReport = cfg.jsonCoverageReport.replace('${module}', fullName).replace('${workspace}', this._workspace);
@@ -701,7 +723,6 @@ class Cli {
          }));
          this.log(`Инициализация хранилища завершена успешно`);
       } catch (e) {
-         throw e;
          throw new Error(`Инициализация хранилища завершена с ошибкой ${e}`);
       }
    }
@@ -747,15 +768,19 @@ class Cli {
       let reposPath = path.join(this._store, reposStore, name);
       await fs.mkdirs(path.join(this._store, name));
       if (cfg.test) {
-         let testName = name + '_test';
-         await fs.ensureSymlink(path.join(reposPath, cfg.test), path.join(this._store, name, testName));
+         let testPath = path.join(reposPath, cfg.test);
+         if (fs.existsSync(testPath)) {
+            await fs.ensureSymlink(path.join(reposPath, cfg.test), path.join(this._store, name, name + '_test'));
+         }
       }
       const modules = await this._getModulesByRepName(name);
 
       return Promise.all(modules.map((module => {
          this.log(`копирование модуля ${name}/${module}`, name);
          if (this._getModuleNameByPath(module) == 'unit') {
-            this._unitModules.push(path.join(reposPath, module));
+            if (fs.existsSync(path.join(reposPath, module))) {
+               this._unitModules.push(path.join(reposPath, module));
+            }
          } else {
             return fs.ensureSymlink(path.join(reposPath, module), path.join(this._store, name, 'module', this._getModuleNameByPath(module))).catch((e) => {
                throw new Error(`Ошибка при копировании репозитория ${name/module}: ${e}`);
