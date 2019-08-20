@@ -76,6 +76,7 @@ class Cli {
       this._withBuilder = false;
       this._testModulesMap = new Map();
       this._testList = undefined;
+      this._builderCfg = path.join(process.cwd(), builderConfigName);
    }
 
    /**
@@ -496,7 +497,7 @@ class Cli {
    async _initWithBuilder() {
       await this._makeBuilderConfig();
       await this._execute(
-         `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._buiderCfg}`,
+         `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._builderCfg}`,
          __dirname,
          true,
          'builder'
@@ -588,7 +589,7 @@ class Cli {
          'jinnee'
       );
       await this._execute(
-         `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._buiderCfg}`,
+         `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._builderCfg}`,
          __dirname,
          true,
          'builder'
