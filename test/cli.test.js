@@ -1068,6 +1068,11 @@ describe('CLI', () => {
             },
             test3: {}
          });
+         stubModulesMap = sinon.stub(cli, '_testModulesMap').value(new Map([
+            ['test1', ['test11']],
+            ['test2', ['test22']],
+            ['test3', ['test33']],
+         ]));
          stubModulesMap = sinon.stub(cli, '_modulesMap').value(
             new Map([
                ['test11', {name:'test11', rep:'test1', depends:['test22']}],
@@ -1078,7 +1083,7 @@ describe('CLI', () => {
       });
       it('should return all test', () => {
          stubTestRep = sinon.stub(cli, '_testRep').value(['all']);
-         chai.expect(cli._getTestList()).to.deep.equal(['test1', 'test2']);
+         chai.expect(cli._getTestList()).to.deep.equal(['test1', 'test2', 'test3']);
       });
 
       it('should return test list for test1', () => {

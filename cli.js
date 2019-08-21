@@ -138,13 +138,11 @@ class Cli {
             });
          });
       } else {
-         tests = Object.keys(this._repos).filter((name) => {
-            return !!this._repos[name].test;
+         this._testModulesMap.forEach((modules, name) => {
+            tests.push(name);
          });
       }
-      return this._testList = tests.filter((name) => {
-         return !this._repos[name].onlyLoad
-      });
+      return this._testList = tests;
    }
 
    _getModulesFromMap(repName) {
@@ -416,13 +414,6 @@ class Cli {
          }
       });
       testList.forEach((name) => {
-         if (!this._testModulesMap.has(name) && this._repos[name].test) {
-            builderConfig.modules.push({
-               name: name + '_test',
-               path: ['.', this._store, name, name + '_test'].join('/')
-            });
-         }
-
          let modules = this._getChildModules(this._getModulesFromMap(name));
          modules = modules.concat((this._repos[name].modules || []).filter((modulePath) => {
             return fs.existsSync(path.join(this._store, name, 'module', this._getModuleNameByPath(modulePath)));
@@ -526,12 +517,16 @@ class Cli {
    _makeBuilderTestConfig() {
       let builderConfig = require('./builderConfig.base.json');
       this._getTestList().forEach((name) => {
-         let module = name+'_test';
-         builderConfig.modules.push({
-            name: name + '_test',
-            path: path.join(this._store, name, name + '_test')
+         let testmodules = this._testModulesMap.get(name);
+         testmodules.forEach((testModuleName) => {
+            let cfg = this._modulesMap.get(testModuleName);
+            let repName = cfg ? cfg.rep : name;
+            builderConfig.modules.push({
+               name: testModuleName,
+               path: path.join(this._store, repName, 'module', testModuleName)
+            })
          });
-         let modules = this._repos[name].modules || [];
+
 
          modules.forEach((modulePath) => {
             const moduleName = this._getModuleNameByPath(modulePath);
@@ -583,11 +578,11 @@ class Cli {
          genieCli = `${path.join(genieFolder, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
       }
       this._prepareDeployCfg(path.join(this._projectDir, 'InTest.s3deploy'));
-      await this._execute(
-         `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
-         genieFolder,
-         'jinnee'
-      );
+      // await this._execute(
+      //    `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
+      //    genieFolder,
+      //    'jinnee'
+      // );
       await this._execute(
          `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._builderCfg}`,
          __dirname,
