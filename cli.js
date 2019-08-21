@@ -578,11 +578,11 @@ class Cli {
          genieCli = `${path.join(genieFolder, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
       }
       this._prepareDeployCfg(path.join(this._projectDir, 'InTest.s3deploy'));
-      // await this._execute(
-      //    `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
-      //    genieFolder,
-      //    'jinnee'
-      // );
+      await this._execute(
+         `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
+         genieFolder,
+         'jinnee'
+      );
       await this._execute(
          `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._builderCfg}`,
          __dirname,
