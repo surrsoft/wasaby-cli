@@ -668,6 +668,12 @@ class Cli {
       this.log(`Замена buildMode в contents на ${value} путь "${path.join(this._resources, 'contents.js')}"`, 'replace_contents');
       let contents = await fs.readJson(path.join(this._resources, 'contents.json'), "utf8");
       contents.buildMode = value;
+      if (value === 'debug') {
+         this._buildNumber = contents.buildNumber;
+         contents.buildNumber = '';
+      } else {
+         contents.buildNumber = this._buildNumber;
+      }
       await fs.outputFile(`${path.join(this._resources, 'contents.js')}`, `contents=${JSON.stringify(contents)};`);
       await fs.outputFile(`${path.join(this._resources, 'contents.json')}`, JSON.stringify(contents));
       //}
