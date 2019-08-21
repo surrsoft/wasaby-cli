@@ -503,10 +503,10 @@ class Cli {
       srv.service.items[0].ui_module.forEach((item) => {
          if (this._modulesMap.has(item.$.name)) {
             let cfg = this._modulesMap.get(item.$.name);
-            if (!cfg.test) {
-               item.$.url = path.relative(this._projectDir, path.join(this._store, reposStore, cfg.rep, cfg.path));
-               srvModules.push(cfg.name);
-            }
+            item.$.url = path.relative(this._projectDir, path.join(this._store, reposStore, cfg.rep, cfg.path));
+            srvModules.push(cfg.name);
+            cfg.srv = true;
+            this._modulesMap.set(cfg.name, cfg);
          }
       });
       this._makeBuilderTestConfig();
@@ -527,20 +527,18 @@ class Cli {
             })
          });
 
+         let modules = this._getChildModules(this._getModulesFromMap(name));
 
          modules.forEach((modulePath) => {
             const moduleName = this._getModuleNameByPath(modulePath);
-
-            if (moduleName !== 'unit') {
-               const isNameInConfig = builderConfig.modules.find((item) => (item.name == moduleName));
-               let cfg = this._modulesMap.get(moduleName);
-               let repName = cfg ? cfg.rep : name;
-               if (!isNameInConfig) {
-                  builderConfig.modules.push({
-                     name: moduleName,
-                     path: path.join(this._store, repName, 'module', moduleName)
-                  })
-               }
+            const isNameInConfig = builderConfig.modules.find((item) => (item.name == moduleName));
+            let cfg = this._modulesMap.get(moduleName);
+            let repName = cfg ? cfg.rep : name;
+            if (!isNameInConfig && !cfg.srv) {
+               builderConfig.modules.push({
+                  name: moduleName,
+                  path: path.join(this._store, repName, 'module', moduleName)
+               })
             }
          });
       });
