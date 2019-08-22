@@ -4,7 +4,6 @@ const shell = require('shelljs');
 const CONFIG = 'config.json';
 const path = require('path');
 const reposStore = '_repos';
-const repModulesMap = new Map();
 const builderConfigName = 'builderConfig.json';
 const pMap = require('p-map');
 const geniePath = 'tools/jinnee';
@@ -105,15 +104,15 @@ class Cli {
     * @private
     */
    _getTestModules(name) {
-      if (this._testModulesMap.has(name)) {
-         let result = [];
-         this._testModulesMap.get(name).forEach((moduleName) => {
-            let cfg = this._modulesMap.get(moduleName);
-            result = result.concat(cfg.depends || []);
-            result.push(moduleName);
+      let result = [];
+      this._testModulesMap.get(name).forEach((moduleName) => {
+         let cfg = this._modulesMap.get(moduleName);
+         result = result.concat(cfg.depends || []).filter((name) => {
+            return !!this._modulesMap.get(name).forTests
          });
-      }
-      return this._getModulesFromMap(name);
+         result.push(moduleName);
+      });
+      return result;
    }
    /**
     * Возвращает список репозиториев для тестирования
@@ -138,8 +137,8 @@ class Cli {
             });
          });
       } else {
-         this._testModulesMap.forEach((modules, name) => {
-            tests.push(name);
+         this._testModulesMap.forEach((modules, rep) => {
+            tests.push(rep);
          });
       }
       return this._testList = tests;
@@ -158,7 +157,7 @@ class Cli {
    _getParentModules(modules) {
       let result = modules.slice();
       this._modulesMap.forEach(cfg => {
-         if (!result.includes(cfg.name) && cfg.depends.some(dependName => result.includes(dependName))) {
+         if (cfg.forTests && !result.includes(cfg.name) && cfg.depends.some(dependName => result.includes(dependName))) {
             result.push(cfg.name);
          }
       });
@@ -311,12 +310,10 @@ class Cli {
     * @private
     */
    async _getModulesByRepName(name) {
-      const cfg = this._repos[name];
       let allModules = this._findModulesInRepDir(name);
       let uiModules = await this._addToModulesMap(allModules);
-      repModulesMap.set(name, uiModules);
 
-      return uiModules.concat((cfg.modules || []).filter((name) => !uiModules.includes(name)));
+      return uiModules;
    }
 
    /**
@@ -612,6 +609,7 @@ class Cli {
          await this._linkFolder();
          this.log(`Подготовка тестов завершена успешно`);
       } catch(e) {
+         throw e;
          throw new Error(`Подготовка тестов завершена с ошибкой ${e}`);
       }
    }
@@ -749,7 +747,6 @@ class Cli {
       for (const name in this._repos) {
          if (this._repos[name].linkFolders) {
             for (const pathOriginal in this._repos[name].linkFolders) {
-
                const pathDir = path.join(this._store, reposStore, name, pathOriginal);
                const pathLink =  path.join(this._resources, this._repos[name].linkFolders[pathOriginal]);
                await fs.ensureSymlink(pathDir, pathLink);
@@ -775,6 +772,10 @@ class Cli {
       }
       const modules = await this._getModulesByRepName(name);
 
+      if (this._testModulesMap.has(name)) {
+         this._markModulesForTest(name);
+      }
+
       return Promise.all(modules.map((module => {
          this.log(`копирование модуля ${name}/${module}`, name);
          if (this._getModuleNameByPath(module) == 'unit') {
@@ -787,6 +788,20 @@ class Cli {
             });
          }
       })));
+   }
+
+   _markModulesForTest(name) {
+      let modules = this._testModulesMap.get(name);
+      modules.forEach((testModuleName) => {
+         let cfg = this._modulesMap.get(testModuleName);
+         cfg.depends.forEach((moduleName) => {
+            let cfg = this._modulesMap.get(moduleName);
+            if (cfg && cfg.rep === name) {
+               cfg.forTests = true;
+               this._modulesMap.set(moduleName, cfg);
+            }
+         });
+      });
    }
 
    /**

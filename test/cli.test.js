@@ -219,9 +219,7 @@ describe('CLI', () => {
             return [{name:'test'}]
          });
          stubRepos = sinon.stub(cli, '_repos').value({
-            'test': {
-               modules: ['test_config']
-            }
+            'test': {}
          });
          stubModMap = sinon.stub(cli, '_addToModulesMap').callsFake((res) => {
             return Promise.resolve([res[0].name]);
@@ -229,7 +227,7 @@ describe('CLI', () => {
       });
       it('should concat modules from config and repository', () => {
          return cli._getModulesByRepName('test').then((res) => {
-            chai.expect(['test', 'test_config']).to.deep.equal(res);
+            chai.expect(['test']).to.deep.equal(res);
          });
       });
       afterEach(() => {
@@ -1075,9 +1073,19 @@ describe('CLI', () => {
          ]));
          stubModulesMap = sinon.stub(cli, '_modulesMap').value(
             new Map([
-               ['test11', {name:'test11', rep:'test1', depends:['test22']}],
-               ['test22', {name:'test22', rep:'test2', depends:[]}],
-               ['test33', {name:'test33', rep:'test3', depends:[]}],
+               ['test11', {name:'test11', rep:'test1', depends:['test22'], forTests: true}],
+               ['test22', {name:'test22', rep:'test2', depends:[], forTests: true}],
+               ['test33', {name:'test33', rep:'test3', depends:[], forTests: true}],
+               ['test_test1', {name:'test_test1', rep:'test1', depends:['test11']}],
+               ['test_test2', {name:'test_test2', rep:'test2', depends:['test22']}],
+               ['test_test3', {name:'test_test3', rep:'test3', depends:['test33']}]
+            ])
+         );
+         sinon.stub(cli, '_testModulesMap').value(
+            new Map([
+               ['test1', ['test_test1']],
+               ['test2', ['test_test2']],
+               ['test3', ['test_test3']],
             ])
          );
       });
@@ -1192,7 +1200,7 @@ describe('CLI', () => {
       let stubModulesMap;
       beforeEach(() => {
          stubModulesMap = sinon.stub(cli, '_modulesMap').value(
-            new Map([['test11', {name:'test11', rep:'test1', depends:['test22']}], ['test22', {name:'test22', rep:'test2', depends:[]}]])
+            new Map([['test11', {name:'test11', rep:'test1', depends:['test22'], forTests:true}], ['test22', {name:'test22', rep:'test2', depends:[], forTests:true}]])
          );
       });
 
