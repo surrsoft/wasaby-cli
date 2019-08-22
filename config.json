@@ -5,7 +5,6 @@
       "engine": {
          "url": "https://git.sbis.ru/sbis/engine.git",
          "unitInBrowser": true,
-         "test": "test/unit"
       },
       "types": {
          "url": "https://platform-git.sbis.ru/saby/Types.git"
@@ -47,11 +46,11 @@
       },
       "schemeeditor": {
          "url": "https://git.sbis.ru/engine/schemeeditor.git",
-         "unitInBrowser": true,
-         "test": "tests/unit/SchemeEditor"
+         "unitInBrowser": true
       },
       "permission": {
-         "url": "https://git.sbis.ru/sbis/permission.git"
+         "url": "https://git.sbis.ru/sbis/permission.git",
+         "onlyLoad": true
       },
       "viewsettings": {
          "url": "https://git.sbis.ru/engine/viewsettings.git"
