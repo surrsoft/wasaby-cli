@@ -667,10 +667,10 @@ class Cli {
       let contents = await fs.readJson(path.join(this._resources, 'contents.json'), "utf8");
       contents.buildMode = value;
       if (value === 'debug') {
-         this._buildNumber = contents.buildNumber;
-         contents.buildNumber = '';
+         this._buildNumber = contents.buildnumber;
+         contents.buildnumber = '';
       } else {
-         contents.buildNumber = this._buildNumber;
+         contents.buildnumber = this._buildNumber;
       }
       await fs.outputFile(`${path.join(this._resources, 'contents.js')}`, `contents=${JSON.stringify(contents)};`);
       await fs.outputFile(`${path.join(this._resources, 'contents.json')}`, JSON.stringify(contents));
