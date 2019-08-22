@@ -821,7 +821,7 @@ class Cli {
          await this._execute(`git clean -fdx`, pathToRepos, `git_clean ${name}`);
          await this._execute(`git fetch`, pathToRepos, `git_fetch ${name}`);
          await this._execute(`git checkout ${checkoutBranch}`, pathToRepos, `git_checkout ${name}`);
-         if (checkoutBranch.includes('/')) {
+         if (checkoutBranch.includes('/') || checkoutBranch === this._rc) {
             await this._execute(`git pull`, pathToRepos, `git_pull ${name}`);
          }
       } catch (err) {
