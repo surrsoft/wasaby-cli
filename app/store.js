@@ -3,19 +3,23 @@ const pMap = require('p-map');
 const path = require('path');
 const walkDir = require('./util/walkDir');
 const logger = require('./util/logger');
-const Shell = require('./util/shell');
+const Base = require('./Base');
 
-class Store {
+class Store extends Base{
    constructor(cfg) {
+      super(cfg);
       this._store = cfg.store;
       this._argvOptions = cfg.argvOptions;
       this._repos = cfg.repos;
       this._rc = cfg.rc;
-      this._shell = new Shell();
       this._testRep = cfg.testRep;
    }
 
-   async init() {
+   /**
+    *
+    * @return {Promise<void>}
+    */
+   async _run() {
       logger.log(`Инициализация хранилища`);
       try {
          await fs.mkdirs(this._store);
@@ -24,7 +28,6 @@ class Store {
          }));
          logger.log(`Инициализация хранилища завершена успешно`);
       } catch (e) {
-         this._shell.closeChildProcess();
          throw new Error(`Инициализация хранилища завершена с ошибкой ${e}`);
       }
    }
@@ -39,10 +42,10 @@ class Store {
       if (fs.existsSync(branch)) {
          return this.copyRepToStore(this._argvOptions[name], name);
       }
+      await this.cloneRepToStore(name);
       return this.checkout(
          name,
-         branch,
-         await this.cloneRepToStore(name)
+         branch
       );
    }
 
@@ -79,6 +82,9 @@ class Store {
          await this._shell.execute(`git clean -fdx`, pathToRepos, `git_clean ${name}`);
          await this._shell.execute(`git fetch`, pathToRepos, `git_fetch ${name}`);
          await this._shell.execute(`git checkout ${checkoutBranch}`, pathToRepos, `git_checkout ${name}`);
+         if (checkoutBranch.includes('/') || checkoutBranch === this._rc) {
+            await this._execute(`git pull`, pathToRepos, `git_pull ${name}`);
+         }
       } catch (err) {
          if (/rc-.*00/.test(checkoutBranch)) {
             await this._shell.execute(`git checkout ${checkoutBranch.replace('00', '10')}`, pathToRepos, `checkout ${name}`);

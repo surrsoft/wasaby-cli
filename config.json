@@ -4,7 +4,7 @@
    "repositories": {
       "engine": {
          "url": "https://git.sbis.ru/sbis/engine.git",
-         "unitInBrowser": true,
+         "unitInBrowser": true
       },
       "types": {
          "url": "https://platform-git.sbis.ru/saby/Types.git"
