@@ -12,19 +12,37 @@ class ModulesMap {
       this._testModulesMap = new Map();
    }
 
-
+   /**
+    * Возвращает конфиг модуля по имени
+    * @param {String} name - Название модуля
+    * @return {any}
+    */
    get(name) {
       return this._modulesMap.get(name);
    }
 
+   /**
+    * Возвращает конфиг модуля по имени
+    * @param {String} name - Название модуля
+    * @param {any} value - Конфиг модуля
+    */
    set(name, value) {
       this._modulesMap.set(name, value);
    }
 
+   /**
+    * Перебирает модули из modulesMap
+    * @param {function} callback
+    */
    forEach(callback) {
       this._modulesMap.forEach(callback);
    }
 
+   /**
+    * Возвращает модули от которых зависят модули из переданного массива
+    * @param {Array} modules - Массив с наваниями модулей
+    * @return {Array}
+    */
    getParentModules(modules) {
       let result = modules.slice();
       this._modulesMap.forEach(cfg => {
@@ -38,6 +56,12 @@ class ModulesMap {
       return result;
    }
 
+   /**
+    * Возращает все зависимости переданных модулей
+    * @param {Array} modules - Массив с наваниями модулей
+    * @param {Array} path
+    * @return {Array}
+    */
    getChildModules(modules, path) {
       let result = [];
       path = path || [];
@@ -51,11 +75,11 @@ class ModulesMap {
       });
       return result;
    }
+
    /**
     * Возвращает список репозиториев для тестирования
     * @param {string} name - Название репозитория в конфиге
     * @return {Array}
-    * @private
     */
    getTestList() {
       if (this._testList) {
@@ -82,9 +106,8 @@ class ModulesMap {
    }
 
    /**
-    * Возвращает список модулей содержащих юнит тесты
+    * Возвращает список модулей содержащих юнит тесты и его зависимости
     * @return {Array}
-    * @private
     */
    getTestModulesWithDepends(name) {
       let result = [];
@@ -98,10 +121,20 @@ class ModulesMap {
       return result;
    }
 
+   /**
+    * Возвращает список модулей содержащих юнит тесты
+    * @param name
+    * @return {Array}
+    */
    getTestModules(name) {
       return this._testModulesMap.get(name) || [];
    }
 
+   /**
+    * Возвращает список модулей по репозиторию
+    * @param name
+    * @return {Array}
+    */
    getModulesByRep(repName) {
       let moduels = [];
       this._modulesMap.forEach(cfg => {
@@ -112,9 +145,14 @@ class ModulesMap {
       return moduels;
    }
 
+   /**
+    * Запускает инициализацию modulesMap
+    * @return {Promise<void>}
+    */
    async build() {
       let modules = this._findModulesInStore();
       await this._addToModulesMap(modules);
+      this._markModulesForTest()
    }
 
    /**
@@ -144,8 +182,13 @@ class ModulesMap {
       return s3mods;
    }
 
+   /**
+    * Добавляет модули в modulesMap
+    * @param {Array} modules - массив с конфигами модулей
+    * @return {Promise<void>}
+    * @private
+    */
    async _addToModulesMap(modules) {
-      let addedModules = [];
       await pMap(modules, (cfg) => {
          return xml.readXmlFile(path.join(this._store, cfg.rep, cfg.modulePath)).then((xmlObj) => {
             if (!this._modulesMap.has(cfg.name) && xmlObj.ui_module) {
@@ -168,14 +211,32 @@ class ModulesMap {
                   testModules.push(cfg.name);
                   this._testModulesMap.set(cfg.rep, testModules);
                }
-               addedModules.push(cfg.path);
                this._modulesMap.set(cfg.name, cfg);
             }
          })
       }, {
          concurrency: 4
       });
-      return addedModules;
+   }
+
+   /**
+    * Помечает модули используемые для тестов
+    * @private
+    */
+   _markModulesForTest() {
+      Object.keys(this._repos).forEach(name => {
+         let modules = this._testModulesMap.get(name);
+         modules.forEach((testModuleName) => {
+            let cfg = this._modulesMap.get(testModuleName);
+            cfg.depends.forEach((moduleName) => {
+               let cfg = this._modulesMap.get(moduleName);
+               if (cfg && cfg.rep === name) {
+                  cfg.forTests = true;
+                  this._modulesMap.set(moduleName, cfg);
+               }
+            });
+         });
+      });
    }
 }
 

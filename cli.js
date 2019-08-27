@@ -27,24 +27,7 @@ class Cli {
       this._testRep = this._argvOptions.rep.split(',');
       this._workDir = this._argvOptions.workDir || path.join(process.cwd(), config.workDir);
       this._workspace = this._argvOptions.workspace || './application';
-      // this._testReports = new Map();
-      //
-      //
-      // this._resources = ;
-      // this._projectDir = this._argvOptions.projectDir;
-      //
-      // this._testBranch = this._argvOptions.branch || this._argvOptions.rc || '';
-      //
-      //
-      // this._unitModules = [];
-      // this._testErrors = {};
-      //
-      //
-      // this._modulesMap = new Map();
-      // this._withBuilder = false;
-      // this._testModulesMap = new Map();
-      // this._testList = undefined;
-      //this._buiderCfg = path.join(process.cwd(), 'builderConfig.json');
+      this._action = this._argvOptions.action || 'all';
    }
 
    /**
@@ -52,19 +35,17 @@ class Cli {
     * @return {Promise<void>}
     */
    async run() {
-      try {
+      if (this._action == 'all' || this._action == 'store') {
          await this.initStore();
+      }
+      if (this._action == 'all' || this._action == 'build') {
          await this.build();
+      }
+      if (this._action == 'all' || this._action == 'test') {
          await this.test();
-
-         //this.log('Закончили тестирование');
-      } catch(e) {
-         //await this._closeChildProcess();
-         //this.prepareReport();
-         //this.log(`Тестирование завершено с ошибкой ${e}`);
-         throw e;
       }
    }
+
    async build() {
       let build = new Build({
          store: this._store,
@@ -122,32 +103,6 @@ class Cli {
       }
 
       return options;
-   }
-
-
-   /**
-    * Ищет модули в репозитории по s3mod
-    * @param {String} name - название репозитория в конфиге
-    * @return {Array}
-    * @private
-    */
-   _findModulesInRepDir(name) {
-      let s3mods = [];
-      walkDir(path.join(this._store, reposStore, name), (filePath) => {
-         if (filePath.includes('.s3mod')) {
-            let splitFilePath = filePath.split(path.sep);
-            splitFilePath.splice(-1, 1);
-            let modulePath = path.join.apply(path, splitFilePath);
-            let moduleName = splitFilePath[splitFilePath.length - 1];
-            s3mods.push({
-               name: moduleName,
-               rep: name,
-               path: filePath,
-               modulePath: modulePath
-            });
-         }
-      });
-      return s3mods;
    }
 
 }
