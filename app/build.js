@@ -213,7 +213,9 @@ class Build extends Base{
          });
 
       });
-      builderConfig.output =  this._resources;
+      if (this._resources) {
+         builderConfig.output = this._resources;
+      }
       return fs.outputFile(`./${builderConfigName}`, JSON.stringify(builderConfig, null, 4));
    }
 }

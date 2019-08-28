@@ -28,6 +28,7 @@ class Store extends Base{
          }));
          logger.log(`Инициализация хранилища завершена успешно`);
       } catch (e) {
+         throw e;
          throw new Error(`Инициализация хранилища завершена с ошибкой ${e}`);
       }
    }

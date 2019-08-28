@@ -41,7 +41,7 @@ class Test extends Base{
       this._resources = cfg.resources;
       this._ports = cfg.ports;
       this._repos = cfg.repos;
-      this._workspace = cfg._workspace || cfg.workDir;
+      this._workspace = cfg.workspace || cfg.workDir;
       this._testErrors = {};
       this._modulesMap = new ModulesMap({
          store: cfg.store,
