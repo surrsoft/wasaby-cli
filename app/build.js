@@ -4,7 +4,7 @@ const logger = require('./util/logger');
 
 const xml = require('./util/xml');
 const ModulesMap = require('./util/modulesMap');
-const Base = require('./Base');
+const Base = require('./base');
 
 const builderConfigName = 'builderConfig.json';
 

@@ -3,7 +3,7 @@ const pMap = require('p-map');
 const path = require('path');
 const walkDir = require('./util/walkDir');
 const logger = require('./util/logger');
-const Base = require('./Base');
+const Base = require('./base');
 
 class Store extends Base{
    constructor(cfg) {

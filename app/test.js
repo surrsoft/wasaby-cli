@@ -4,7 +4,7 @@ const pMap = require('p-map');
 const logger = require('./util/logger');
 const ModulesMap = require('./util/modulesMap');
 const xml = require('./util/xml');
-const Base = require('./Base');
+const Base = require('./base');
 
 const BROWSER_SUFFIX = '_browser';
 const NODE_SUFFIX = '_node';
