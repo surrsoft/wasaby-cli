@@ -169,8 +169,8 @@ describe('Test', () => {
       beforeEach(() => {
          stubWrite = sinon.stub(xml, 'writeXmlFile').callsFake(() => {
          });
-         stubTestReports = sinon.stub(test._te, '_testReports').value(new Map([['name', 'test/path']]));
          stubTestError = sinon.stub(test, '_testErrors').value({});
+         stubTestReports = sinon.stub(test, '_testReports').value(new Map([['test', {}], ['test1', {}]]));
          stubRead = sinon.stub(fs, 'readFileSync').callsFake(() => {
             return '<testsuite><testcase classname="test1"></testcase></testsuite>';
          });
@@ -179,7 +179,7 @@ describe('Test', () => {
 
       it('should return all test', (done) => {
          stubWrite.callsFake(function (name, obj) {
-            chai.expect(obj.testsuite.testcase[0].$.classname).to.equal('[name]: test1');
+            chai.expect(obj.testsuite.testcase[0].$.classname).to.equal('[test]: test1');
             done();
          });
          test.prepareReport();
@@ -187,8 +187,8 @@ describe('Test', () => {
 
       it('should make failure report if it is empty', (done) => {
          stubRead.callsFake(() => '<testsuite></testsuite>');
-         stubTestReports._error = sinon.stub(test, '_testReports').value(new Map([['name', 'test/path']]));
-         stubTestError.value({name: ['error']});
+         stubTestReports = sinon.stub(test._modulesMap, 'getTestModules').callsFake(() => ['test']);
+         stubTestError.value({test: ['error']});
          stubWrite.callsFake((name, obj) => {
             chai.expect(obj.testsuite.testcase[0].failure).to.equal('error');
             done();

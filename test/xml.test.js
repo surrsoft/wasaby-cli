@@ -1,3 +1,9 @@
+const chai = require('chai');
+const sinon = require('sinon');
+const fs = require('fs-extra');
+const xml2js = require('xml2js');
+let xml = require('../app/util/xml');
+
 describe('._writeXmlFile()', () => {
    let stuBuilder, stubFsWrite;
    beforeEach(() => {
@@ -12,7 +18,7 @@ describe('._writeXmlFile()', () => {
          chai.expect(text).to.equal('<testsuite><testcase name="test1"></testcase></testsuite>');
          done();
       });
-      cli._writeXmlFile('test', {});
+      xml.writeXmlFile('test', {});
    });
 
    afterEach(() => {
