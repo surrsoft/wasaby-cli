@@ -225,17 +225,19 @@ class ModulesMap {
     */
    _markModulesForTest() {
       Object.keys(this._repos).forEach(name => {
-         let modules = this._testModulesMap.get(name);
-         modules.forEach((testModuleName) => {
-            let cfg = this._modulesMap.get(testModuleName);
-            cfg.depends.forEach((moduleName) => {
-               let cfg = this._modulesMap.get(moduleName);
-               if (cfg && cfg.rep === name) {
-                  cfg.forTests = true;
-                  this._modulesMap.set(moduleName, cfg);
-               }
+         if (this._testModulesMap.has(name)) {
+            let modules = this._testModulesMap.get(name);
+            modules.forEach((testModuleName) => {
+               let cfg = this._modulesMap.get(testModuleName);
+               cfg.depends.forEach((moduleName) => {
+                  let cfg = this._modulesMap.get(moduleName);
+                  if (cfg && cfg.rep === name) {
+                     cfg.forTests = true;
+                     this._modulesMap.set(moduleName, cfg);
+                  }
+               });
             });
-         });
+         }
       });
    }
 }
