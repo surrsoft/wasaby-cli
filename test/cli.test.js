@@ -34,18 +34,20 @@ let getProcess = () => {
 };
 
 let stubConsoleLog;
-
+let stubBuilder;
 describe('CLI', () => {
    beforeEach(() => {
       stubArgv = sinon.stub(process, 'argv');
       stubArgv.value(['','', '--rep=types', '--branch=200/feature', '--rc=rc-200']);
       cli = new Cli();
       stubConsoleLog = sinon.stub(cli, 'log').callsFake((log) => {});
+      stubBuilder = sinon.stub(cli, '_withBuilder').value(true);
    });
 
    afterEach(() => {
       stubArgv.restore();
       stubConsoleLog.restore();
+      stubBuilder.restore();
    });
 
    describe('.constructor()', () => {
@@ -84,8 +86,8 @@ describe('CLI', () => {
       it('should set params from config', () => {
          const config = require('./../config.json');
          chai.expect(cli._repos).to.deep.equal(config.repositories);
-         chai.expect(cli._store).to.equal(config.store);
-         chai.expect(cli._workDir).to.equal(config.workDir);
+         chai.expect(cli._store).to.equal(path.join(process.cwd(), config.store));
+         chai.expect(cli._workDir).to.equal(path.join(process.cwd(),config.workDir));
       });
    });
 
@@ -217,9 +219,7 @@ describe('CLI', () => {
             return [{name:'test'}]
          });
          stubRepos = sinon.stub(cli, '_repos').value({
-            'test': {
-               modules: ['test_config']
-            }
+            'test': {}
          });
          stubModMap = sinon.stub(cli, '_addToModulesMap').callsFake((res) => {
             return Promise.resolve([res[0].name]);
@@ -227,7 +227,7 @@ describe('CLI', () => {
       });
       it('should concat modules from config and repository', () => {
          return cli._getModulesByRepName('test').then((res) => {
-            chai.expect(['test', 'test_config']).to.deep.equal(res);
+            chai.expect(['test']).to.deep.equal(res);
          });
       });
       afterEach(() => {
@@ -558,7 +558,7 @@ describe('CLI', () => {
       it('should copy rep', (done) => {
          let stubfs = sinon.stub(fs, 'ensureSymlink').callsFake((from, to) => {
             chai.expect(from).to.equal('pathToTest');
-            chai.expect(to).to.equal(path.join('store', '_repos', 'test'));
+            chai.expect(to).to.equal(path.join(process.cwd(), 'store', '_repos', 'test'));
             done();
             return Promise.resolve();
          });
@@ -729,7 +729,7 @@ describe('CLI', () => {
    });
 
    describe('.startTest()', () => {
-      let stubmakeTestConfig, stubtslibInstall, stubstartBrowserTest, stubtestList, stubExecute;
+      let stubmakeTestConfig, stubtslibInstall, stubstartBrowserTest, stubtestList, stubExecute, stubSetContents;
       beforeEach(() => {
          stubmakeTestConfig = sinon.stub(cli, '_makeTestConfig').callsFake(() => {
             return Promise.resolve();
@@ -741,6 +741,7 @@ describe('CLI', () => {
             return Promise.resolve();
          });
          stubtestList = sinon.stub(cli, '_testList').value(['engine']);
+         stubSetContents = sinon.stub(cli, '_setContents').callsFake(() => {});
       });
       it('should start test', (done) => {
          let commandsArray = [];
@@ -757,6 +758,7 @@ describe('CLI', () => {
 
       afterEach(() => {
          stubmakeTestConfig.restore();
+         stubSetContents.restore();
          stubtslibInstall.restore();
          stubstartBrowserTest.restore();
          stubtestList.restore();
@@ -769,21 +771,6 @@ describe('CLI', () => {
       beforeEach(() => {
          stubclearStore = sinon.stub(cli, '_clearStore').callsFake(() => {});
       });
-      it('should remove work dirs', (done) => {
-         let removeArray = [];
-         stubmkdirs = sinon.stub(fs, 'mkdirs').callsFake((path) => {
-         });
-         stubRemove = sinon.stub(fs, 'remove').callsFake((path) => {
-            removeArray.push(path);
-         });
-         stubRepos = sinon.stub(cli, '_repos').value({});
-
-         cli.initStore().then(() => {
-            chai.expect(removeArray).to.includes('builder-ui');
-            chai.expect(removeArray).to.includes('application');
-            done();
-         });
-      });
       it('should make store dir', (done) => {
          let makeDir;
          stubmkdirs = sinon.stub(fs, 'mkdirs').callsFake((path) => {
@@ -793,7 +780,7 @@ describe('CLI', () => {
          });
          stubRepos = sinon.stub(cli, '_repos').value({});
          cli.initStore().then(() => {
-            chai.expect(makeDir).to.equal(path.join('store', '_repos'));
+            chai.expect(makeDir).to.equal(path.join(process.cwd(), 'store', '_repos'));
             done();
          });
       });
@@ -862,16 +849,6 @@ describe('CLI', () => {
          cli.initStore();
       });
 
-      it('should thorw error when remove failed', (done) => {
-         let makeDir;
-         stubRemove = sinon.stub(fs, 'remove').callsFake((path) => {
-            return Promise.reject();
-         });
-         cli.initStore().catch(() => {
-            done();
-         });
-      });
-
       afterEach(() => {
          stubclearStore.restore();
          stubmkdirs && stubmkdirs.restore();
@@ -897,7 +874,7 @@ describe('CLI', () => {
             mkdir = path;
          });
          cli.copy('test').then(() => {
-            chai.expect(mkdir).to.equal(path.join('store', 'test'));
+            chai.expect(mkdir).to.equal(path.join(process.cwd(), 'store', 'test'));
             done()
          });
       });
@@ -916,8 +893,8 @@ describe('CLI', () => {
             to = t;
          });
          cli.copy('test').then(() => {
-            chai.expect(from).to.equal(path.join('store', '_repos', 'test', 'unit'));
-            chai.expect(to).to.equal(path.join('store', 'test', 'test_test'));
+            chai.expect(from).to.equal(path.join(process.cwd(),'store', '_repos', 'test', 'unit'));
+            chai.expect(to).to.equal(path.join(process.cwd(),'store', 'test', 'test_test'));
             done()
          });
       });
@@ -932,7 +909,7 @@ describe('CLI', () => {
          stubmkDir = sinon.stub(fs, 'mkdirs').callsFake(() => {});
          stubensureSymlink = sinon.stub(fs, 'ensureSymlink').callsFake(() => {});
          cli.copy('test').then(() => {
-            chai.expect(cli._unitModules).to.deep.equal([path.join('store','_repos','test','unit')]);
+            chai.expect(cli._unitModules).to.deep.equal([path.join(process.cwd(),'store','_repos','test','unit')]);
             done();
          });
       });
@@ -950,8 +927,8 @@ describe('CLI', () => {
             return Promise.resolve();
          });
          cli.copy('test').then(() => {
-            chai.expect(from).to.equal(path.join('store', '_repos', 'test', 'app'));
-            chai.expect(to).to.equal(path.join('store', 'test', 'module', 'app'));
+            chai.expect(from).to.equal(path.join(process.cwd(),'store', '_repos', 'test', 'app'));
+            chai.expect(to).to.equal(path.join(process.cwd(),'store', 'test', 'module', 'app'));
             done();
          });
       });
@@ -998,8 +975,8 @@ describe('CLI', () => {
             return Promise.resolve();
          });
          cli._linkFolder().then(() => {
-            chai.expect(from).to.equal(path.join('store', '_repos', 'test', '/'));
-            chai.expect(to).to.equal(path.join('application', 'cdn'));
+            chai.expect(from).to.equal(path.join(process.cwd(), 'store', '_repos', 'test', '/'));
+            chai.expect(to).to.equal(path.join(process.cwd(),'application', 'intest-ps', 'ui', 'resources', 'cdn'));
             done();
          });
       });
@@ -1067,7 +1044,7 @@ describe('CLI', () => {
             return Promise.resolve();
          });
          cli._tslibInstall().then(() => {
-            chai.expect(cmd).to.equal('node node_modules/saby-typescript/install.js --tslib=application/WS.Core/ext/tslib.js');
+            chai.expect(cmd).to.includes('tslib.js');
             done();
          });
       });
@@ -1089,17 +1066,32 @@ describe('CLI', () => {
             },
             test3: {}
          });
+         stubModulesMap = sinon.stub(cli, '_testModulesMap').value(new Map([
+            ['test1', ['test11']],
+            ['test2', ['test22']],
+            ['test3', ['test33']],
+         ]));
          stubModulesMap = sinon.stub(cli, '_modulesMap').value(
             new Map([
-               ['test11', {name:'test11', rep:'test1', depends:['test22']}],
-               ['test22', {name:'test22', rep:'test2', depends:[]}],
-               ['test33', {name:'test33', rep:'test3', depends:[]}],
+               ['test11', {name:'test11', rep:'test1', depends:['test22'], forTests: true}],
+               ['test22', {name:'test22', rep:'test2', depends:[], forTests: true}],
+               ['test33', {name:'test33', rep:'test3', depends:[], forTests: true}],
+               ['test_test1', {name:'test_test1', rep:'test1', depends:['test11']}],
+               ['test_test2', {name:'test_test2', rep:'test2', depends:['test22']}],
+               ['test_test3', {name:'test_test3', rep:'test3', depends:['test33']}]
+            ])
+         );
+         sinon.stub(cli, '_testModulesMap').value(
+            new Map([
+               ['test1', ['test_test1']],
+               ['test2', ['test_test2']],
+               ['test3', ['test_test3']],
             ])
          );
       });
       it('should return all test', () => {
          stubTestRep = sinon.stub(cli, '_testRep').value(['all']);
-         chai.expect(cli._getTestList()).to.deep.equal(['test1', 'test2']);
+         chai.expect(cli._getTestList()).to.deep.equal(['test1', 'test2', 'test3']);
       });
 
       it('should return test list for test1', () => {
@@ -1208,7 +1200,7 @@ describe('CLI', () => {
       let stubModulesMap;
       beforeEach(() => {
          stubModulesMap = sinon.stub(cli, '_modulesMap').value(
-            new Map([['test11', {name:'test11', rep:'test1', depends:['test22']}], ['test22', {name:'test22', rep:'test2', depends:[]}]])
+            new Map([['test11', {name:'test11', rep:'test1', depends:['test22'], forTests:true}], ['test22', {name:'test22', rep:'test2', depends:[], forTests:true}]])
          );
       });
 
@@ -1318,8 +1310,8 @@ describe('CLI', () => {
             removePaths.push(p);
          });
          cli._clearStore().then(() => {
-            chai.expect(removePaths).to.includes(path.join('store', 'test1'));
-            chai.expect(removePaths).to.includes(path.join('store', 'test2'));
+            chai.expect(removePaths).to.includes(path.join(process.cwd(),'store', 'test1'));
+            chai.expect(removePaths).to.includes(path.join(process.cwd(),'store', 'test2'));
             done();
          });
       });
@@ -1330,7 +1322,7 @@ describe('CLI', () => {
             removePaths.push(p);
          });
          cli._clearStore().then(() => {
-            chai.expect(removePaths).to.not.includes(path.join('store', '_repos'));
+            chai.expect(removePaths).to.not.includes(path.join(process.cwd(),'store', '_repos'));
             done();
          });
 

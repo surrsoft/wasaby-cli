@@ -1,76 +1,13 @@
 {
-   "cache": "./builder-ui/builder-json-cache",
-   "output": "./application",
-   "logs": "./builder-ui/logs",
+   "cache": "./application/build-ui/builder-json-cache",
+   "output": "./application/unit",
+   "logs": "./application/logs",
    "typescript": true,
    "contents": true,
-   "joinedMeta": true,
+   "joinedMeta": false,
+   "clearOutput": false,
    "less": true,
    "themes": true,
    "modules": [
-      {
-         "name": "WS.Core",
-         "path": "./store/ws/module/WS.Core",
-         "required": true
-      },
-      {
-         "name": "Controls-demo",
-         "path": "./store/controls/module/Controls-demo",
-         "required": true
-      },
-      {
-         "name": "Router",
-         "path": "./store/router/module/Router",
-         "required": true
-      },
-      {
-         "name": "Types",
-         "path": "./store/types/module/Types",
-         "required": true
-      },
-      {
-         "name": "I18n",
-         "path": "./store/i18n/module/I18n",
-         "required": true
-      },
-      {
-         "name": "File",
-         "path": "./store/rmi/module/File"
-      },
-      {
-         "name": "Env",
-         "path": "./store/rmi/module/Env",
-         "required": true
-      },
-      {
-         "name": "Browser",
-         "path": "./store/rmi/module/Browser",
-         "required": true
-      },
-      {
-         "name": "SbisEnv",
-         "path": "./store/rmi/module/SbisEnv",
-         "required": true
-      },
-      {
-         "name": "Vdom",
-         "path": "./store/ws/module/Vdom",
-         "required": true
-      },
-      {
-         "name": "View",
-         "path": "./store/ws/module/View",
-         "required": true
-      },
-      {
-         "name": "Application",
-         "path": "./store/app/module/Application",
-         "required": true
-      },
-      {
-         "name": "Inferno",
-         "path": "./store/ws/module/Inferno",
-         "required": true
-      }
    ]
 }
