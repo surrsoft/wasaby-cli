@@ -2,9 +2,9 @@
    "moduleType": "amd",
    "root": "application",
    "patchedRequire": true,
-   "report": "./application/artifacts/${module}/xunit-report.xml",
-   "htmlCoverageReport": "./application/artifacts/${module}/coverage/index.html",
-   "jsonCoverageReport": "./application/artifacts/${module}/coverage.json",
+   "report": "${workspace}/artifacts/${module}/xunit-report.xml",
+   "htmlCoverageReport": "${workspace}/artifacts/${module}/coverage/index.html",
+   "jsonCoverageReport": "${workspace}/artifacts/${module}/coverage.json",
    "url": {
       "port": 1025
    }
