@@ -59,6 +59,9 @@
       },
       "navigation-configuration": {
          "url": "https://git.sbis.ru/navigation-configuration/navigation.git"
+      },
+      "rmi_test": {
+         "url": "https://git.sbis.ru/sbis/rmi_test.git"
       }
    }
 }
