@@ -61,6 +61,7 @@ class Cli {
       this._testReports = new Map();
       this._argvOptions = this._getArgvOptions();
       this._workDir = this._argvOptions.workDir || path.join(process.cwd(), config.workDir);
+      this._builderCache = this._argvOptions.builderCache || 'builder-json-cache';
       this._resources = path.join(this._workDir, resourcesPath);
       this._projectDir = this._argvOptions.projectDir;
       this._store = this._argvOptions.store || path.join(process.cwd(), config.store);
@@ -547,6 +548,7 @@ class Cli {
    _prepareDeployCfg(filePath) {
       let cfg_string = fs.readFileSync(filePath, "utf8");
       cfg_string = cfg_string.replace(/\{site_root\}/g, this._workDir);
+      cfg_string = cfg_string.replace(/\{json_cache\}/g, this._builderCache);
       fs.outputFileSync(filePath, cfg_string);
    }
 
