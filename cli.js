@@ -61,7 +61,9 @@ class Cli {
       this._testReports = new Map();
       this._argvOptions = this._getArgvOptions();
       this._workDir = this._argvOptions.workDir || path.join(process.cwd(), config.workDir);
+      this.log('DEBUG_CACHE1', this._argvOptions.builderCache);
       this._builderCache = this._argvOptions.builderCache || 'builder-json-cache';
+      this.log('DEBUG_CACHE2', this._builderCache);
       this._resources = path.join(this._workDir, resourcesPath);
       this._projectDir = this._argvOptions.projectDir;
       this._store = this._argvOptions.store || path.join(process.cwd(), config.store);
@@ -548,7 +550,9 @@ class Cli {
    _prepareDeployCfg(filePath) {
       let cfg_string = fs.readFileSync(filePath, "utf8");
       cfg_string = cfg_string.replace(/\{site_root\}/g, this._workDir);
+      this.log('DEBUG_CACHE3', cfg_string);
       cfg_string = cfg_string.replace(/\{json_cache\}/g, this._builderCache);
+      this.log('DEBUG_CACHE4', cfg_string);
       fs.outputFileSync(filePath, cfg_string);
    }
 
