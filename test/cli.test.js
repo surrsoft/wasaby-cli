@@ -322,7 +322,7 @@ describe('CLI', () => {
             setTimeout(() => {
                process.kill();
             });
-            chai.expect(cmd).to.equal('cd /d path && help');
+            chai.expect(cmd).to.equal('cd path && help');
             done();
             return process;
          });

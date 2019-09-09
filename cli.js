@@ -932,7 +932,7 @@ class Cli {
       }
       let errors = [];
       return new Promise((resolve, reject) => {
-         const cloneProcess = shell.exec(`cd /d ${path} && ${command}`, {
+         const cloneProcess = shell.exec(`cd ${path} && ${command}`, {
             silent: true,
             async: true
          });
