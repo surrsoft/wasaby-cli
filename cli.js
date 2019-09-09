@@ -120,28 +120,27 @@ class Cli {
    /**
     * Возвращает список репозиториев для тестирования
     * @param {string} name - Название репозитория в конфиге
-    * @return {Array}
+    * @return {Set}
     * @private
     */
    _getTestList() {
       if (this._testList) {
          return this._testList;
       }
-      let tests = [];
+
+      const tests = new Set();
       if (!this._testRep.includes('all')) {
          this._testRep.forEach((testRep) => {
             let modules = this._getParentModules(this._getTestModules(testRep));
-            tests.push(testRep);
+            tests.add(testRep);
             modules.forEach((name) => {
                let cfg = this._modulesMap.get(name);
-               if (!tests.includes(cfg.rep)) {
-                  tests.push(cfg.rep);
-               }
+               tests.add(cfg.rep);
             });
          });
       } else {
          this._testModulesMap.forEach((modules, rep) => {
-            tests.push(rep);
+            tests.add(rep);
          });
       }
       return this._testList = tests;
@@ -401,15 +400,13 @@ class Cli {
     */
    _makeBuilderConfig() {
       let builderConfig = require('./builderConfig.base.json');
-      let testList = this._getTestList().slice();
+      let testList = new Set(this._getTestList());
       //удалить по этой задаче https://online.sbis.ru/opendoc.html?guid=79e5557f-b621-40bf-ae79-86b6fc5930b6
       testList.forEach((name) => {
          const cfg = this._repos[name];
          if (cfg.dependOn) {
             cfg.dependOn.forEach((name) => {
-               if (!testList.includes(name)) {
-                  testList.push(name)
-               }
+               testList.add(name);
             });
          }
       });
@@ -471,8 +468,10 @@ class Cli {
    _makeTestConfig(name) {
       let defaultPort = 10025;
       let configPorts = this._argvOptions.ports ? this._argvOptions.ports.split(',') : [];
-      return Promise.all(this._getTestList().map((name, i) => {
-         return new Promise(resolve => {
+      const testsConfig = [];
+
+      for (const name of this._getTestList()) {
+         testsConfig.push(new Promise(resolve => {
             let cfg = this._getTestConfig(name, NODE_SUFFIX);
             fs.outputFileSync(`./testConfig_${name}.json`, JSON.stringify(cfg, null, 4));
             if (this._repos[name].unitInBrowser) {
@@ -481,8 +480,10 @@ class Cli {
                fs.outputFileSync(`./testConfig_${name}InBrowser.json`, JSON.stringify(cfg, null, 4));
             }
             resolve();
-         });
-      }));
+         }));
+      }
+
+      return Promise.all(testsConfig);
    }
 
    async _initWithBuilder() {
