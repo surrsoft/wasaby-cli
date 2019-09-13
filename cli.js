@@ -60,6 +60,7 @@ class Cli {
 
       this._testReports = new Map();
       this._argvOptions = this._getArgvOptions();
+      this.tasks = this._argvOptions.tasks ?  this._argvOptions.tasks.split(',') : ['initStore', 'build', 'startTest'];
       this._workDir = this._argvOptions.workDir || path.join(process.cwd(), config.workDir);
       this._builderCache = this._argvOptions.builderCache || 'builder-json-cache';
       this._resources = path.join(this._workDir, resourcesPath);
@@ -85,12 +86,20 @@ class Cli {
     */
    async run() {
       try {
-         await this.initStore();
-         await this.initWorkDir();
-         await this.startTest();
-         this.checkReport();
-         this.prepareReport();
-         this.log('Закончили тестирование');
+         if (this.tasks.includes('initStore')) {
+            await this.initStore();
+         }
+
+         if (this.tasks.includes('build')) {
+            await this.initWorkDir();
+         }
+
+         if (this.tasks.includes('startTest')) {
+            await this.startTest();
+            this.checkReport();
+            this.prepareReport();
+            this.log('Закончили тестирование');
+         }
       } catch(e) {
          await this._closeChildProcess();
          this.prepareReport();
