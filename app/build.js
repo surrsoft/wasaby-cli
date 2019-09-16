@@ -59,8 +59,7 @@ class Build extends Base{
       );
    }
 
-   async readSrv() {
-      //await copyProject()
+   async _prepareSrv() {
       let srvPath = path.join(this._projectDir, 'InTestUI.s3srv');
       let srv = await xml.readXmlFile(srvPath);
       let srvModules = [];
@@ -73,42 +72,9 @@ class Build extends Base{
             this._modulesMap.set(cfg.name, cfg);
          }
       });
-      this._makeBuilderTestConfig();
+
 
       xml.writeXmlFile(srvPath, srv);
-   }
-
-   _makeBuilderTestConfig() {
-      let builderConfig = require('./builderConfig.base.json');
-      this._modulesMap.getTestList().forEach((name) => {
-         let testmodules = this._testModulesMap.get(name);
-         testmodules.forEach((testModuleName) => {
-            let cfg = this._modulesMap.get(testModuleName);
-            let repName = cfg ? cfg.rep : name;
-            builderConfig.modules.push({
-               name: testModuleName,
-               path: path.join(this._store, cfg.rep, cfg.path)
-            })
-         });
-
-         let modules = this._getChildModules(this._getModulesFromMap(name));
-
-         modules.forEach((modulePath) => {
-            const moduleName = this._getModuleNameByPath(modulePath);
-            const isNameInConfig = builderConfig.modules.find((item) => (item.name == moduleName));
-            let cfg = this._modulesMap.get(moduleName);
-            let repName = cfg ? cfg.rep : name;
-            if (!isNameInConfig && !cfg.srv) {
-               builderConfig.modules.push({
-                  name: moduleName,
-                  path: path.join(this._store, cfg.rep, cfg.path)
-               })
-            }
-         });
-      });
-
-      builderConfig.output = path.join(this._workDir, 'builder_test');
-      return fs.outputFile(`${builderConfigName}`, JSON.stringify(builderConfig, null, 4));
    }
 
    _prepareDeployCfg(filePath) {
@@ -118,7 +84,8 @@ class Build extends Base{
    }
 
    async _initWithGenie() {
-      this.readSrv();
+      await this._prepareSrv();
+      await this._makeBuilderConfig();
 
       let sdkVersion = this._rc.replace('rc-', '').replace('.','');
 
@@ -204,9 +171,9 @@ class Build extends Base{
          let modules = this._modulesMap.getChildModules(this._modulesMap.getModulesByRep(name));
 
          modules.forEach((moduleName) => {
-            if (moduleName !== 'unit') {
+            let cfg = this._modulesMap.get(moduleName);
+            if (moduleName !== 'unit' && !cfg.srv) {
                const isNameInConfig = builderConfig.modules.find((item) => (item.name == moduleName));
-               let cfg = this._modulesMap.get(moduleName);
                if (!isNameInConfig) {
                   builderConfig.modules.push({
                      name: moduleName,
