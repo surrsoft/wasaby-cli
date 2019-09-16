@@ -1,11 +1,5 @@
 
 
-// const reposStore = '_repos';
-//
-// const pMap = require('p-map');
-// const geniePath = 'tools/jinnee';
-const resourcesPath = 'intest-ps/ui/resources';
-
 const path = require('path');
 const CONFIG = './config.json';
 
@@ -52,7 +46,7 @@ class Cli {
          store: this._store,
          reposConfig: this._reposConfig,
          testRep: this._testRep,
-         withBuilder: true,
+         withBuilder: !!this._argvOptions.withBuilder,
          resources: path.join(this._workDir, 'application')
       });
 
