@@ -12,7 +12,7 @@ describe('Store', () => {
          rc: 'rc-12',
          store: '',
          argvOptions:{},
-         repos: {
+         reposConfig: {
             test1: {},
             test2: {}
          }
@@ -76,7 +76,7 @@ describe('Store', () => {
    describe('.cloneRepToStore()', () => {
       let stubRepos, stubExecute, stubfs;
       beforeEach(() => {
-         stubRepos = sinon.stub(store, '_repos').value({
+         stubRepos = sinon.stub(store, '_reposConfig').value({
             test: {
                url: 'test@test.git'
             }
@@ -188,7 +188,7 @@ describe('Store', () => {
          stubmkdirs = sinon.stub(fs, 'mkdirs').callsFake((path) => {
             makeDir = path;
          });
-         stubRepos = sinon.stub(store, '_repos').value({});
+         stubRepos = sinon.stub(store, '_reposConfig').value({});
          initRepStore = sinon.stub(store, 'initRep').callsFake((path) => {
          });
          store.run().then(() => {

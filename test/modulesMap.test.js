@@ -7,7 +7,7 @@ let modulesMap;
 describe('modulesMap', () => {
    beforeEach(() => {
       modulesMap = new ModulesMap({
-         repos: {
+         reposConfig: {
             test1: {},
             test2: {}
          },
@@ -69,7 +69,7 @@ describe('modulesMap', () => {
    describe('._getTestList()', () => {
       let stubrepos, stubTestRep, stubModulesMap;
       beforeEach(() => {
-         stubrepos = sinon.stub(modulesMap, '_repos').value({
+         stubrepos = sinon.stub(modulesMap, '_reposConfig').value({
             test1: {
                test: 'path'
             },

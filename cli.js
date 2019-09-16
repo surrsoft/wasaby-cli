@@ -21,9 +21,10 @@ const Test = require('./app/test');
 class Cli {
    constructor() {
       let config = require(CONFIG);
-      this._repos = config.repositories;
+      this._reposConfig = config.repositories;
       this._argvOptions = this._getArgvOptions();
       this._store = this._argvOptions.store || path.join(process.cwd(), config.store);
+      this._store = path.join(this._store, '_repos');
       this._testRep = this._argvOptions.rep.split(',');
       this._workDir = this._argvOptions.workDir || path.join(process.cwd(), config.workDir);
       this._workspace = this._argvOptions.workspace || './application';
@@ -49,7 +50,7 @@ class Cli {
    async build() {
       let build = new Build({
          store: this._store,
-         repos: this._repos,
+         reposConfig: this._reposConfig,
          testRep: this._testRep,
          withBuilder: true,
          resources: path.join(this._workDir, 'application')
@@ -62,7 +63,7 @@ class Cli {
       let store = new Store({
          store: this._store,
          argvOptions: this._argvOptions,
-         repos: this._repos,
+         reposConfig: this._reposConfig,
          rc: this._argvOptions.rc,
          testRep: this._testRep
       });
@@ -73,7 +74,7 @@ class Cli {
    async test() {
       let test = new Test({
          store: this._store,
-         repos: this._repos,
+         reposConfig: this._reposConfig,
          testRep: this._testRep,
          ports: this._argvOptions.ports || '',
          workDir: this._workDir,

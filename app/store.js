@@ -10,7 +10,7 @@ class Store extends Base{
       super(cfg);
       this._store = cfg.store;
       this._argvOptions = cfg.argvOptions;
-      this._repos = cfg.repos;
+      this._reposConfig = cfg.reposConfig;
       this._rc = cfg.rc;
       this._testRep = cfg.testRep;
    }
@@ -23,7 +23,7 @@ class Store extends Base{
       logger.log(`Инициализация хранилища`);
       try {
          await fs.mkdirs(this._store);
-         await Promise.all(Object.keys(this._repos).map((name) => {
+         await Promise.all(Object.keys(this._reposConfig).map((name) => {
             return this.initRep(name);
          }));
          logger.log(`Инициализация хранилища завершена успешно`);
@@ -111,8 +111,8 @@ class Store extends Base{
    async cloneRepToStore(name) {
       if (!fs.existsSync(path.join(this._store, name))) {
          try {
-            logger.log(`git clone ${this._repos[name].url}`, name);
-            await this._shell.execute(`git clone ${this._repos[name].url} ${name}`, this._store, `clone ${name}`);
+            logger.log(`git clone ${this._reposConfig[name].url}`, name);
+            await this._shell.execute(`git clone ${this._reposConfig[name].url} ${name}`, this._store, `clone ${name}`);
          } catch (err) {
             throw new Error(`Ошибка при клонировании репозитория ${name}: ${err}`);
          }

@@ -40,12 +40,12 @@ class Test extends Base{
       this._testReports = new Map();
       this._resources = cfg.resources;
       this._ports = cfg.ports;
-      this._repos = cfg.repos;
+      this._reposConfig = cfg.reposConfig;
       this._workspace = cfg.workspace || cfg.workDir;
       this._testErrors = {};
       this._modulesMap = new ModulesMap({
          store: cfg.store,
-         repos: cfg.repos,
+         reposConfig: cfg.reposConfig,
          testRep: cfg.testRep
       });
    }
@@ -139,7 +139,7 @@ class Test extends Base{
          return new Promise(resolve => {
             let cfg = this._getTestConfig(name, NODE_SUFFIX);
             fs.outputFileSync(`./testConfig_${name}.json`, JSON.stringify(cfg, null, 4));
-            if (this._repos[name].unitInBrowser) {
+            if (this._reposConfig[name].unitInBrowser) {
                let cfg = this._getTestConfig(name, BROWSER_SUFFIX);
                cfg.url.port = configPorts.shift() || defaultPort++;
                fs.outputFileSync(`./testConfig_${name}InBrowser.json`, JSON.stringify(cfg, null, 4));
@@ -168,7 +168,7 @@ class Test extends Base{
     * @private
     */
    async _startBrowserTest(name) {
-      let cfg = this._repos[name];
+      let cfg = this._reposConfig[name];
       if (cfg.unitInBrowser) {
          logger.log(`Запуск тестов в браузере`, name);
          try {

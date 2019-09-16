@@ -12,14 +12,14 @@ class Build extends Base{
    constructor(cfg) {
       super(cfg);
       this._store = cfg.store;
-      this._repos = cfg.repos;
+      this._reposConfig = cfg.reposConfig;
       this._withBuilder = cfg.withBuilder;
       this._withGenie = cfg.withGenie;
       this._resources = cfg.resources;
       this._buiderCfg = path.join(process.cwd(), 'builderConfig.json');
       this._modulesMap = new ModulesMap({
          store: cfg.store,
-         repos: this._repos,
+         reposConfig: this._reposConfig,
          testRep: cfg.testRep
       });
    }
@@ -177,11 +177,11 @@ class Build extends Base{
     * @private
     */
    async _linkFolder() {
-      for (const name in this._repos) {
-         if (this._repos[name].linkFolders) {
-            for (const pathOriginal in this._repos[name].linkFolders) {
+      for (const name in this._reposConfig) {
+         if (this._reposConfig[name].linkFolders) {
+            for (const pathOriginal in this._reposConfig[name].linkFolders) {
                const pathDir = path.join(this._store, name, pathOriginal);
-               const pathLink =  path.join(this._resources, this._repos[name].linkFolders[pathOriginal]);
+               const pathLink =  path.join(this._resources, this._reposConfig[name].linkFolders[pathOriginal]);
                await fs.ensureSymlink(pathDir, pathLink);
             }
          }

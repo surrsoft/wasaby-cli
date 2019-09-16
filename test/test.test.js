@@ -11,7 +11,7 @@ describe('Test', () => {
       test = new Test({
          rc: 'rc-12',
          store: '',
-         repos: {
+         reposConfig: {
             test1: {},
             test2: {}
          },
@@ -54,7 +54,7 @@ describe('Test', () => {
    describe('._startBrowserTest()', () => {
       let stubcli, stubfsjson, stubexecute, stubOutputFile;
       beforeEach(() => {
-         stubcli = sinon.stub(test, '_repos').value({
+         stubcli = sinon.stub(test, '_reposConfig').value({
             'test': {
                unitInBrowser: true
             }
@@ -70,7 +70,7 @@ describe('Test', () => {
          stubOutputFile = sinon.stub(fs, 'outputFileSync').callsFake(() => {
             throw new Error();
          });
-         stubcli = sinon.stub(test, '_repos').value({
+         stubcli = sinon.stub(test, '_reposConfig').value({
             'test': {
                unitInBrowser: false
             }

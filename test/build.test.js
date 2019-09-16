@@ -9,7 +9,7 @@ describe('Build', () => {
    beforeEach(() => {
       build = new Build({
          testRep: ['test1'],
-         repos: {
+         reposConfig: {
             test1: {},
             test2: {}
          },

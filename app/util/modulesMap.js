@@ -5,7 +5,7 @@ const walkDir = require('./walkDir');
 
 class ModulesMap {
    constructor(cfg) {
-      this._repos = cfg.repos;
+      this._reposConfig = cfg.reposConfig;
       this._store = cfg.store;
       this._testRep = cfg.testRep;
       this._modulesMap = new Map();
@@ -172,7 +172,7 @@ class ModulesMap {
     */
    _findModulesInStore() {
       let s3mods = [];
-      Object.keys(this._repos).forEach(name => {
+      Object.keys(this._reposConfig).forEach(name => {
          walkDir(path.join(this._store, name), (filePath) => {
             if (filePath.includes('.s3mod')) {
                let splitFilePath = filePath.split(path.sep);
@@ -233,7 +233,7 @@ class ModulesMap {
     * @private
     */
    _markModulesForTest() {
-      Object.keys(this._repos).forEach(name => {
+      Object.keys(this._reposConfig).forEach(name => {
          if (this._testModulesMap.has(name)) {
             let modules = this._testModulesMap.get(name);
             modules.forEach((testModuleName) => {
