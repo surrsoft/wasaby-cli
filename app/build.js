@@ -14,7 +14,6 @@ class Build extends Base{
       this._store = cfg.store;
       this._reposConfig = cfg.reposConfig;
       this._withBuilder = cfg.withBuilder;
-      this._withGenie = cfg.withGenie;
       this._resources = cfg.resources;
       this._buiderCfg = path.join(process.cwd(), 'builderConfig.json');
       this._modulesMap = new ModulesMap({
@@ -35,7 +34,7 @@ class Build extends Base{
          await this._tslibInstall();
          if (this._withBuilder) {
             await this._initWithBuilder();
-         } else if(this._withGenie) {
+         } else {
             await this._initWithGenie();
          }
          await this._linkFolder();
