@@ -132,16 +132,16 @@ class Build extends Base{
          let sdkPath = process.env['SDK'];
          process.env['SBISPlatformSDK_' + sdkVersion] = process.env['SDK'];
          genieFolder = path.join(this._workspace, 'jinnee');
-         await this._execute(`7za x ${path.join(sdkPath,'tools','jinnee','jinnee.zip')} -o${genieFolder}`, process.cwd());
+         await this._shell.execute(`7za x ${path.join(sdkPath,'tools','jinnee','jinnee.zip')} -o${genieFolder}`, process.cwd());
          genieCli = `${path.join(genieFolder, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
       }
       this._prepareDeployCfg(path.join(this._projectDir, 'InTest.s3deploy'));
-      await this._execute(
+      await this._shell.execute(
          `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
          genieFolder,
          'jinnee'
       );
-      await this._execute(
+      await this._shell.execute(
          `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._builderCfg}`,
          process.cwd(),
          true,

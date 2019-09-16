@@ -31,6 +31,15 @@ class ModulesMap {
    }
 
    /**
+    * Проверяет существование модуля
+    * @param name - Название модуля
+    * @return {boolean}
+    */
+   has(name) {
+      return this._modulesMap.has(name);
+   }
+
+   /**
     * Перебирает модули из modulesMap
     * @param {function} callback
     */

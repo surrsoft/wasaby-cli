@@ -84,7 +84,7 @@ class Store extends Base{
          await this._shell.execute(`git fetch`, pathToRepos, `git_fetch ${name}`);
          await this._shell.execute(`git checkout ${checkoutBranch}`, pathToRepos, `git_checkout ${name}`);
          if (checkoutBranch.includes('/') || checkoutBranch === this._rc) {
-            await this._execute(`git pull`, pathToRepos, `git_pull ${name}`);
+            await this._shell.execute(`git pull`, pathToRepos, `git_pull ${name}`);
          }
       } catch (err) {
          if (/rc-.*00/.test(checkoutBranch)) {
