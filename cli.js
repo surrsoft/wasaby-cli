@@ -47,6 +47,8 @@ class Cli {
          reposConfig: this._reposConfig,
          rc: this._argvOptions.rc,
          testRep: this._testRep,
+         workDir: this._workDir,
+         projectDir: this._argvOptions.projectDir,
          withBuilder: !!this._argvOptions.withBuilder,
          resources: path.join(this._workDir, 'application')
       });
