@@ -45,6 +45,7 @@ class Cli {
       let build = new Build({
          store: this._store,
          reposConfig: this._reposConfig,
+         rc: this._argvOptions.rc,
          testRep: this._testRep,
          withBuilder: !!this._argvOptions.withBuilder,
          resources: path.join(this._workDir, 'application')

@@ -12,6 +12,7 @@ class Build extends Base{
    constructor(cfg) {
       super(cfg);
       this._store = cfg.store;
+      this._rc = cfg.rc;
       this._reposConfig = cfg.reposConfig;
       this._withBuilder = cfg.withBuilder;
       this._resources = cfg.resources;
@@ -40,7 +41,6 @@ class Build extends Base{
          await this._linkFolder();
          logger.log(`Подготовка тестов завершена успешно`);
       } catch(e) {
-         throw e;
          throw new Error(`Подготовка тестов завершена с ошибкой ${e}`);
       }
    }
