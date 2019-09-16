@@ -50,6 +50,7 @@ class Cli {
          workDir: this._workDir,
          projectDir: this._argvOptions.projectDir,
          withBuilder: !!this._argvOptions.withBuilder,
+         workspace: this._workspace,
          resources: path.join(this._workDir, 'application')
       });
 
