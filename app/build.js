@@ -43,6 +43,7 @@ class Build extends Base{
          await this._linkFolder();
          logger.log(`Подготовка тестов завершена успешно`);
       } catch(e) {
+         throw e;
          throw new Error(`Подготовка тестов завершена с ошибкой ${e}`);
       }
    }
