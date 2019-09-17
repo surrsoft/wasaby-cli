@@ -28,7 +28,6 @@ class Store extends Base{
          }));
          logger.log(`Инициализация хранилища завершена успешно`);
       } catch (e) {
-         throw e;
          throw new Error(`Инициализация хранилища завершена с ошибкой ${e}`);
       }
    }
@@ -59,7 +58,6 @@ class Store extends Base{
    async copyRepToStore(pathToOriginal, name) {
       try {
          logger.log(`Копирование репозитория`, name);
-
          await fs.ensureSymlink(pathToOriginal, path.join(this._store, name));
       } catch (err) {
          throw new Error(`Ошибка при копировании репозитория ${name}: ${err}`);

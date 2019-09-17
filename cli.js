@@ -16,15 +16,15 @@ class Cli {
       this._reposConfig = config.repositories;
       this._argvOptions = this._getArgvOptions();
       this._store = this._argvOptions.store || path.join(process.cwd(), config.store);
-      this._store = path.join(this._store, '_repos');
+      this._store = path.join(this._store, '_repos');//на _repos остались завязаны srv и скрипт сборки пока это не убрать
       this._testRep = this._argvOptions.rep.split(',');
       this._workDir = this._argvOptions.workDir || path.join(process.cwd(), config.workDir);
       this._workspace = this._argvOptions.workspace || './application';
       this.tasks = this._argvOptions.tasks ?  this._argvOptions.tasks.split(',') : ['initStore', 'build', 'startTest'];
       if (this._argvOptions.withBuilder) {
          this._resources = path.join(this._workDir, 'application');
-      } else {
-         this._resources = path.join(this._workDir, 'intest-ps','ui','resources');
+      } else {//если сборка идет джином то исходники лежат в  intest-ps/ui/resources
+         this._resources = path.join(this._workDir, 'intest-ps', 'ui', 'resources');
       }
    }
 

@@ -54,8 +54,9 @@ class Test extends Base{
     * Дописывает в отчеты название репозитория
     */
    async prepareReport() {
-      logger.log('Подготовка отчетов');
       let promisArray = [];
+
+      logger.log('Подготовка отчетов');
       this._testReports.forEach((filePath, name) => {
          if (fs.existsSync(filePath)) {
             let errorText = '';
@@ -94,8 +95,9 @@ class Test extends Base{
     * Проверяет наличие отчетов по юнит тестам, если какого-то отчета нет кидает ошибку
     */
    checkReport() {
-      logger.log('Проверка существования отчетов');
       let error = [];
+
+      logger.log('Проверка существования отчетов');
       this._testReports.forEach((path, name) => {
          if (!fs.existsSync(path)) {
             error.push(name);

@@ -16,11 +16,13 @@ class Shell {
     * @private
     */
    execute(command, path, force, processName) {
+      let errors = [];
+
       if (typeof force == 'string') {
          processName = force;
          force = false;
       }
-      let errors = [];
+
       return new Promise((resolve, reject) => {
          const cloneProcess = shell.exec(`cd ${path} && ${command}`, {
             silent: true,

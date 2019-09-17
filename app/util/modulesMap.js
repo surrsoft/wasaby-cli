@@ -123,7 +123,7 @@ class ModulesMap {
       this._testModulesMap.get(name).forEach((moduleName) => {
          let cfg = this._modulesMap.get(moduleName);
          result = result.concat(cfg.depends || []).filter((name) => {
-            return !!this._modulesMap.get(name).forTests
+            return !!this._modulesMap.get(name).forTests;
          });
          result.push(moduleName);
       });

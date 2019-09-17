@@ -45,7 +45,6 @@ class Build extends Base{
          await this._linkFolder();
          logger.log(`Подготовка тестов завершена успешно`);
       } catch(e) {
-         throw e;
          throw new Error(`Подготовка тестов завершена с ошибкой ${e}`);
       }
    }
@@ -92,13 +91,12 @@ class Build extends Base{
       await this._makeBuilderConfig(builderOutput);
 
       let sdkVersion = this._rc.replace('rc-', '').replace('.','');
-
       let genieFolder = '';
       let deploy = path.join(this._projectDir, 'InTest.s3deploy');
       let logs = path.join(this._workDir, 'logs');
       let project = path.join(this._projectDir, 'InTest.s3cld');
-      let conf = path.join(this._projectDir, 'InTest.s3webconf');
       let genieCli = '';
+
       if (process.platform == 'win32') {
          let sdkPath = process.env['SBISPlatformSDK_' + sdkVersion];
          genieFolder = path.join(sdkPath, geniePath);
@@ -152,7 +150,7 @@ class Build extends Base{
     * @private
     */
    async _linkFolder() {
-      for (const name in this._reposConfig) {
+      for (const name of this._reposConfig) {
          if (this._reposConfig[name].linkFolders) {
             for (const pathOriginal in this._reposConfig[name].linkFolders) {
                const pathDir = path.join(this._store, name, pathOriginal);
@@ -171,6 +169,7 @@ class Build extends Base{
    _makeBuilderConfig(output) {
       let builderConfig = require('../builderConfig.base.json');
       let testList = this._modulesMap.getTestList();
+
       testList.forEach((name) => {
          let modules = this._modulesMap.getChildModules(this._modulesMap.getModulesByRep(name));
 
@@ -186,8 +185,8 @@ class Build extends Base{
                }
             }
          });
-
       });
+
       builderConfig.output = output || this._resources;
       return fs.outputFile(`./${builderConfigName}`, JSON.stringify(builderConfig, null, 4));
    }
