@@ -21,6 +21,11 @@ class Cli {
       this._workDir = this._argvOptions.workDir || path.join(process.cwd(), config.workDir);
       this._workspace = this._argvOptions.workspace || './application';
       this.tasks = this._argvOptions.tasks ?  this._argvOptions.tasks.split(',') : ['initStore', 'build', 'startTest'];
+      if (this._argvOptions.withBuilder) {
+         this._resources = path.join(this._workDir, 'application');
+      } else {
+         this._resources = path.join(this._workDir, 'intest-ps','ui','resources');
+      }
    }
 
    /**
@@ -50,7 +55,7 @@ class Cli {
          withBuilder: !!this._argvOptions.withBuilder,
          builderCache: this._argvOptions.builderCache || 'builder-json-cache',
          workspace: this._workspace,
-         resources: path.join(this._workDir, 'application')
+         resources: this._resources
       });
 
       await build.run();
@@ -76,7 +81,7 @@ class Cli {
          ports: this._argvOptions.ports || '',
          workDir: this._workDir,
          workspace: this._workspace,
-         resources: path.join(this._workDir, 'application')
+         resources: this._resources
       });
 
       await test.run();
