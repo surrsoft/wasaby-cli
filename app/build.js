@@ -1,7 +1,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const logger = require('./util/logger');
-
+const geniePath = 'tools/jinnee';
 const xml = require('./util/xml');
 const ModulesMap = require('./util/modulesMap');
 const Base = require('./base');
@@ -66,7 +66,7 @@ class Build extends Base{
       srv.service.items[0].ui_module.forEach((item) => {
          if (this._modulesMap.has(item.$.name)) {
             let cfg = this._modulesMap.get(item.$.name);
-            item.$.url = path.relative(this._projectDir, path.join(this._store, cfg.rep, cfg.path));
+            item.$.url = path.relative(this._projectDir, path.join(this._store, cfg.rep, cfg.modulePath));
             srvModules.push(cfg.name);
             cfg.srv = true;
             this._modulesMap.set(cfg.name, cfg);
@@ -99,7 +99,7 @@ class Build extends Base{
          let sdkPath = process.env['SBISPlatformSDK_' + sdkVersion];
          genieFolder = path.join(sdkPath, geniePath);
          genieCli = `"${path.join(genieFolder, 'jinnee-utility.exe')}" jinnee-dbg-stand-deployment300.dll`;
-      } else  {
+      } else {
          let sdkPath = process.env['SDK'];
          process.env['SBISPlatformSDK_' + sdkVersion] = process.env['SDK'];
          genieFolder = path.join(this._workspace, 'jinnee');
