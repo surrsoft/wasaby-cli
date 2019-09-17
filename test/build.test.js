@@ -34,7 +34,7 @@ describe('Build', () => {
             }
          });
       });
-      it('should throw error when rep is empty', (done) => {
+      it('should make builder config like base', (done) => {
          let baseConfig = require('../builderConfig.base.json');
          stubfs.callsFake((fileName, config) => {
             config = JSON.parse(config);
@@ -42,7 +42,7 @@ describe('Build', () => {
             done();
          });
 
-         build._makeBuilderConfig();
+         build._makeBuilderConfig(baseConfig.output);
       });
 
 
