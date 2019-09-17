@@ -19,7 +19,7 @@ class Build extends Base{
       this._workDir = cfg.workDir;
       this._workspace = cfg.workspace;
       this._projectDir = cfg.projectDir;
-      this._buiderCfg = path.join(process.cwd(), 'builderConfig.json');
+      this._builderCfg = path.join(process.cwd(), 'builderConfig.json');
       this._modulesMap = new ModulesMap({
          store: cfg.store,
          reposConfig: this._reposConfig,
@@ -52,7 +52,7 @@ class Build extends Base{
    async _initWithBuilder() {
       await this._makeBuilderConfig();
       await this._shell.execute(
-         `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._buiderCfg}`,
+         `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._builderCfg}`,
          process.cwd(),
          true,
          'builder'
