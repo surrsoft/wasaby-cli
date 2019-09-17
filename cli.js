@@ -48,6 +48,7 @@ class Cli {
          workDir: this._workDir,
          projectDir: this._argvOptions.projectDir,
          withBuilder: !!this._argvOptions.withBuilder,
+         builderCache: this._argvOptions.builderCache || 'builder-json-cache',
          workspace: this._workspace,
          resources: path.join(this._workDir, 'application')
       });

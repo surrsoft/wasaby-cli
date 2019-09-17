@@ -17,6 +17,7 @@ class Build extends Base{
       this._withBuilder = cfg.withBuilder;
       this._resources = cfg.resources;
       this._workDir = cfg.workDir;
+      this._builderCache = cfg.builderCache;
       this._workspace = cfg.workspace;
       this._projectDir = cfg.projectDir;
       this._builderCfg = path.join(process.cwd(), 'builderConfig.json');
@@ -80,6 +81,7 @@ class Build extends Base{
    _prepareDeployCfg(filePath) {
       let cfg_string = fs.readFileSync(filePath, "utf8");
       cfg_string = cfg_string.replace(/\{site_root\}/g, this._workDir);
+      cfg_string = cfg_string.replace(/\{json_cache\}/g, this._builderCache);
       fs.outputFileSync(filePath, cfg_string);
    }
 
