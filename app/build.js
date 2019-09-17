@@ -84,8 +84,10 @@ class Build extends Base{
    }
 
    async _initWithGenie() {
+      const builderOutput = path.join(this._workDir, 'builder_test');
+
       await this._prepareSrv();
-      await this._makeBuilderConfig();
+      await this._makeBuilderConfig(builderOutput);
 
       let sdkVersion = this._rc.replace('rc-', '').replace('.','');
 
@@ -107,19 +109,19 @@ class Build extends Base{
          genieCli = `${path.join(genieFolder, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
       }
       this._prepareDeployCfg(path.join(this._projectDir, 'InTest.s3deploy'));
-      await this._shell.execute(
-         `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
-         genieFolder,
-         'jinnee'
-      );
+      // await this._shell.execute(
+      //    `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
+      //    genieFolder,
+      //    'jinnee'
+      // );
       await this._shell.execute(
          `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._builderCfg}`,
          process.cwd(),
          true,
          'builder'
       );
-      fs.readdirSync(path.join(this._workDir, 'builder_test')).forEach(f => {
-         let dirPath = path.join(this._workDir, 'builder_test', f);
+      fs.readdirSync(builderOutput).forEach(f => {
+         let dirPath = path.join(builderOutput, f);
          if (fs.statSync(dirPath).isDirectory()) {
             fs.ensureSymlink(dirPath, path.join(this._resources, f));
          }
@@ -164,7 +166,7 @@ class Build extends Base{
     * @return {Promise<void>}
     * @private
     */
-   _makeBuilderConfig() {
+   _makeBuilderConfig(output) {
       let builderConfig = require('../builderConfig.base.json');
       let testList = this._modulesMap.getTestList();
       testList.forEach((name) => {
@@ -184,9 +186,7 @@ class Build extends Base{
          });
 
       });
-      if (this._resources) {
-         builderConfig.output = this._resources;
-      }
+      builderConfig.output = output || this._resources;
       return fs.outputFile(`./${builderConfigName}`, JSON.stringify(builderConfig, null, 4));
    }
 }
