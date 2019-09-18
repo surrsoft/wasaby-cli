@@ -1,9 +1,9 @@
-const fs = require("fs-extra");
-const pMap = require("p-map");
-const path = require("path");
-const walkDir = require("./util/walkDir");
-const logger = require("./util/logger");
-const Base = require("./base");
+const fs = require('fs-extra');
+const pMap = require('p-map');
+const path = require('path');
+const walkDir = require('./util/walkDir');
+const logger = require('./util/logger');
+const Base = require('./base');
 
 class Store extends Base {
    constructor(cfg) {
@@ -20,13 +20,13 @@ class Store extends Base {
     * @return {Promise<void>}
     */
    async _run() {
-      logger.log(`Инициализация хранилища`);
+      logger.log('Инициализация хранилища');
       try {
          await fs.mkdirs(this._store);
          await Promise.all(Object.keys(this._reposConfig).map((name) => {
             return this.initRep(name);
          }));
-         logger.log(`Инициализация хранилища завершена успешно`);
+         logger.log('Инициализация хранилища завершена успешно');
       } catch (e) {
          throw new Error(`Инициализация хранилища завершена с ошибкой ${e}`);
       }
@@ -45,7 +45,7 @@ class Store extends Base {
       await this.cloneRepToStore(name);
       return this.checkout(
          name,
-         branch,
+         branch
       );
    }
 
@@ -57,7 +57,7 @@ class Store extends Base {
     */
    async copyRepToStore(pathToOriginal, name) {
       try {
-         logger.log(`Копирование репозитория`, name);
+         logger.log('Копирование репозитория', name);
          await fs.ensureSymlink(pathToOriginal, path.join(this._store, name));
       } catch (err) {
          throw new Error(`Ошибка при копировании репозитория ${name}: ${err}`);
@@ -77,28 +77,28 @@ class Store extends Base {
       }
       try {
          logger.log(`Переключение на ветку ${checkoutBranch}`, name);
-         await this._shell.execute(`git reset --hard HEAD`, pathToRepos, `git_reset ${name}`);
-         await this._shell.execute(`git clean -fdx`, pathToRepos, `git_clean ${name}`);
-         await this._shell.execute(`git fetch`, pathToRepos, `git_fetch ${name}`);
+         await this._shell.execute('git reset --hard HEAD', pathToRepos, `git_reset ${name}`);
+         await this._shell.execute('git clean -fdx', pathToRepos, `git_clean ${name}`);
+         await this._shell.execute('git fetch', pathToRepos, `git_fetch ${name}`);
          await this._shell.execute(`git checkout ${checkoutBranch}`, pathToRepos, `git_checkout ${name}`);
-         if (checkoutBranch.includes("/") || checkoutBranch === this._rc) {
-            await this._shell.execute(`git pull`, pathToRepos, `git_pull ${name}`);
+         if (checkoutBranch.includes('/') || checkoutBranch === this._rc) {
+            await this._shell.execute('git pull', pathToRepos, `git_pull ${name}`);
          }
       } catch (err) {
          if (/rc-.*00/.test(checkoutBranch)) {
             // для некоторых репозиториев нет ветки yy.v00 только yy.v10 (19.610) в случае
             // ошибки переключаемся на 10 версию
-            await this._shell.execute(`git checkout ${checkoutBranch.replace("00", "10")}`, pathToRepos, `checkout ${name}`);
+            await this._shell.execute(`git checkout ${checkoutBranch.replace('00', '10')}`, pathToRepos, `checkout ${name}`);
          } else {
             throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${err}`);
          }
       }
       if (this._testRep.includes(name)) {
-         logger.log(`Попытка смержить ветку "${checkoutBranch}" с "${this._rc}"`, name);
+         logger.log(`Попытка смержить ветку '${checkoutBranch}' с '${this._rc}'`, name);
          try {
             await this._shell.execute(`git merge origin/${this._rc}`, pathToRepos, `git_merge ${name}`);
          } catch (e) {
-            throw new Error(`При мерже "${checkoutBranch}" в "${this._rc}" произошел конфликт`);
+            throw new Error(`При мерже '${checkoutBranch}' в '${this._rc}' произошел конфликт`);
          }
       }
    }

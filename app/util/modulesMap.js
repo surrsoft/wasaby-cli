@@ -1,7 +1,7 @@
-const path = require("path");
-const pMap = require("p-map");
-const xml = require("./xml");
-const walkDir = require("./walkDir");
+const path = require('path');
+const pMap = require('p-map');
+const xml = require('./xml');
+const walkDir = require('./walkDir');
 
 class ModulesMap {
    constructor(cfg) {
@@ -97,7 +97,7 @@ class ModulesMap {
          return this._testList;
       }
       let tests = [];
-      if (!this._testRep.includes("all")) {
+      if (!this._testRep.includes('all')) {
          this._testRep.forEach((testRep) => {
             let modules = this.getParentModules(this.getTestModulesWithDepends(testRep));
             tests.push(testRep);
@@ -176,7 +176,7 @@ class ModulesMap {
       let s3mods = [];
       Object.keys(this._reposConfig).forEach(name => {
          walkDir(path.join(this._store, name), (filePath) => {
-            if (filePath.includes(".s3mod")) {
+            if (filePath.includes('.s3mod')) {
                let splitFilePath = filePath.split(path.sep);
                splitFilePath.splice(-1, 1);
                let modulePath = path.join.apply(path, splitFilePath);
@@ -185,7 +185,7 @@ class ModulesMap {
                   modulePath: filePath,
                   name: moduleName,
                   path: modulePath,
-                  rep: name,
+                  rep: name
                });
             }
          });
@@ -226,7 +226,7 @@ class ModulesMap {
             }
          });
       }, {
-         concurrency: 4,
+         concurrency: 4
       });
    }
 

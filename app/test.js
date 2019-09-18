@@ -1,25 +1,25 @@
-const fs = require("fs-extra");
-const path = require("path");
-const pMap = require("p-map");
-const logger = require("./util/logger");
-const ModulesMap = require("./util/modulesMap");
-const xml = require("./util/xml");
-const Base = require("./base");
+const fs = require('fs-extra');
+const path = require('path');
+const pMap = require('p-map');
+const logger = require('./util/logger');
+const ModulesMap = require('./util/modulesMap');
+const xml = require('./util/xml');
+const Base = require('./base');
 
-const BROWSER_SUFFIX = "_browser";
-const NODE_SUFFIX = "_node";
+const BROWSER_SUFFIX = '_browser';
+const NODE_SUFFIX = '_node';
 
 let getReportTemplate = () => {
    return {
       testsuite: {
          $: {
-            errors: "1",
-            failures: "1",
-            name: "Mocha Tests",
-            tests: "1",
+            errors: '1',
+            failures: '1',
+            name: 'Mocha Tests',
+            tests: '1'
          },
-         testcase: [],
-      },
+         testcase: []
+      }
    };
 };
 
@@ -27,10 +27,10 @@ let getErrorTestCase = (name, details) => {
    return {
       $: {
          classname: `[${name}]: Test runtime error`,
-         name: "Some test has not been run, see details",
-         time: "0",
+         name: 'Some test has not been run, see details',
+         time: '0'
       },
-      failure: details,
+      failure: details
    };
 };
 
@@ -46,7 +46,7 @@ class Test extends Base {
       this._modulesMap = new ModulesMap({
          reposConfig: cfg.reposConfig,
          store: cfg.store,
-         testRep: cfg.testRep,
+         testRep: cfg.testRep
       });
    }
 
@@ -56,12 +56,12 @@ class Test extends Base {
    async prepareReport() {
       let promisArray = [];
 
-      logger.log("Подготовка отчетов");
+      logger.log('Подготовка отчетов');
       this._testReports.forEach((filePath, name) => {
          if (fs.existsSync(filePath)) {
-            let errorText = "";
+            let errorText = '';
             if (this._testErrors[name]) {
-               errorText = this._testErrors[name].join("<br/>");
+               errorText = this._testErrors[name].join('<br/>');
             }
             let readPromise = xml.readXmlFile(filePath).then((result) => {
                if (result.testsuite && result.testsuite.testcase) {
@@ -71,8 +71,8 @@ class Test extends Base {
                } else {
                   result = {
                      testsuite: {
-                        testcase: [],
-                     },
+                        testcase: []
+                     }
                   };
                }
 
@@ -97,7 +97,7 @@ class Test extends Base {
    checkReport() {
       let error = [];
 
-      logger.log("Проверка существования отчетов");
+      logger.log('Проверка существования отчетов');
       this._testReports.forEach((pathToReport, name) => {
          if (!fs.existsSync(pathToReport)) {
             error.push(name);
@@ -105,9 +105,9 @@ class Test extends Base {
          }
       });
       if (error.length > 0) {
-         logger.log(`Сгенерированы отчеты с ошибками: ${error.join(", ")}`);
+         logger.log(`Сгенерированы отчеты с ошибками: ${error.join(', ')}`);
       }
-      logger.log("Проверка пройдена успешно");
+      logger.log('Проверка пройдена успешно');
    }
 
    _createReport(pathToFile) {
@@ -115,15 +115,15 @@ class Test extends Base {
    }
 
    _getTestConfig(name, suffix) {
-      const testConfig = require("../testConfig.base.json");
-      let cfg = Object.assign({}, testConfig);
-      let fullName = name + (suffix || "");
+      const testConfig = require('../testConfig.base.json');
+      let cfg = {...testConfig};
+      let fullName = name + (suffix || '');
       let workspace = path.relative(process.cwd(), this._workspace);
       cfg.tests = this._modulesMap.getTestModules(name);
       cfg.root =  path.relative(process.cwd(), this._resources);
-      cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace("${module}", fullName).replace("${workspace}", workspace);
-      cfg.jsonCoverageReport = cfg.jsonCoverageReport.replace("${module}", fullName).replace("${workspace}", workspace);
-      cfg.report = cfg.report.replace("${module}", fullName).replace("${workspace}", workspace);
+      cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('${module}', fullName).replace('${workspace}', workspace);
+      cfg.jsonCoverageReport = cfg.jsonCoverageReport.replace('${module}', fullName).replace('${workspace}', workspace);
+      cfg.report = cfg.report.replace('${module}', fullName).replace('${workspace}', workspace);
       this._testReports.set(fullName, cfg.report);
       return cfg;
    }
@@ -134,7 +134,7 @@ class Test extends Base {
     * @private
     */
    _makeTestConfig() {
-      const configPorts = this._ports ? this._ports.split(",") : [];
+      const configPorts = this._ports ? this._ports.split(',') : [];
       let port = 10025;
       return Promise.all(this._modulesMap.getTestList().map((name, i) => {
          return new Promise(resolve => {
@@ -153,9 +153,9 @@ class Test extends Base {
    async _startNodeTest(name) {
       try {
          await this._shell.execute(
-            `node node_modules/saby-units/cli.js --isolated --report --config="testConfig_${name}.json"`,
+            `node node_modules/saby-units/cli.js --isolated --report --config='testConfig_${name}.json'`,
             process.cwd(),
-            `test node ${name}`,
+            `test node ${name}`
          );
       } catch (e) {
          this._testErrors[name + NODE_SUFFIX] = e;
@@ -171,33 +171,33 @@ class Test extends Base {
    async _startBrowserTest(name) {
       let cfg = this._reposConfig[name];
       if (cfg.unitInBrowser) {
-         logger.log(`Запуск тестов в браузере`, name);
+         logger.log('Запуск тестов в браузере', name);
          try {
             await this._shell.execute(
-               `node node_modules/saby-units/cli.js --browser --report --config="testConfig_${name}InBrowser.json"`,
+               `node node_modules/saby-units/cli.js --browser --report --config='testConfig_${name}InBrowser.json'`,
                process.cwd(),
-               `test browser ${name}`,
+               `test browser ${name}`
             );
          } catch (e) {
             this._testErrors[name + BROWSER_SUFFIX] = e;
          }
-         logger.log(`тесты в браузере завершены`, name);
+         logger.log('тесты в браузере завершены', name);
       }
    }
 
    async _setContents(value) {
-      if (fs.existsSync(path.join(this._resources, "contents.json"))) {
-         logger.log(`Замена buildMode в contents на ${value} путь "${path.join(this._resources, "contents.js")}"`, "replace_contents");
-         let contents = await fs.readJson(path.join(this._resources, "contents.json"), "utf8");
+      if (fs.existsSync(path.join(this._resources, 'contents.json'))) {
+         logger.log(`Замена buildMode в contents на ${value} путь '${path.join(this._resources, 'contents.js')}'`, 'replace_contents');
+         let contents = await fs.readJson(path.join(this._resources, 'contents.json'), 'utf8');
          contents.buildMode = value;
-         if (value === "debug") {
+         if (value === 'debug') {
             this._buildNumber = contents.buildnumber;
-            contents.buildnumber = "";
+            contents.buildnumber = '';
          } else {
             contents.buildnumber = this._buildNumber;
          }
-         await fs.outputFile(`${path.join(this._resources, "contents.js")}`, `contents=${JSON.stringify(contents)};`);
-         await fs.outputFile(`${path.join(this._resources, "contents.json")}`, JSON.stringify(contents));
+         await fs.outputFile(`${path.join(this._resources, 'contents.js')}`, `contents=${JSON.stringify(contents)};`);
+         await fs.outputFile(`${path.join(this._resources, 'contents.json')}`, JSON.stringify(contents));
       }
    }
 
@@ -207,23 +207,23 @@ class Test extends Base {
     */
    async _run() {
       try {
-         logger.log(`Запуск тестов`);
+         logger.log('Запуск тестов');
          await this._modulesMap.build();
-         await this._setContents("debug");
+         await this._setContents('debug');
          await this._makeTestConfig();
          await pMap(this._modulesMap.getTestList(), (name) => {
-            logger.log(`Запуск тестов`, name);
+            logger.log('Запуск тестов', name);
             return Promise.all([
                this._startNodeTest(name),
-               this._startBrowserTest(name),
+               this._startBrowserTest(name)
             ]);
          }, {
-            concurrency: 4,
+            concurrency: 4
          });
-         await this._setContents("release");
+         await this._setContents('release');
          await this.checkReport();
          await this.prepareReport();
-         logger.log(`Тестирование завершено`);
+         logger.log('Тестирование завершено');
       } catch (e) {
          throw new Error(`Тестирование завершено с ошибкой ${e}`);
       }
