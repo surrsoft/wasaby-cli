@@ -11,6 +11,7 @@
       },
       "i18n": {
          "url": "https://platform-git.sbis.ru/saby/I18n.git",
+         "test": "test",
          "unitInBrowser": true
       },
       "ws": {
