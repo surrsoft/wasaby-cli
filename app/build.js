@@ -104,7 +104,7 @@ class Build extends Base {
          process.env['SBISPlatformSDK_' + sdkVersion] = sdkPath;
          genieFolder = path.join(this._workspace, 'jinnee');
          await this._shell.execute(
-            `7za x ${path.join(sdkPath, 'tools', 'jinnee', 'jinnee.zip')} -o${genieFolder}`,
+            `7za x ${path.join(sdkPath, 'tools', 'jinnee', 'jinnee.zip')} -o${genieFolder} -so > /dev/null`,
             process.cwd()
          );
          genieCli = `${path.join(genieFolder, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
