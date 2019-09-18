@@ -86,16 +86,15 @@ class Build extends Base{
 
    async _initWithGenie() {
       const builderOutput = path.join(this._workDir, 'builder_test');
-
-      await this._prepareSrv();
-      await this._makeBuilderConfig(builderOutput);
-
       let sdkVersion = this._rc.replace('rc-', '').replace('.','');
       let genieFolder = '';
       let deploy = path.join(this._projectDir, 'InTest.s3deploy');
       let logs = path.join(this._workDir, 'logs');
       let project = path.join(this._projectDir, 'InTest.s3cld');
       let genieCli = '';
+
+      await this._prepareSrv();
+      await this._makeBuilderConfig(builderOutput);
 
       if (process.platform == 'win32') {
          let sdkPath = process.env['SBISPlatformSDK_' + sdkVersion];
@@ -108,18 +107,22 @@ class Build extends Base{
          await this._shell.execute(`7za x ${path.join(sdkPath,'tools','jinnee','jinnee.zip')} -o${genieFolder}`, process.cwd());
          genieCli = `${path.join(genieFolder, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
       }
+
       this._prepareDeployCfg(path.join(this._projectDir, 'InTest.s3deploy'));
+
       await this._shell.execute(
          `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
          genieFolder,
          'jinnee'
       );
+
       await this._shell.execute(
          `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._builderCfg}`,
          process.cwd(),
          true,
          'builder'
       );
+
       fs.readdirSync(builderOutput).forEach(f => {
          let dirPath = path.join(builderOutput, f);
          if (fs.statSync(dirPath).isDirectory()) {
@@ -150,7 +153,7 @@ class Build extends Base{
     * @private
     */
    async _linkFolder() {
-      for (const name of this._reposConfig) {
+      for (const name of Object.keys(this._reposConfig)) {
          if (this._reposConfig[name].linkFolders) {
             for (const pathOriginal in this._reposConfig[name].linkFolders) {
                const pathDir = path.join(this._store, name, pathOriginal);
