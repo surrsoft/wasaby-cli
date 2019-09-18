@@ -85,7 +85,7 @@ class Build extends Base {
 
    async _initWithGenie() {
       const builderOutput = path.join(this._workDir, "builder_test");
-      let sdkVersion = this._rc.replace("rc-", "").replace(".","");
+      let sdkVersion = this._rc.replace("rc-", "").replace(".", "");
       let genieFolder = "";
       let deploy = path.join(this._projectDir, "InTest.s3deploy");
       let logs = path.join(this._workDir, "logs");

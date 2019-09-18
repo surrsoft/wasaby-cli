@@ -9,6 +9,6 @@ function walkDir(dir, callback, rootDir) {
       let isDirectory = fs.statSync(dirPath).isDirectory();
       isDirectory ? walkDir(dirPath, callback, rootDir) : callback(path.join(relativePath, f));
    });
-};
+}
 
 module.exports = walkDir;
