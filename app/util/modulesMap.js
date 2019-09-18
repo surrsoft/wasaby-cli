@@ -1,7 +1,7 @@
-const path = require('path');
-const pMap = require('p-map');
-const xml = require('./xml');
-const walkDir = require('./walkDir');
+const path = require("path");
+const pMap = require("p-map");
+const xml = require("./xml");
+const walkDir = require("./walkDir");
 
 class ModulesMap {
    constructor(cfg) {
@@ -55,7 +55,10 @@ class ModulesMap {
    getParentModules(modules) {
       let result = modules.slice();
       this._modulesMap.forEach(cfg => {
-         if (cfg.forTests && !result.includes(cfg.name) && cfg.depends.some(dependName => result.includes(dependName))) {
+         if (
+            cfg.forTests && !result.includes(cfg.name) &&
+            cfg.depends.some(dependName => result.includes(dependName))
+         ) {
             result.push(cfg.name);
          }
       });
@@ -68,16 +71,16 @@ class ModulesMap {
    /**
     * Возращает все зависимости переданных модулей
     * @param {Array} modules - Массив с наваниями модулей
-    * @param {Array} path
+    * @param {Array} traverse - массив содеражащий текущий путь рекурсии
     * @return {Array}
     */
-   getChildModules(modules, path) {
+   getChildModules(modules, traverse) {
       let result = [];
-      path = path || [];
+      traverse = traverse || [];
       modules.forEach(name => {
-         if (this._modulesMap.has(name) && !path.includes(name)) {
+         if (this._modulesMap.has(name) && !traverse.includes(name)) {
             let cfg = this._modulesMap.get(name);
-            let depends = this.getChildModules(cfg.depends, path.concat([name]));
+            let depends = this.getChildModules(cfg.depends, traverse.concat([name]));
             result.push(name);
             result = result.concat(depends.filter((item) => !result.includes(item)));
          }
@@ -87,7 +90,6 @@ class ModulesMap {
 
    /**
     * Возвращает список репозиториев для тестирования
-    * @param {string} name - Название репозитория в конфиге
     * @return {Array}
     */
    getTestList() {
@@ -95,7 +97,7 @@ class ModulesMap {
          return this._testList;
       }
       let tests = [];
-      if (!this._testRep.includes('all')) {
+      if (!this._testRep.includes("all")) {
          this._testRep.forEach((testRep) => {
             let modules = this.getParentModules(this.getTestModulesWithDepends(testRep));
             tests.push(testRep);
@@ -122,8 +124,8 @@ class ModulesMap {
       let result = [];
       this._testModulesMap.get(name).forEach((moduleName) => {
          let cfg = this._modulesMap.get(moduleName);
-         result = result.concat(cfg.depends || []).filter((name) => {
-            return !!this._modulesMap.get(name).forTests;
+         result = result.concat(cfg.depends || []).filter((depend) => {
+            return !!this._modulesMap.get(depend).forTests;
          });
          result.push(moduleName);
       });
@@ -147,7 +149,7 @@ class ModulesMap {
    getModulesByRep(repName) {
       let moduels = [];
       this._modulesMap.forEach(cfg => {
-         if (cfg.rep == repName) {
+         if (cfg.rep === repName) {
             moduels.push(cfg.name);
          }
       });
@@ -161,7 +163,7 @@ class ModulesMap {
    async build() {
       let modules = this._findModulesInStore();
       await this._addToModulesMap(modules);
-      this._markModulesForTest()
+      this._markModulesForTest();
    }
 
    /**
@@ -174,16 +176,16 @@ class ModulesMap {
       let s3mods = [];
       Object.keys(this._reposConfig).forEach(name => {
          walkDir(path.join(this._store, name), (filePath) => {
-            if (filePath.includes('.s3mod')) {
+            if (filePath.includes(".s3mod")) {
                let splitFilePath = filePath.split(path.sep);
                splitFilePath.splice(-1, 1);
                let modulePath = path.join.apply(path, splitFilePath);
                let moduleName = splitFilePath[splitFilePath.length - 1];
                s3mods.push({
+                  modulePath: filePath,
                   name: moduleName,
-                  rep: name,
                   path: modulePath,
-                  modulePath: filePath
+                  rep: name,
                });
             }
          });
@@ -205,14 +207,14 @@ class ModulesMap {
                if (xmlObj.ui_module.depends && xmlObj.ui_module.depends[0]) {
                   let depends = xmlObj.ui_module.depends[0];
                   if (depends.ui_module) {
-                     depends.ui_module.forEach(function (item) {
+                     depends.ui_module.forEach((item) => {
                         cfg.depends.push(item.$.name);
-                     })
+                     });
                   }
                   if (depends.module) {
-                     depends.module.forEach(function (item) {
+                     depends.module.forEach((item) => {
                         cfg.depends.push(item.$.name);
-                     })
+                     });
                   }
                }
                if (xmlObj.ui_module.unit_test) {
@@ -222,9 +224,9 @@ class ModulesMap {
                }
                this._modulesMap.set(cfg.name, cfg);
             }
-         })
+         });
       }, {
-         concurrency: 4
+         concurrency: 4,
       });
    }
 
@@ -237,8 +239,8 @@ class ModulesMap {
          if (this._testModulesMap.has(name)) {
             let modules = this._testModulesMap.get(name);
             modules.forEach((testModuleName) => {
-               let cfg = this._modulesMap.get(testModuleName);
-               cfg.depends.forEach((moduleName) => {
+               let testModuleCfg = this._modulesMap.get(testModuleName);
+               testModuleCfg.depends.forEach((moduleName) => {
                   let cfg = this._modulesMap.get(moduleName);
                   if (cfg && cfg.rep === name) {
                      cfg.forTests = true;

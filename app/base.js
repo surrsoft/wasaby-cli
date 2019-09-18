@@ -1,4 +1,4 @@
-const Shell = require('./util/shell');
+const Shell = require("./util/shell");
 
 class Base {
    constructor(cfg) {
@@ -15,7 +15,7 @@ class Base {
    }
 
    async _run() {
-      throw new Error('method _run must be impemented');
+      throw new Error("method _run must be impemented");
    }
 }
 

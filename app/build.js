@@ -1,14 +1,14 @@
-const fs = require('fs-extra');
-const path = require('path');
-const logger = require('./util/logger');
-const geniePath = 'tools/jinnee';
-const xml = require('./util/xml');
-const ModulesMap = require('./util/modulesMap');
-const Base = require('./base');
+const fs = require("fs-extra");
+const path = require("path");
+const logger = require("./util/logger");
+const geniePath = "tools/jinnee";
+const xml = require("./util/xml");
+const ModulesMap = require("./util/modulesMap");
+const Base = require("./base");
 
-const builderConfigName = 'builderConfig.json';
+const builderConfigName = "builderConfig.json";
 
-class Build extends Base{
+class Build extends Base {
    constructor(cfg) {
       super(cfg);
       this._store = cfg.store;
@@ -20,11 +20,11 @@ class Build extends Base{
       this._builderCache = cfg.builderCache;
       this._workspace = cfg.workspace;
       this._projectDir = cfg.projectDir;
-      this._builderCfg = path.join(process.cwd(), 'builderConfig.json');
+      this._builderCfg = path.join(process.cwd(), "builderConfig.json");
       this._modulesMap = new ModulesMap({
-         store: cfg.store,
          reposConfig: this._reposConfig,
-         testRep: cfg.testRep
+         store: cfg.store,
+         testRep: cfg.testRep,
       });
    }
 
@@ -44,7 +44,7 @@ class Build extends Base{
          }
          await this._linkFolder();
          logger.log(`Подготовка тестов завершена успешно`);
-      } catch(e) {
+      } catch (e) {
          throw new Error(`Подготовка тестов завершена с ошибкой ${e}`);
       }
    }
@@ -55,12 +55,12 @@ class Build extends Base{
          `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._builderCfg}`,
          process.cwd(),
          true,
-         'builder'
+         "builder",
       );
    }
 
    async _prepareSrv() {
-      let srvPath = path.join(this._projectDir, 'InTestUI.s3srv');
+      let srvPath = path.join(this._projectDir, "InTestUI.s3srv");
       let srv = await xml.readXmlFile(srvPath);
       let srvModules = [];
       srv.service.items[0].ui_module.forEach((item) => {
@@ -73,54 +73,56 @@ class Build extends Base{
          }
       });
 
-
       xml.writeXmlFile(srvPath, srv);
    }
 
    _prepareDeployCfg(filePath) {
-      let cfg_string = fs.readFileSync(filePath, "utf8");
-      cfg_string = cfg_string.replace(/\{site_root\}/g, this._workDir);
-      cfg_string = cfg_string.replace(/\{json_cache\}/g, this._builderCache);
-      fs.outputFileSync(filePath, cfg_string);
+      let cfgString = fs.readFileSync(filePath, "utf8");
+      cfgString = cfgString.replace(/\{site_root\}/g, this._workDir);
+      cfgString = cfgString.replace(/\{json_cache\}/g, this._builderCache);
+      fs.outputFileSync(filePath, cfgString);
    }
 
    async _initWithGenie() {
-      const builderOutput = path.join(this._workDir, 'builder_test');
-      let sdkVersion = this._rc.replace('rc-', '').replace('.','');
-      let genieFolder = '';
-      let deploy = path.join(this._projectDir, 'InTest.s3deploy');
-      let logs = path.join(this._workDir, 'logs');
-      let project = path.join(this._projectDir, 'InTest.s3cld');
-      let genieCli = '';
+      const builderOutput = path.join(this._workDir, "builder_test");
+      let sdkVersion = this._rc.replace("rc-", "").replace(".","");
+      let genieFolder = "";
+      let deploy = path.join(this._projectDir, "InTest.s3deploy");
+      let logs = path.join(this._workDir, "logs");
+      let project = path.join(this._projectDir, "InTest.s3cld");
+      let genieCli = "";
 
       await this._prepareSrv();
       await this._makeBuilderConfig(builderOutput);
 
-      if (process.platform == 'win32') {
-         let sdkPath = process.env['SBISPlatformSDK_' + sdkVersion];
+      if (process.platform === "win32") {
+         let sdkPath = process.env["SBISPlatformSDK_" + sdkVersion];
          genieFolder = path.join(sdkPath, geniePath);
-         genieCli = `"${path.join(genieFolder, 'jinnee-utility.exe')}" jinnee-dbg-stand-deployment300.dll`;
+         genieCli = `"${path.join(genieFolder, "jinnee-utility.exe")}" jinnee-dbg-stand-deployment300.dll`;
       } else {
-         let sdkPath = process.env['SDK'];
-         process.env['SBISPlatformSDK_' + sdkVersion] = process.env['SDK'];
-         genieFolder = path.join(this._workspace, 'jinnee');
-         await this._shell.execute(`7za x ${path.join(sdkPath,'tools','jinnee','jinnee.zip')} -o${genieFolder}`, process.cwd());
-         genieCli = `${path.join(genieFolder, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
+         let sdkPath = process.env.SDK;
+         process.env["SBISPlatformSDK_" + sdkVersion] = sdkPath;
+         genieFolder = path.join(this._workspace, "jinnee");
+         await this._shell.execute(
+            `7za x ${path.join(sdkPath, "tools", "jinnee", "jinnee.zip")} -o${genieFolder}`,
+            process.cwd(),
+         );
+         genieCli = `${path.join(genieFolder, "jinnee-utility")} libjinnee-dbg-stand-deployment300.so`;
       }
 
-      this._prepareDeployCfg(path.join(this._projectDir, 'InTest.s3deploy'));
+      this._prepareDeployCfg(path.join(this._projectDir, "InTest.s3deploy"));
 
       await this._shell.execute(
          `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
          genieFolder,
-         'jinnee'
+         "jinnee",
       );
 
       await this._shell.execute(
          `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._builderCfg}`,
          process.cwd(),
          true,
-         'builder'
+         "builder",
       );
 
       fs.readdirSync(builderOutput).forEach(f => {
@@ -131,19 +133,18 @@ class Build extends Base{
       });
    }
 
-
    /**
     * копирует tslib
     * @private
     */
    async _tslibInstall() {
-      let tslib = path.relative(process.cwd(), path.join(this._store, 'ws', '/WS.Core/ext/tslib.js'));
-      logger.log(tslib, 'tslib_path');
+      let tslib = path.relative(process.cwd(), path.join(this._store, "ws", "/WS.Core/ext/tslib.js"));
+      logger.log(tslib, "tslib_path");
       return this._shell.execute(
          `node node_modules/saby-typescript/install.js --tslib=${tslib}`,
          process.cwd(),
          true,
-         'typescriptInstall'
+         "typescriptInstall",
       );
    }
 
@@ -155,7 +156,7 @@ class Build extends Base{
    async _linkFolder() {
       for (const name of Object.keys(this._reposConfig)) {
          if (this._reposConfig[name].linkFolders) {
-            for (const pathOriginal in this._reposConfig[name].linkFolders) {
+            for (const pathOriginal of Object.keys(this._reposConfig[name].linkFolders)) {
                const pathDir = path.join(this._store, name, pathOriginal);
                const pathLink =  path.join(this._resources, this._reposConfig[name].linkFolders[pathOriginal]);
                await fs.ensureSymlink(pathDir, pathLink);
@@ -170,7 +171,7 @@ class Build extends Base{
     * @private
     */
    _makeBuilderConfig(output) {
-      let builderConfig = require('../builderConfig.base.json');
+      let builderConfig = require("../builderConfig.base.json");
       let testList = this._modulesMap.getTestList();
 
       testList.forEach((name) => {
@@ -178,13 +179,13 @@ class Build extends Base{
 
          modules.forEach((moduleName) => {
             let cfg = this._modulesMap.get(moduleName);
-            if (moduleName !== 'unit' && !cfg.srv) {
-               const isNameInConfig = builderConfig.modules.find((item) => (item.name == moduleName));
+            if (moduleName !== "unit" && !cfg.srv) {
+               const isNameInConfig = builderConfig.modules.find((item) => (item.name === moduleName));
                if (!isNameInConfig) {
                   builderConfig.modules.push({
                      name: moduleName,
-                     path: path.join(this._store, cfg.rep, cfg.path)
-                  })
+                     path: path.join(this._store, cfg.rep, cfg.path),
+                  });
                }
             }
          });

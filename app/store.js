@@ -1,11 +1,11 @@
-const fs = require('fs-extra');
-const pMap = require('p-map');
-const path = require('path');
-const walkDir = require('./util/walkDir');
-const logger = require('./util/logger');
-const Base = require('./base');
+const fs = require("fs-extra");
+const pMap = require("p-map");
+const path = require("path");
+const walkDir = require("./util/walkDir");
+const logger = require("./util/logger");
+const Base = require("./base");
 
-class Store extends Base{
+class Store extends Base {
    constructor(cfg) {
       super(cfg);
       this._store = cfg.store;
@@ -45,7 +45,7 @@ class Store extends Base{
       await this.cloneRepToStore(name);
       return this.checkout(
          name,
-         branch
+         branch,
       );
    }
 
@@ -81,12 +81,14 @@ class Store extends Base{
          await this._shell.execute(`git clean -fdx`, pathToRepos, `git_clean ${name}`);
          await this._shell.execute(`git fetch`, pathToRepos, `git_fetch ${name}`);
          await this._shell.execute(`git checkout ${checkoutBranch}`, pathToRepos, `git_checkout ${name}`);
-         if (checkoutBranch.includes('/') || checkoutBranch === this._rc) {
+         if (checkoutBranch.includes("/") || checkoutBranch === this._rc) {
             await this._shell.execute(`git pull`, pathToRepos, `git_pull ${name}`);
          }
       } catch (err) {
          if (/rc-.*00/.test(checkoutBranch)) {
-            await this._shell.execute(`git checkout ${checkoutBranch.replace('00', '10')}`, pathToRepos, `checkout ${name}`);
+            // для некоторых репозиториев нет ветки yy.v00 только yy.v10 (19.610) в случае
+            // ошибки переключаемся на 10 версию
+            await this._shell.execute(`git checkout ${checkoutBranch.replace("00", "10")}`, pathToRepos, `checkout ${name}`);
          } else {
             throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${err}`);
          }

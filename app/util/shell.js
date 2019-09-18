@@ -1,5 +1,5 @@
-const shell = require('shelljs');
-const logger = require('./logger');
+const shell = require("shelljs");
+const logger = require("./logger");
 
 class Shell {
    constructor() {
@@ -18,27 +18,27 @@ class Shell {
    execute(command, path, force, processName) {
       let errors = [];
 
-      if (typeof force == 'string') {
+      if (typeof force === "string") {
          processName = force;
          force = false;
       }
 
       return new Promise((resolve, reject) => {
          const cloneProcess = shell.exec(`cd ${path} && ${command}`, {
+            async: true,
             silent: true,
-            async: true
          });
          this._childProcessMap.push(cloneProcess);
-         cloneProcess.stdout.on('data', (data) => {
+         cloneProcess.stdout.on("data", (data) => {
             logger.log(data, processName);
          });
 
-         cloneProcess.stderr.on('data', (data) => {
+         cloneProcess.stderr.on("data", (data) => {
             logger.log(data, processName);
             errors.push(data);
          });
 
-         cloneProcess.on('exit', (code) => {
+         cloneProcess.on("exit", (code) => {
             this._childProcessMap.splice(this._childProcessMap.indexOf(cloneProcess), 1);
             if (force || !code && !cloneProcess.withErrorKill) {
                resolve();
@@ -57,11 +57,11 @@ class Shell {
    async closeChildProcess() {
       await Promise.all(this._childProcessMap.map((process) => {
          return new Promise((resolve) => {
-            process.on('close', () => {
+            process.on("close", () => {
                resolve();
             });
             process.withErrorKill = true;
-            process.kill('SIGKILL');
+            process.kill("SIGKILL");
          });
       }));
       this._childProcessMap = [];
