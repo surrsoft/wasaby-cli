@@ -225,6 +225,7 @@ class Test extends Base {
          await this.prepareReport();
          logger.log('Тестирование завершено');
       } catch (e) {
+         throw e;
          throw new Error(`Тестирование завершено с ошибкой ${e}`);
       }
    }
