@@ -103,22 +103,22 @@ describe('modulesMap', () => {
       });
       it('should return all test', () => {
          stubTestRep = sinon.stub(modulesMap, '_testRep').value(['all']);
-         chai.expect(modulesMap.getTestList()).to.deep.equal(['test1', 'test2', 'test3']);
+         chai.expect(modulesMap.getTestList()).to.deep.equal(new Set(['test1', 'test2', 'test3']));
       });
 
       it('should return test list for test1', () => {
          stubTestRep = sinon.stub(modulesMap, '_testRep').value(['test1']);
-         chai.expect(modulesMap.getTestList()).to.deep.equal(['test1']);
+         chai.expect(modulesMap.getTestList()).to.deep.equal(new Set(['test1']));
       });
 
       it('should return test list for test with depend test', () => {
          stubTestRep = sinon.stub(modulesMap, '_testRep').value(['test2']);
-         chai.expect(modulesMap.getTestList()).to.deep.equal(['test2', 'test1']);
+         chai.expect(modulesMap.getTestList()).to.deep.equal(new Set(['test2', 'test1']));
       });
 
       it('should return test list if check two unliked tests', () => {
          stubTestRep = sinon.stub(modulesMap, '_testRep').value(['test1', 'test3']);
-         chai.expect(modulesMap.getTestList()).to.deep.equal(['test1', 'test3']);
+         chai.expect(modulesMap.getTestList()).to.deep.equal(new Set(['test1', 'test3']));
       });
 
       afterEach(() => {

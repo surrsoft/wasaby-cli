@@ -119,6 +119,7 @@ class Test extends Base {
       let cfg = {...testConfig};
       let fullName = name + (suffix || '');
       let workspace = path.relative(process.cwd(), this._workspace);
+      cfg.url = {...cfg.url};
       cfg.tests = this._modulesMap.getTestModules(name);
       cfg.root =  path.relative(process.cwd(), this._resources);
       cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('${module}', fullName).replace('${workspace}', workspace);
@@ -135,9 +136,10 @@ class Test extends Base {
     */
    _makeTestConfig() {
       const configPorts = this._ports ? this._ports.split(',') : [];
+      const promiseArray = [];
       let port = 10025;
-      return Promise.all(this._modulesMap.getTestList().map((name, i) => {
-         return new Promise(resolve => {
+      for (const name of this._modulesMap.getTestList()) {
+         promiseArray.push(new Promise(resolve => {
             const nodeCfg = this._getTestConfig(name, NODE_SUFFIX);
             fs.outputFileSync(`./testConfig_${name}.json`, JSON.stringify(nodeCfg, null, 4));
             if (this._reposConfig[name].unitInBrowser) {
@@ -146,14 +148,15 @@ class Test extends Base {
                fs.outputFileSync(`./testConfig_${name}InBrowser.json`, JSON.stringify(browserCfg, null, 4));
             }
             resolve();
-         });
-      }));
+         }));
+      }
+      return Promise.all(promiseArray);
    }
 
    async _startNodeTest(name) {
       try {
          await this._shell.execute(
-            `node node_modules/saby-units/cli.js --isolated --report --config='testConfig_${name}.json'`,
+            `node node_modules/saby-units/cli.js --isolated --report --config=testConfig_${name}.json`,
             process.cwd(),
             `test node ${name}`
          );
@@ -174,7 +177,7 @@ class Test extends Base {
          logger.log('Запуск тестов в браузере', name);
          try {
             await this._shell.execute(
-               `node node_modules/saby-units/cli.js --browser --report --config='testConfig_${name}InBrowser.json'`,
+               `node node_modules/saby-units/cli.js --browser --report --config=testConfig_${name}InBrowser.json`,
                process.cwd(),
                `test browser ${name}`
             );

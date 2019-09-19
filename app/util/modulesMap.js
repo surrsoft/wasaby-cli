@@ -90,27 +90,25 @@ class ModulesMap {
 
    /**
     * Возвращает список репозиториев для тестирования
-    * @return {Array}
+    * @return {Set}
     */
    getTestList() {
       if (this._testList) {
          return this._testList;
       }
-      let tests = [];
+      let tests = new Set();
       if (!this._testRep.includes('all')) {
          this._testRep.forEach((testRep) => {
             let modules = this.getParentModules(this.getTestModulesWithDepends(testRep));
-            tests.push(testRep);
+            tests.add(testRep);
             modules.forEach((name) => {
                let cfg = this._modulesMap.get(name);
-               if (!tests.includes(cfg.rep)) {
-                  tests.push(cfg.rep);
-               }
+               tests.add(cfg.rep);
             });
          });
       } else {
          this._testModulesMap.forEach((modules, rep) => {
-            tests.push(rep);
+            tests.add(rep);
          });
       }
       return this._testList = tests;
