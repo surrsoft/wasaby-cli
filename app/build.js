@@ -112,11 +112,11 @@ class Build extends Base {
 
       this._prepareDeployCfg(path.join(this._projectDir, 'InTest.s3deploy'));
 
-      // await this._shell.execute(
-      //    `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
-      //    genieFolder,
-      //    'jinnee'
-      // );
+      await this._shell.execute(
+         `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
+         genieFolder,
+         'jinnee'
+      );
 
       await this._shell.execute(
          `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._builderCfg}`,
