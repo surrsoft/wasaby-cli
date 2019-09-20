@@ -4,8 +4,8 @@
    "logs": "./application/logs",
    "typescript": true,
    "contents": true,
-   "joinedMeta": false,
-   "clearOutput": false,
+   "joinedMeta": true,
+   "clearOutput": true,
    "less": true,
    "themes": true,
    "modules": [
