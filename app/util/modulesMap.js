@@ -171,14 +171,14 @@ class ModulesMap {
     * @private
     */
    _findModulesInStore() {
-      let s3mods = [];
+      const s3mods = [];
       Object.keys(this._reposConfig).forEach(name => {
-         walkDir(path.join(this._store, name), (filePath) => {
+         walkDir(this.getRepositoryPath(name), (filePath) => {
             if (filePath.includes('.s3mod')) {
                let splitFilePath = filePath.split(path.sep);
                splitFilePath.splice(-1, 1);
-               let modulePath = path.join.apply(path, splitFilePath);
-               let moduleName = splitFilePath[splitFilePath.length - 1];
+               const modulePath = path.join.apply(path, splitFilePath);
+               const moduleName = splitFilePath[splitFilePath.length - 1];
                s3mods.push({
                   modulePath: filePath,
                   name: moduleName,
@@ -199,7 +199,7 @@ class ModulesMap {
     */
    async _addToModulesMap(modules) {
       await pMap(modules, (cfg) => {
-         return xml.readXmlFile(path.join(this._store, cfg.rep, cfg.modulePath)).then((xmlObj) => {
+         return xml.readXmlFile(path.join(this.getRepositoryPath(cfg.name), cfg.modulePath)).then((xmlObj) => {
             if (!this._modulesMap.has(cfg.name) && xmlObj.ui_module) {
                cfg.depends = [];
                if (xmlObj.ui_module.depends && xmlObj.ui_module.depends[0]) {
@@ -248,6 +248,15 @@ class ModulesMap {
             });
          }
       });
+   }
+
+   /**
+    * Возвращает путь до репозитория
+    * @param name
+    * @return {string}
+    */
+   getRepositoryPath(name) {
+      return this._reposConfig[name].path || path.join(this._store, name);
    }
 }
 

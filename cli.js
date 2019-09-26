@@ -1,10 +1,10 @@
 const path = require('path');
-const CONFIG = './config.json';
 
 const Store = require('./app/store');
 const Build = require('./app/build');
 const Test = require('./app/test');
-
+const config = require('./app/util/config');
+const logger = require('./app/util/logger');
 /**
  * Модуль для запуска юнит тестов
  * @class Cli
@@ -12,16 +12,16 @@ const Test = require('./app/test');
  */
 class Cli {
    constructor() {
-      let config = require(CONFIG);
-      this._reposConfig = config.repositories;
+      let cfg = config.read();
+      this._reposConfig = cfg.repositories;
       this._argvOptions = this._getArgvOptions();
-      this._store = this._argvOptions.store || path.join(process.cwd(), config.store);
+      this._store = this._argvOptions.store || path.join(process.cwd(), cfg.store);
       //на _repos остались завязаны srv и скрипт сборки пока это не убрать
       this._store = path.join(this._store, '_repos');
       this._testRep = this._argvOptions.rep.split(',').map(name => name.trim());
-      this._workDir = this._argvOptions.workDir || path.join(process.cwd(), config.workDir);
+      this._workDir = this._argvOptions.workDir || path.join(process.cwd(), cfg.workDir);
       this._workspace = this._argvOptions.workspace || './application';
-      this.tasks = this._argvOptions.tasks ?  this._argvOptions.tasks.split(',') : ['initStore', 'build', 'startTest'];
+      this.tasks = this._argvOptions.tasks ? this._argvOptions.tasks.split(',') : ['initStore', 'build', 'startTest'];
       if (this._argvOptions.withBuilder) {
          this._resources = path.join(this._workDir, 'application');
       } else {//если сборка идет джином то исходники лежат в  intest-ps/ui/resources
@@ -108,7 +108,6 @@ class Cli {
 
       return options;
    }
-
 }
 
 module.exports = Cli;
@@ -117,8 +116,7 @@ if (require.main.filename === __filename) {
    //Если файл запущен напрямую запускаем тестирование
    let cli = new Cli();
    cli.run().catch((e) => {
-      //tslint:disable-next-line:no-console
-      console.error(e);
+      logger.error(e);
       process.exit(2);
    });
 }
