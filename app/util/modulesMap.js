@@ -199,7 +199,7 @@ class ModulesMap {
     */
    async _addToModulesMap(modules) {
       await pMap(modules, (cfg) => {
-         return xml.readXmlFile(path.join(this.getRepositoryPath(cfg.name), cfg.modulePath)).then((xmlObj) => {
+         return xml.readXmlFile(path.join(this.getRepositoryPath(cfg.rep), cfg.modulePath)).then((xmlObj) => {
             if (!this._modulesMap.has(cfg.name) && xmlObj.ui_module) {
                cfg.depends = [];
                if (xmlObj.ui_module.depends && xmlObj.ui_module.depends[0]) {

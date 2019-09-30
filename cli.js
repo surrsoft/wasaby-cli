@@ -12,6 +12,7 @@ const logger = require('./app/util/logger');
  */
 class Cli {
    constructor() {
+      const cfg = config.read();
       this._reposConfig = cfg.repositories;
       this._argvOptions = this._getArgvOptions();
       this._store = this._argvOptions.store || path.join(__dirname, cfg.store);
