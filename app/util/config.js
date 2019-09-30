@@ -8,7 +8,7 @@ const CONFIG = '../../config.json';
  */
 function read() {
    const packageConfig = _getPackageConfig();
-   let config = {...require(CONFIG)};
+   const config = {...require(CONFIG)};
    if (packageConfig) {
       if (packageConfig.devDependencies) {
          for (const name of Object.keys(packageConfig.devDependencies)) {
@@ -17,8 +17,23 @@ function read() {
             }
          }
       }
+      config.testRep = [packageConfig.name];
+      config.rc = `rc-${normalizeVersion(packageConfig.version)}`;
+      config.repositories[config.testRep].skipStore = true;
    }
+
    return config;
+}
+
+/**
+ * преобразует версию от npm к стандартной
+ * @param {String} version
+ * @return {*}
+ */
+function normalizeVersion(version) {
+   const res = version.split('.');
+   res.splice(-1,1);
+   return res.join('.');
 }
 
 /**
@@ -26,7 +41,7 @@ function read() {
  * return Object|undefined
  */
 function _getPackageConfig() {
-   let configPath = path.join(process.cwd(), 'package.json');
+   const configPath = path.join(process.cwd(), 'package.json');
    if (fs.existsSync(configPath)) {
       const config = require(configPath);
       if (config.name !== 'test-cli') {

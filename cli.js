@@ -12,17 +12,17 @@ const logger = require('./app/util/logger');
  */
 class Cli {
    constructor() {
-      let cfg = config.read();
       this._reposConfig = cfg.repositories;
       this._argvOptions = this._getArgvOptions();
-      this._store = this._argvOptions.store || path.join(process.cwd(), cfg.store);
+      this._store = this._argvOptions.store || path.join(__dirname, cfg.store);
       //на _repos остались завязаны srv и скрипт сборки пока это не убрать
       this._store = path.join(this._store, '_repos');
-      this._testRep = this._argvOptions.rep.split(',').map(name => name.trim());
+      this._testRep = this._argvOptions.rep ? this._argvOptions.rep.split(',').map(name => name.trim()) : cfg.testRep;
+      this._rc = this._argvOptions.rc || cfg.rc;
       this._workDir = this._argvOptions.workDir || path.join(process.cwd(), cfg.workDir);
       this._workspace = this._argvOptions.workspace || './application';
       this.tasks = this._argvOptions.tasks ? this._argvOptions.tasks.split(',') : ['initStore', 'build', 'startTest'];
-      if (this._argvOptions.withBuilder) {
+      if (this._argvOptions.withBuilder || this._builderCfg) {
          this._resources = path.join(this._workDir, 'application');
       } else {//если сборка идет джином то исходники лежат в  intest-ps/ui/resources
          this._resources = path.join(this._workDir, 'intest-ps', 'ui', 'resources');
@@ -49,7 +49,7 @@ class Cli {
       let build = new Build({
          builderCache: this._argvOptions.builderCache || 'builder-json-cache',
          projectDir: this._argvOptions.projectDir,
-         rc: this._argvOptions.rc,
+         rc: this._rc,
          reposConfig: this._reposConfig,
          resources: this._resources,
          store: this._store,
@@ -65,7 +65,7 @@ class Cli {
    async initStore() {
       let store = new Store({
          argvOptions: this._argvOptions,
-         rc: this._argvOptions.rc,
+         rc: this._rc,
          reposConfig: this._reposConfig,
          store: this._store,
          testRep: this._testRep
@@ -102,9 +102,9 @@ class Cli {
          }
       });
 
-      if (!options.rep) {
-         throw new Error('Параметр --rep не передан');
-      }
+      // if (!options.rep) {
+      //    throw new Error('Параметр --rep не передан');
+      // }
 
       return options;
    }
