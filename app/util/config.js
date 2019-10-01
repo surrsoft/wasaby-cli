@@ -6,7 +6,7 @@ const CONFIG = '../../config.json';
  * Возвращает конфиг
  * return Object
  */
-function read() {
+function get() {
    const packageConfig = _getPackageConfig();
    const config = {...require(CONFIG)};
    if (packageConfig) {
@@ -51,5 +51,5 @@ function _getPackageConfig() {
 }
 
 module.exports = {
-   read: read
+   get: get
 };

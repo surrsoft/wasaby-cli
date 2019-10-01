@@ -12,7 +12,7 @@ const logger = require('./app/util/logger');
  */
 class Cli {
    constructor() {
-      const cfg = config.read();
+      const cfg = config.get();
       this._reposConfig = cfg.repositories;
       this._argvOptions = this._getArgvOptions();
       this._store = this._argvOptions.store || path.join(__dirname, cfg.store);
@@ -23,7 +23,7 @@ class Cli {
       this._workDir = this._argvOptions.workDir || path.join(process.cwd(), cfg.workDir);
       this._workspace = this._argvOptions.workspace || './application';
       this.tasks = this._argvOptions.tasks ? this._argvOptions.tasks.split(',') : ['initStore', 'build', 'startTest'];
-      if (this._argvOptions.withBuilder || this._builderCfg) {
+      if (this._argvOptions.withBuilder || this._argvOptions.builderCfg) {
          this._resources = path.join(this._workDir, 'application');
       } else {//если сборка идет джином то исходники лежат в  intest-ps/ui/resources
          this._resources = path.join(this._workDir, 'intest-ps', 'ui', 'resources');
@@ -57,7 +57,8 @@ class Cli {
          testRep: this._testRep,
          withBuilder: !!this._argvOptions.withBuilder,
          workDir: this._workDir,
-         workspace: this._workspace
+         workspace: this._workspace,
+         baseBuilderCfg: this._argvOptions.builderCfg
       });
 
       await build.run();

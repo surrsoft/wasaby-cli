@@ -7,6 +7,7 @@ const ModulesMap = require('./util/modulesMap');
 const Base = require('./base');
 
 const builderConfigName = 'builderConfig.json';
+const builderBaseConfig = '../builderConfig.base.json';
 
 class Build extends Base {
    constructor(cfg) {
@@ -20,6 +21,7 @@ class Build extends Base {
       this._builderCache = cfg.builderCache;
       this._workspace = cfg.workspace;
       this._projectDir = cfg.projectDir;
+      this._builderBaseConfig = cfg.builderBaseConfig = builderBaseConfig;
       this._builderCfg = path.join(process.cwd(), 'builderConfig.json');
       this._modulesMap = new ModulesMap({
          reposConfig: this._reposConfig,
@@ -171,7 +173,7 @@ class Build extends Base {
     * @private
     */
    _makeBuilderConfig(output) {
-      let builderConfig = require('../builderConfig.base.json');
+      let builderConfig = require();
       let testList = this._modulesMap.getTestList();
 
       testList.forEach((name) => {

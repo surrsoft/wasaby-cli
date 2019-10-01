@@ -13,7 +13,7 @@
          "url": "https://platform-git.sbis.ru/saby/I18n.git",
          "unitInBrowser": true
       },
-      "sbis-ws": {
+      "sbis3-ws": {
          "url": "https://git.sbis.ru/sbis/ws.git",
          "unitInBrowser": true
       },
