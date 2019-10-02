@@ -13,7 +13,7 @@ function get() {
       if (packageConfig.devDependencies) {
          for (const name of Object.keys(packageConfig.devDependencies)) {
             if (config.repositories[name]) {
-               config.repositories[name].path = path.join('node_modules', name);
+               config.repositories[name].path = path.join(process.cwd(), 'node_modules', name);
             }
          }
       }
@@ -33,7 +33,7 @@ function get() {
  */
 function normalizeVersion(version) {
    const res = version.split('.');
-   res.splice(-1,1);
+   res.splice(-1, 1);
    return res.join('.');
 }
 

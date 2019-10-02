@@ -258,7 +258,7 @@ class ModulesMap {
     * @return {string}
     */
    getRepositoryPath(name) {
-      return path.join(process.cwd(), this._reposConfig[name].path) || path.join(this._store, name);
+      return this._reposConfig[name].path || path.join(this._store, name);
    }
 }
 
