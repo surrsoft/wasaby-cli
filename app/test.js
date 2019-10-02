@@ -142,13 +142,17 @@ class Test extends Base {
       for (const name of this._modulesMap.getTestList()) {
          promiseArray.push(new Promise(resolve => {
             const nodeCfg = this._getTestConfig(name, NODE_SUFFIX);
-            const configNodePath = this._getPathToTestConfig(name, false);
-            fs.outputFileSync(configNodePath, JSON.stringify(nodeCfg, null, 4));
+            fs.outputFileSync(
+               this._getPathToTestConfig(name, false),
+               JSON.stringify(nodeCfg, null, 4)
+            );
             if (this._reposConfig[name].unitInBrowser) {
                const browserCfg = this._getTestConfig(name, BROWSER_SUFFIX);
                browserCfg.url.port = configPorts.shift() || port++;
-               const configBrowserPath = this._getPathToTestConfig(name, false);
-               fs.outputFileSync(configBrowserPath, JSON.stringify(browserCfg, null, 4));
+               fs.outputFileSync(
+                  this._getPathToTestConfig(name, true),
+                  JSON.stringify(browserCfg, null, 4)
+               );
             }
             resolve();
          }));
@@ -239,7 +243,10 @@ class Test extends Base {
 
    _getPathToTestConfig(name, isBrowser) {
       const browser = isBrowser ? '_browser' : '';
-      return path.normalize(path.join( __dirname, '..', `testConfig_${name}${browser}.json`));
+      return path.relative(
+         process.cwd(),
+         path.normalize(path.join( __dirname, '..', `testConfig_${name}${browser}.json`))
+      );
    }
 
 }
