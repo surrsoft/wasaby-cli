@@ -40,7 +40,7 @@ class Store extends Base {
    async initRep(name) {
       const cfg = this._reposConfig[name];
       //если есть путь до репозитория то его не надо выкачивать
-      if (!cfg.skipStore && !cfg.path) {
+      if (!cfg.skip && !cfg.path) {
          const branch = this._argvOptions[name] || this._rc;
          await this.cloneRepToStore(name);
          return this.checkout(

@@ -12,37 +12,38 @@ describe('modulesMap', () => {
             test2: {}
          },
          store: ''
-      })
+      });
    });
    describe('._findModulesInStore()', () => {
       let stubfs, stubStat;
       beforeEach(() => {
          stubfs = sinon.stub(fs, 'readdirSync').callsFake((path) => {
             if (path.includes('tttModule')) {
-               return ['ttt.txt', 'ttt.s3mod']
+               return ['ttt.txt', 'ttt.s3mod'];
             }
-            return ['tttModule']
+            return ['tttModule'];
          });
 
-         stubStat = sinon.stub(fs, 'statSync').callsFake((path) => {
+         stubStat = sinon.stub(fs, 'lstatSync').callsFake((path) => {
             return {
-               isDirectory: () => /.*tttModule$/.test(path)
-            }
+               isDirectory: () => /.*tttModule$/.test(path),
+               isSymbolicLink: () => false
+            };
          });
       });
       it('should find all modules in repository', () => {
          return chai.expect(modulesMap._findModulesInStore('test1')).to.deep.equal([
             {
-               "modulePath": path.join("tttModule","ttt.s3mod"),
-               "name": "tttModule",
-               "path": "tttModule",
-               "rep": "test1",
+               s3mod: path.join('test1', 'tttModule', 'ttt.s3mod'),
+               name: 'tttModule',
+               path:  path.join('test1', 'tttModule'),
+               rep: 'test1'
             },
             {
-               "modulePath": path.join("tttModule","ttt.s3mod"),
-               "name": "tttModule",
-               "path": "tttModule",
-               "rep": "test2",
+               s3mod: path.join('test2', 'tttModule', 'ttt.s3mod'),
+               name: 'tttModule',
+               path: path.join('test2', 'tttModule'),
+               rep: 'test2'
             }
          ]);
       });

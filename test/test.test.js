@@ -36,9 +36,9 @@ describe('Test', () => {
          });
          test._makeTestConfig().then(() => {
             test._modulesMap.getTestList().forEach((key) => {
-               chai.expect(configFiles).to.have.property('./testConfig_' + key + '.json');
+               chai.expect(configFiles).to.have.property('testConfig_' + key + '.json');
             });
-            let config = configFiles['./testConfig_test1.json'];
+            let config = configFiles['testConfig_test1.json'];
             Object.keys(baseConfig).forEach((key) => {
                chai.expect(config).to.have.property(key);
             });
