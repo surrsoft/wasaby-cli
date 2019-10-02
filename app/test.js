@@ -142,11 +142,13 @@ class Test extends Base {
       for (const name of this._modulesMap.getTestList()) {
          promiseArray.push(new Promise(resolve => {
             const nodeCfg = this._getTestConfig(name, NODE_SUFFIX);
-            fs.outputFileSync(`./testConfig_${name}.json`, JSON.stringify(nodeCfg, null, 4));
+            const configNodePath = this._getPathToTestConfig(name, false);
+            fs.outputFileSync(configNodePath, JSON.stringify(nodeCfg, null, 4));
             if (this._reposConfig[name].unitInBrowser) {
                const browserCfg = this._getTestConfig(name, BROWSER_SUFFIX);
                browserCfg.url.port = configPorts.shift() || port++;
-               fs.outputFileSync(`./testConfig_${name}InBrowser.json`, JSON.stringify(browserCfg, null, 4));
+               const configBrowserPath = this._getPathToTestConfig(name, false);
+               fs.outputFileSync(configBrowserPath, JSON.stringify(browserCfg, null, 4));
             }
             resolve();
          }));
@@ -156,8 +158,9 @@ class Test extends Base {
 
    async _startNodeTest(name) {
       try {
+         const configPath = this._getPathToTestConfig(name, false);
          await this._shell.execute(
-            `node node_modules/saby-units/cli.js --isolated --report --config=testConfig_${name}.json`,
+            `node node_modules/saby-units/cli.js --isolated --report --config=${configPath}`,
             process.cwd(),
             `test node ${name}`
          );
@@ -177,8 +180,9 @@ class Test extends Base {
       if (cfg.unitInBrowser) {
          logger.log('Запуск тестов в браузере', name);
          try {
+            const configPath = this._getPathToTestConfig(name, true);
             await this._shell.execute(
-               `node node_modules/saby-units/cli.js --browser --report --config=testConfig_${name}InBrowser.json`,
+               `node node_modules/saby-units/cli.js --browser --report --config=${configPath}`,
                process.cwd(),
                `test browser ${name}`
             );
@@ -232,6 +236,12 @@ class Test extends Base {
          throw new Error(`Тестирование завершено с ошибкой ${e}`);
       }
    }
+
+   _getPathToTestConfig(name, isBrowser) {
+      const browser = isBrowser ? '_browser' : '';
+      return path.normalize(path.join( __dirname, '..', `testConfig_${name}${browser}.json`));
+   }
+
 }
 
 module.exports = Test;
