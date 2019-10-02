@@ -46,7 +46,8 @@ class Test extends Base {
       this._modulesMap = new ModulesMap({
          reposConfig: cfg.reposConfig,
          store: cfg.store,
-         testRep: cfg.testRep
+         testRep: cfg.testRep,
+         workDir: cfg.workDir
       });
    }
 

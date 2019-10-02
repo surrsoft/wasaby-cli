@@ -5,6 +5,7 @@ const Build = require('./app/build');
 const Test = require('./app/test');
 const config = require('./app/util/config');
 const logger = require('./app/util/logger');
+const ERROR_CODE = 2;
 /**
  * Модуль для запуска юнит тестов
  * @class Cli
@@ -47,7 +48,7 @@ class Cli {
    }
 
    async build() {
-      let build = new Build({
+      const build = new Build({
          builderCache: this._argvOptions.builderCache || 'builder-json-cache',
          projectDir: this._argvOptions.projectDir,
          rc: this._rc,
@@ -58,14 +59,14 @@ class Cli {
          withBuilder: !!this._argvOptions.withBuilder,
          workDir: this._workDir,
          workspace: this._workspace,
-         baseBuilderCfg: this._argvOptions.builderCfg
+         builderBaseConfig: this._argvOptions.builderConfig
       });
 
       await build.run();
    }
 
    async initStore() {
-      let store = new Store({
+      const store = new Store({
          argvOptions: this._argvOptions,
          rc: this._rc,
          reposConfig: this._reposConfig,
@@ -77,7 +78,7 @@ class Cli {
    }
 
    async test() {
-      let test = new Test({
+      const test = new Test({
          ports: this._argvOptions.ports || '',
          reposConfig: this._reposConfig,
          resources: this._resources,
@@ -95,18 +96,14 @@ class Cli {
     * @private
     */
    _getArgvOptions() {
-      let options = {};
+      const options = {};
       process.argv.slice(2).forEach(arg => {
          if (arg.startsWith('--')) {
-            let argName = arg.substr(2);
+            const argName = arg.substr(2);
             const [name, value] = argName.split('=', 2);
             options[name] = value === undefined ? true : value;
          }
       });
-
-      // if (!options.rep) {
-      //    throw new Error('Параметр --rep не передан');
-      // }
 
       return options;
    }
@@ -116,9 +113,9 @@ module.exports = Cli;
 
 if (require.main.filename === __filename) {
    //Если файл запущен напрямую запускаем тестирование
-   let cli = new Cli();
+   const cli = new Cli();
    cli.run().catch((e) => {
       logger.error(e);
-      process.exit(2);
+      process.exit(ERROR_CODE);
    });
 }

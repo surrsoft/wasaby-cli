@@ -1,13 +1,17 @@
 const fs = require('fs-extra');
 const path = require('path');
 
-function walkDir(dir, callback, rootDir) {
-   rootDir = rootDir || dir;
-   fs.readdirSync(dir).forEach(f => {
-      let dirPath = path.join(dir, f);
-      let relativePath = path.relative(rootDir, dir);
-      let isDirectory = fs.statSync(dirPath).isDirectory();
-      isDirectory ? walkDir(dirPath, callback, rootDir) : callback(path.join(relativePath, f));
+function walkDir(rootDir, callback, exclude, currentDir) {
+   currentDir = currentDir || rootDir;
+   exclude = exclude || [];
+   const relativePath = path.relative(rootDir, currentDir);
+
+   fs.readdirSync(currentDir).forEach(file => {
+      const fullPath = path.join(currentDir, file);
+      if (!exclude.includes(fullPath) && !fs.lstatSync(fullPath).isSymbolicLink()) {
+         const isDirectory = fs.lstatSync(fullPath).isDirectory();
+         isDirectory ? walkDir(rootDir, callback, exclude, fullPath) : callback(path.join(relativePath, file));
+      }
    });
 }
 
