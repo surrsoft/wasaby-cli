@@ -43,11 +43,13 @@ class Test extends Base {
       this._reposConfig = cfg.reposConfig;
       this._workspace = cfg.workspace || cfg.workDir;
       this._testErrors = {};
+      this._server = cfg.server;
       this._modulesMap = new ModulesMap({
          reposConfig: cfg.reposConfig,
          store: cfg.store,
          testRep: cfg.testRep,
-         workDir: cfg.workDir
+         workDir: cfg.workDir,
+         only: cfg.only
       });
    }
 
@@ -162,12 +164,14 @@ class Test extends Base {
 
    async _startNodeTest(name) {
       try {
-         const configPath = this._getPathToTestConfig(name, false);
-         await this._shell.execute(
-            `node node_modules/saby-units/cli.js --isolated --report --config=${configPath}`,
-            process.cwd(),
-            `test node ${name}`
-         );
+         if (!this._server) {
+            const configPath = this._getPathToTestConfig(name, false);
+            await this._shell.execute(
+               `node node_modules/saby-units/cli.js --isolated --report --config=${configPath}`,
+               process.cwd(),
+               `test node ${name}`
+            );
+         }
       } catch (e) {
          this._testErrors[name + NODE_SUFFIX] = e;
       }
@@ -185,8 +189,14 @@ class Test extends Base {
          logger.log('Запуск тестов в браузере', name);
          try {
             const configPath = this._getPathToTestConfig(name, true);
+            let cmd = '';
+            if (this._server) {
+               cmd = `node node_modules/saby-units/cli/server.js --config=${configPath}`;
+            } else {
+               cmd = `node node_modules/saby-units/cli.js --browser --report --config=${configPath}`;
+            }
             await this._shell.execute(
-               `node node_modules/saby-units/cli.js --browser --report --config=${configPath}`,
+               cmd,
                process.cwd(),
                `test browser ${name}`
             );
@@ -237,6 +247,7 @@ class Test extends Base {
          await this.prepareReport();
          logger.log('Тестирование завершено');
       } catch (e) {
+         throw e;
          throw new Error(`Тестирование завершено с ошибкой ${e}`);
       }
    }

@@ -21,13 +21,16 @@ class Build extends Base {
       this._builderCache = cfg.builderCache;
       this._workspace = cfg.workspace;
       this._projectDir = cfg.projectDir;
-      this._builderBaseConfig = cfg.builderBaseConfig ? path.normalize(path.join(process.cwd(), cfg.builderBaseConfig)) : builderBaseConfig;
+      this._builderBaseConfig = cfg.builderBaseConfig ?
+         path.normalize(path.join(process.cwd(), cfg.builderBaseConfig)) :
+         builderBaseConfig;
       this._builderCfg = path.join(process.cwd(), 'builderConfig.json');
       this._modulesMap = new ModulesMap({
          reposConfig: this._reposConfig,
          store: cfg.store,
          testRep: cfg.testRep,
-         workDir: this._workDir
+         workDir: this._workDir,
+         only: cfg.only
       });
    }
 

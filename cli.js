@@ -59,7 +59,8 @@ class Cli {
          withBuilder: !!this._argvOptions.withBuilder,
          workDir: this._workDir,
          workspace: this._workspace,
-         builderBaseConfig: this._argvOptions.builderConfig
+         builderBaseConfig: this._argvOptions.builderConfig,
+         only: !!this._argvOptions.only
       });
 
       await build.run();
@@ -85,7 +86,9 @@ class Cli {
          store: this._store,
          testRep: this._testRep,
          workDir: this._workDir,
-         workspace: this._workspace
+         workspace: this._workspace,
+         only: !!this._argvOptions.only,
+         server: !!this._argvOptions.server
       });
 
       await test.run();

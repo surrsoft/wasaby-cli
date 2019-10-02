@@ -11,6 +11,7 @@ class ModulesMap {
       this._modulesMap = new Map();
       this._testModulesMap = new Map();
       this._workDir = cfg.workDir;
+      this._only = cfg.only;
    }
 
    /**
@@ -97,8 +98,10 @@ class ModulesMap {
       if (this._testList) {
          return this._testList;
       }
-      const tests = new Set();
-      if (!this._testRep.includes('all')) {
+      let tests = new Set();
+      if (this._only) {
+         tests = new Set(this._testRep);
+      } else if (!this._testRep.includes('all')) {
          this._testRep.forEach((testRep) => {
             const modules = this.getParentModules(this.getTestModulesWithDepends(testRep));
             tests.add(testRep);
