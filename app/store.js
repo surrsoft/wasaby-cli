@@ -38,29 +38,15 @@ class Store extends Base {
     * @return {Promise<void>}
     */
    async initRep(name) {
-      let branch = this._argvOptions[name] || this._rc;
-      if (fs.existsSync(branch)) {
-         return this.copyRepToStore(this._argvOptions[name], name);
-      }
-      await this.cloneRepToStore(name);
-      return this.checkout(
-         name,
-         branch
-      );
-   }
-
-   /**
-    * Копирует репозиторий, если в параметрах запуска передали путь
-    * @param {String} pathToOriginal
-    * @param {String} name - название репозитория в конфиге
-    * @return {Promise<void>}
-    */
-   async copyRepToStore(pathToOriginal, name) {
-      try {
-         logger.log('Копирование репозитория', name);
-         await fs.ensureSymlink(pathToOriginal, path.join(this._store, name));
-      } catch (err) {
-         throw new Error(`Ошибка при копировании репозитория ${name}: ${err}`);
+      const cfg = this._reposConfig[name];
+      //если есть путь до репозитория то его не надо выкачивать
+      if (!cfg.skip && !cfg.path) {
+         const branch = this._argvOptions[name] || this._rc;
+         await this.cloneRepToStore(name);
+         return this.checkout(
+            name,
+            branch
+         );
       }
    }
 

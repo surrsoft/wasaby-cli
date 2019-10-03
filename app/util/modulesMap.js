@@ -10,6 +10,8 @@ class ModulesMap {
       this._testRep = cfg.testRep;
       this._modulesMap = new Map();
       this._testModulesMap = new Map();
+      this._workDir = cfg.workDir;
+      this._only = cfg.only;
    }
 
    /**
@@ -79,8 +81,8 @@ class ModulesMap {
       traverse = traverse || [];
       modules.forEach(name => {
          if (this._modulesMap.has(name) && !traverse.includes(name)) {
-            let cfg = this._modulesMap.get(name);
-            let depends = this.getChildModules(cfg.depends, traverse.concat([name]));
+            const cfg = this._modulesMap.get(name);
+            const depends = this.getChildModules(cfg.depends, traverse.concat([name]));
             result.push(name);
             result = result.concat(depends.filter((item) => !result.includes(item)));
          }
@@ -97,12 +99,14 @@ class ModulesMap {
          return this._testList;
       }
       let tests = new Set();
-      if (!this._testRep.includes('all')) {
+      if (this._only) {
+         tests = new Set(this._testRep);
+      } else if (!this._testRep.includes('all')) {
          this._testRep.forEach((testRep) => {
-            let modules = this.getParentModules(this.getTestModulesWithDepends(testRep));
+            const modules = this.getParentModules(this.getTestModulesWithDepends(testRep));
             tests.add(testRep);
             modules.forEach((name) => {
-               let cfg = this._modulesMap.get(name);
+               const cfg = this._modulesMap.get(name);
                tests.add(cfg.rep);
             });
          });
@@ -121,7 +125,7 @@ class ModulesMap {
    getTestModulesWithDepends(name) {
       let result = [];
       this._testModulesMap.get(name).forEach((moduleName) => {
-         let cfg = this._modulesMap.get(moduleName);
+         const cfg = this._modulesMap.get(moduleName);
          result = result.concat(cfg.depends || []).filter((depend) => {
             return !!this._modulesMap.get(depend).forTests;
          });
@@ -145,7 +149,7 @@ class ModulesMap {
     * @return {Array}
     */
    getModulesByRep(repName) {
-      let moduels = [];
+      const moduels = [];
       this._modulesMap.forEach(cfg => {
          if (cfg.rep === repName) {
             moduels.push(cfg.name);
@@ -159,7 +163,7 @@ class ModulesMap {
     * @return {Promise<void>}
     */
    async build() {
-      let modules = this._findModulesInStore();
+      const modules = this._findModulesInStore();
       await this._addToModulesMap(modules);
       this._markModulesForTest();
    }
@@ -171,22 +175,23 @@ class ModulesMap {
     * @private
     */
    _findModulesInStore() {
-      let s3mods = [];
+      const s3mods = [];
       Object.keys(this._reposConfig).forEach(name => {
-         walkDir(path.join(this._store, name), (filePath) => {
+         const repositoryPath = this.getRepositoryPath(name);
+         walkDir(repositoryPath, (filePath) => {
             if (filePath.includes('.s3mod')) {
-               let splitFilePath = filePath.split(path.sep);
+               const splitFilePath = filePath.split(path.sep);
                splitFilePath.splice(-1, 1);
-               let modulePath = path.join.apply(path, splitFilePath);
-               let moduleName = splitFilePath[splitFilePath.length - 1];
+               const modulePath = path.join.apply(path, splitFilePath);
+               const moduleName = splitFilePath[splitFilePath.length - 1];
                s3mods.push({
-                  modulePath: filePath,
+                  s3mod: path.join(repositoryPath, filePath),
                   name: moduleName,
-                  path: modulePath,
+                  path: path.join(repositoryPath, modulePath),
                   rep: name
                });
             }
-         });
+         }, [path.join(process.cwd(), 'builder-ui'), path.join(process.cwd(), 'node_modules'), this._workDir]);
       });
       return s3mods;
    }
@@ -199,11 +204,11 @@ class ModulesMap {
     */
    async _addToModulesMap(modules) {
       await pMap(modules, (cfg) => {
-         return xml.readXmlFile(path.join(this._store, cfg.rep, cfg.modulePath)).then((xmlObj) => {
+         return xml.readXmlFile(cfg.s3mod).then((xmlObj) => {
             if (!this._modulesMap.has(cfg.name) && xmlObj.ui_module) {
                cfg.depends = [];
                if (xmlObj.ui_module.depends && xmlObj.ui_module.depends[0]) {
-                  let depends = xmlObj.ui_module.depends[0];
+                  const depends = xmlObj.ui_module.depends[0];
                   if (depends.ui_module) {
                      depends.ui_module.forEach((item) => {
                         cfg.depends.push(item.$.name);
@@ -216,7 +221,7 @@ class ModulesMap {
                   }
                }
                if (xmlObj.ui_module.unit_test) {
-                  let testModules = this._testModulesMap.get(cfg.rep) || [];
+                  const testModules = this._testModulesMap.get(cfg.rep) || [];
                   testModules.push(cfg.name);
                   this._testModulesMap.set(cfg.rep, testModules);
                }
@@ -235,11 +240,11 @@ class ModulesMap {
    _markModulesForTest() {
       Object.keys(this._reposConfig).forEach(name => {
          if (this._testModulesMap.has(name)) {
-            let modules = this._testModulesMap.get(name);
+            const modules = this._testModulesMap.get(name);
             modules.forEach((testModuleName) => {
-               let testModuleCfg = this._modulesMap.get(testModuleName);
+               const testModuleCfg = this._modulesMap.get(testModuleName);
                testModuleCfg.depends.forEach((moduleName) => {
-                  let cfg = this._modulesMap.get(moduleName);
+                  const cfg = this._modulesMap.get(moduleName);
                   if (cfg && cfg.rep === name) {
                      cfg.forTests = true;
                      this._modulesMap.set(moduleName, cfg);
@@ -248,6 +253,15 @@ class ModulesMap {
             });
          }
       });
+   }
+
+   /**
+    * Возвращает путь до репозитория
+    * @param name
+    * @return {string}
+    */
+   getRepositoryPath(name) {
+      return this._reposConfig[name].path || path.join(this._store, name);
    }
 }
 

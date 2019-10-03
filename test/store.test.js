@@ -20,11 +20,14 @@ describe('Store', () => {
 
    });
    describe('initRep', () => {
-      var stubCheckout, stubClone, stubMkDir;
+      let stubCheckout, stubClone, stubMkDir, stubRepConf;
       beforeEach(() => {
          stubMkDir = sinon.stub(fs, 'mkdirs').callsFake(() => {
             return Promise.resolve();
-         })
+         });
+         stubRepConf = sinon.stub(store, '_reposConfig').value( {
+            test: {}
+         });
       });
       it('should checkout brunch', (done) => {
          stubCheckout = sinon.stub(store, 'checkout').callsFake((name, branch) => {
@@ -34,7 +37,7 @@ describe('Store', () => {
          });
          stubClone = sinon.stub(store, 'cloneRepToStore').callsFake((name) => {
             chai.expect(name).to.equal('test');
-            return Promise.resolve('testPath')
+            return Promise.resolve('testPath');
          });
          store.initRep('test');
       });
@@ -44,26 +47,11 @@ describe('Store', () => {
             done();
          });
          stubClone = sinon.stub(store, 'cloneRepToStore').callsFake((name) => {
-            return Promise.resolve()
+            return Promise.resolve();
          });
          let stubArgv = sinon.stub(store, '_argvOptions').value({test: '19.999/test'});
          store.initRep('test');
          stubArgv.restore();
-      });
-      it('should copy rep', (done) => {
-         stubClone = sinon.stub(store, 'copyRepToStore').callsFake((path) => {
-            chai.expect(path).to.equal('pathToTest');
-            done();
-         });
-         let stubArgv = sinon.stub(store, '_argvOptions').value({test: 'pathToTest'});
-         let stubfs = sinon.stub(fs, 'existsSync').callsFake(() => {
-            return true;
-         });
-
-         store.initRep('test');
-
-         stubArgv.restore();
-         stubfs.restore();
       });
 
       afterEach(() => {

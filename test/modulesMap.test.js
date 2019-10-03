@@ -12,37 +12,38 @@ describe('modulesMap', () => {
             test2: {}
          },
          store: ''
-      })
+      });
    });
    describe('._findModulesInStore()', () => {
       let stubfs, stubStat;
       beforeEach(() => {
          stubfs = sinon.stub(fs, 'readdirSync').callsFake((path) => {
             if (path.includes('tttModule')) {
-               return ['ttt.txt', 'ttt.s3mod']
+               return ['ttt.txt', 'ttt.s3mod'];
             }
-            return ['tttModule']
+            return ['tttModule'];
          });
 
-         stubStat = sinon.stub(fs, 'statSync').callsFake((path) => {
+         stubStat = sinon.stub(fs, 'lstatSync').callsFake((path) => {
             return {
-               isDirectory: () => /.*tttModule$/.test(path)
-            }
+               isDirectory: () => /.*tttModule$/.test(path),
+               isSymbolicLink: () => false
+            };
          });
       });
       it('should find all modules in repository', () => {
          return chai.expect(modulesMap._findModulesInStore('test1')).to.deep.equal([
             {
-               "modulePath": path.join("tttModule","ttt.s3mod"),
-               "name": "tttModule",
-               "path": "tttModule",
-               "rep": "test1",
+               s3mod: path.join('test1', 'tttModule', 'ttt.s3mod'),
+               name: 'tttModule',
+               path:  path.join('test1', 'tttModule'),
+               rep: 'test1'
             },
             {
-               "modulePath": path.join("tttModule","ttt.s3mod"),
-               "name": "tttModule",
-               "path": "tttModule",
-               "rep": "test2",
+               s3mod: path.join('test2', 'tttModule', 'ttt.s3mod'),
+               name: 'tttModule',
+               path: path.join('test2', 'tttModule'),
+               rep: 'test2'
             }
          ]);
       });
@@ -81,7 +82,7 @@ describe('modulesMap', () => {
          stubModulesMap = sinon.stub(modulesMap, '_testModulesMap').value(new Map([
             ['test1', ['test11']],
             ['test2', ['test22']],
-            ['test3', ['test33']],
+            ['test3', ['test33']]
          ]));
          stubModulesMap = sinon.stub(modulesMap, '_modulesMap').value(
             new Map([
@@ -97,7 +98,7 @@ describe('modulesMap', () => {
             new Map([
                ['test1', ['test_test1']],
                ['test2', ['test_test2']],
-               ['test3', ['test_test3']],
+               ['test3', ['test_test3']]
             ])
          );
       });
@@ -111,9 +112,15 @@ describe('modulesMap', () => {
          chai.expect(modulesMap.getTestList()).to.deep.equal(new Set(['test1']));
       });
 
-      it('should return test list for test with depend test', () => {
+      it('should return test list for test with depends', () => {
          stubTestRep = sinon.stub(modulesMap, '_testRep').value(['test2']);
          chai.expect(modulesMap.getTestList()).to.deep.equal(new Set(['test2', 'test1']));
+      });
+
+      it('should return test2 only', () => {
+         sinon.stub(modulesMap, '_only').value(true);
+         stubTestRep = sinon.stub(modulesMap, '_testRep').value(['test2']);
+         chai.expect(modulesMap.getTestList()).to.deep.equal(new Set(['test2']));
       });
 
       it('should return test list if check two unliked tests', () => {
@@ -125,7 +132,7 @@ describe('modulesMap', () => {
          stubrepos.restore();
          stubTestRep.restore();
          stubModulesMap.restore();
-      })
+      });
    });
 
    describe('_getParentModules()', () => {
@@ -161,7 +168,7 @@ describe('modulesMap', () => {
             new Map([
                ['test11', {name: 'test11', rep: 'test1', depends: ['test22']}],
                ['test22', {name: 'test22', rep: 'test2', depends: ['test33']}],
-               ['test33', {name: 'test33', rep: 'test3', depends: []}],
+               ['test33', {name: 'test33', rep: 'test3', depends: []}]
             ])
          );
       });
@@ -181,7 +188,7 @@ describe('modulesMap', () => {
                ['test11', {name: 'test11', rep: 'test1', depends: ['test22']}],
                ['test22', {name: 'test22', rep: 'test2', depends: ['test33']}],
                ['test33', {name: 'test33', rep: 'test3', depends: ['test44']}],
-               ['test44', {name: 'test44', rep: 'test4', depends: ['test11']}],
+               ['test44', {name: 'test44', rep: 'test4', depends: ['test11']}]
             ])
          );
          chai.expect(modulesMap.getChildModules(['test11'])).to.deep.equal(['test11', 'test22', 'test33', 'test44']);

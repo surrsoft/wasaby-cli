@@ -11,7 +11,8 @@ describe('Build', () => {
          testRep: ['test1'],
          reposConfig: {
             test1: {},
-            test2: {}
+            test2: {},
+            'sbis3-ws': {}
          },
          store: ''
       });
@@ -109,7 +110,7 @@ describe('Build', () => {
                   name: 'test11',
                   rep: 'test1',
                   forTests: true,
-                  modulePath: 'test11/test11.s3mod'
+                  s3mod: 'test11/test11.s3mod'
                }
             ], [
                'test22',
@@ -117,7 +118,7 @@ describe('Build', () => {
                   name: 'test2',
                   rep: 'test2',
                   forTests: true,
-                  modulePath: 'test11/test22.s3mod'
+                  s3mod: 'test11/test22.s3mod'
                }
             ]
          ]));
