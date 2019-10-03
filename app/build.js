@@ -66,21 +66,28 @@ class Build extends Base {
       );
    }
 
-   async _prepareSrv() {
-      let srvPath = path.join(this._projectDir, 'InTestUI.s3srv');
-      let srv = await xml.readXmlFile(srvPath);
-      let srvModules = [];
-      srv.service.items[0].ui_module.forEach((item) => {
-         if (this._modulesMap.has(item.$.name)) {
-            const cfg = this._modulesMap.get(item.$.name);
-            item.$.url = path.relative(this._projectDir, path.join(this._store, cfg.rep, cfg.modulePath));
-            srvModules.push(cfg.name);
-            cfg.srv = true;
-            this._modulesMap.set(cfg.name, cfg);
-         }
-      });
+   async _prepareSrv(srvPath) {
+      if (fs.existsSync(srvPath)) {
+         const srv = await xml.readXmlFile(srvPath);
+         const srvModules = [];
+         const dirName = path.dirname(srvPath);
 
-      xml.writeXmlFile(srvPath, srv);
+         srv.service.items[0].ui_module.forEach((item) => {
+            if (this._modulesMap.has(item.$.name)) {
+               const cfg = this._modulesMap.get(item.$.name);
+               item.$.url = path.relative(dirName, path.join(this._store, cfg.rep, cfg.modulePath));
+               srvModules.push(cfg.name);
+               cfg.srv = true;
+               this._modulesMap.set(cfg.name, cfg);
+            }
+         });
+         if (srv.service.parent) {
+            await Promise.all(srv.service.parent.map(item => {
+               return this._prepareSrv(path.normalize(path.join(dirName, item.$.path)));
+            }));
+         }
+         xml.writeXmlFile(srvPath, srv);
+      }
    }
 
    _prepareDeployCfg(filePath) {
@@ -99,13 +106,13 @@ class Build extends Base {
       let project = path.join(this._projectDir, 'InTest.s3cld');
       let genieCli = '';
 
-      await this._prepareSrv();
+      await this._prepareSrv(path.join(this._projectDir, 'InTestUI.s3srv'));
       await this._makeBuilderConfig(builderOutput);
 
       if (process.platform === 'win32') {
          let sdkPath = process.env['SBISPlatformSDK_' + sdkVersion];
          genieFolder = path.join(sdkPath, geniePath);
-         genieCli = `'${path.join(genieFolder, 'jinnee-utility.exe')}' jinnee-dbg-stand-deployment300.dll`;
+         genieCli = `"${path.join(genieFolder, 'jinnee-utility.exe')}" jinnee-dbg-stand-deployment300.dll`;
       } else {
          let sdkPath = process.env.SDK;
          process.env['SBISPlatformSDK_' + sdkVersion] = sdkPath;
