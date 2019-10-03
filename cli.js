@@ -41,7 +41,8 @@ class Cli {
       this._workDir = this._argvOptions.workDir || path.join(process.cwd(), cfg.workDir);
       this._workspace = this._argvOptions.workspace || './application';
       this.tasks = this._argvOptions.tasks ? this._argvOptions.tasks.split(',') : ['initStore', 'build', 'startTest'];
-      if (this._argvOptions.withBuilder || this._argvOptions.builderCfg) {
+      if (this._argvOptions.withBuilder || this._argvOptions.builderConfig) {
+         this._withBuilder = true;
          this._resources = path.join(this._workDir, 'application');
       } else {//если сборка идет джином то исходники лежат в  intest-ps/ui/resources
          this._resources = path.join(this._workDir, 'intest-ps', 'ui', 'resources');
@@ -77,7 +78,7 @@ class Cli {
          resources: this._resources,
          store: this._store,
          testRep: this._testRep,
-         withBuilder: !!this._argvOptions.withBuilder,
+         withBuilder: !!this._withBuilder,
          workDir: this._workDir,
          workspace: this._workspace,
          builderBaseConfig: this._argvOptions.builderConfig,
