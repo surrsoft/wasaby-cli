@@ -9,7 +9,7 @@
     store - Папка в которую будут клонироваться хранилища
     workDir - Папка в которой соберется сбоорка билдером по умолчанию application
     ports - Порты на которых запускать тест сервер  
-    tasks - Задачи которые нужно выполнить: initStore|build|startTest 
+    tasks - Задачи которые нужно выполнить, по умолчанию запускаются все три:    
         initStore - Клонирование и чекаут на нужные ветки хранилищ
         build - Сборка 
         startTest - Запуск тестов
@@ -22,5 +22,12 @@
           
 ## Пример
 
-node cli --branch=20.1000/bugfix/mergeable-options --rc=rc-20.1000 --rep=Types
+node cli --branch=20.1000/bugfix/mergeable-options --rc=rc-20.1000 --rep=Types --withBuilder --only
 
+## Запуск локально
+1. Установите test-cli 
+    npm install git+https://git.sbis.ru/sbis/test-cli.git#rc-20.1000 --save-dev
+2. Соберите проект 
+    node node_modules\test-cli\cli.js --tasks=initStore,build --builderConfig=./buildTemplate.json
+3. Теперь можно запустить тесты
+    node node_modules\test-cli\cli.js --tasks=startTest --rep=sbis3-controls --server --only 
