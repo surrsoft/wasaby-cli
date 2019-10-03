@@ -10,6 +10,12 @@ function log(message, name) {
    console.log(`[${time}]${name}: ${message}`);
 }
 
+function error(message) {
+   //tslint:disable-next-line:no-console
+   console.error(message);
+}
+
 module.exports = {
-   log: log
+   log: log,
+   error: error
 };

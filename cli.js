@@ -1,32 +1,55 @@
 const path = require('path');
-const CONFIG = './config.json';
 
 const Store = require('./app/store');
 const Build = require('./app/build');
 const Test = require('./app/test');
-
+const config = require('./app/util/config');
+const logger = require('./app/util/logger');
+const ERROR_CODE = 2;
 /**
  * Модуль для запуска юнит тестов
  * @class Cli
  * @author Ганшин Я.О.
  */
+const oldNamesMap = {
+   engine: 'sbis3.engine',
+   types: 'saby-types',
+   i18n: 'saby-i18n',
+   ws: 'sbis-ws',
+   controls: 'sbis3-controls',
+   app: 'wasaby-app',
+   router: 'Router',
+   ui: 'saby-ui',
+   schemeeditor: 'sbis3-schemeeditor',
+   permission: 'permission',
+   viewsettings: 'viewsettings',
+   'plugin-client': 'sbis-plugin-client',
+   'navigation-configuration': 'navigation-configuration',
+   rmi_test: 'rmi_test'
+};
+
 class Cli {
    constructor() {
-      let config = require(CONFIG);
-      this._reposConfig = config.repositories;
+      const cfg = config.get();
+      this._reposConfig = cfg.repositories;
       this._argvOptions = this._getArgvOptions();
-      this._store = this._argvOptions.store || path.join(process.cwd(), config.store);
+      this._store = this._argvOptions.store || path.join(__dirname, cfg.store);
       //на _repos остались завязаны srv и скрипт сборки пока это не убрать
       this._store = path.join(this._store, '_repos');
-      this._testRep = this._argvOptions.rep.split(',').map(name => name.trim());
-      this._workDir = this._argvOptions.workDir || path.join(process.cwd(), config.workDir);
+      this._testRep = this._argvOptions.rep ? this._argvOptions.rep.split(',').map(name => name.trim()) : cfg.testRep;
+      this._rc = this._argvOptions.rc || cfg.rc;
+      this._workDir = this._argvOptions.workDir || path.join(process.cwd(), cfg.workDir);
       this._workspace = this._argvOptions.workspace || './application';
-      this.tasks = this._argvOptions.tasks ?  this._argvOptions.tasks.split(',') : ['initStore', 'build', 'startTest'];
-      if (this._argvOptions.withBuilder) {
+      this.tasks = this._argvOptions.tasks ? this._argvOptions.tasks.split(',') : ['initStore', 'build', 'startTest'];
+      if (this._argvOptions.withBuilder || this._argvOptions.builderCfg) {
          this._resources = path.join(this._workDir, 'application');
       } else {//если сборка идет джином то исходники лежат в  intest-ps/ui/resources
          this._resources = path.join(this._workDir, 'intest-ps', 'ui', 'resources');
       }
+      //преобразование имен к npm надо удалить как сборщики переименют у себя
+      this._testRep = this._testRep.map(name => {
+         return oldNamesMap[name] ? oldNamesMap[name] : name;
+      });
    }
 
    /**
@@ -46,26 +69,28 @@ class Cli {
    }
 
    async build() {
-      let build = new Build({
+      const build = new Build({
          builderCache: this._argvOptions.builderCache || 'builder-json-cache',
          projectDir: this._argvOptions.projectDir,
-         rc: this._argvOptions.rc,
+         rc: this._rc,
          reposConfig: this._reposConfig,
          resources: this._resources,
          store: this._store,
          testRep: this._testRep,
          withBuilder: !!this._argvOptions.withBuilder,
          workDir: this._workDir,
-         workspace: this._workspace
+         workspace: this._workspace,
+         builderBaseConfig: this._argvOptions.builderConfig,
+         only: !!this._argvOptions.only
       });
 
       await build.run();
    }
 
    async initStore() {
-      let store = new Store({
+      const store = new Store({
          argvOptions: this._argvOptions,
-         rc: this._argvOptions.rc,
+         rc: this._rc,
          reposConfig: this._reposConfig,
          store: this._store,
          testRep: this._testRep
@@ -75,14 +100,16 @@ class Cli {
    }
 
    async test() {
-      let test = new Test({
+      const test = new Test({
          ports: this._argvOptions.ports || '',
          reposConfig: this._reposConfig,
          resources: this._resources,
          store: this._store,
          testRep: this._testRep,
          workDir: this._workDir,
-         workspace: this._workspace
+         workspace: this._workspace,
+         only: !!this._argvOptions.only,
+         server: !!this._argvOptions.server
       });
 
       await test.run();
@@ -93,32 +120,26 @@ class Cli {
     * @private
     */
    _getArgvOptions() {
-      let options = {};
+      const options = {};
       process.argv.slice(2).forEach(arg => {
          if (arg.startsWith('--')) {
-            let argName = arg.substr(2);
+            const argName = arg.substr(2);
             const [name, value] = argName.split('=', 2);
             options[name] = value === undefined ? true : value;
          }
       });
 
-      if (!options.rep) {
-         throw new Error('Параметр --rep не передан');
-      }
-
       return options;
    }
-
 }
 
 module.exports = Cli;
 
 if (require.main.filename === __filename) {
    //Если файл запущен напрямую запускаем тестирование
-   let cli = new Cli();
+   const cli = new Cli();
    cli.run().catch((e) => {
-      //tslint:disable-next-line:no-console
-      console.error(e);
-      process.exit(2);
+      logger.error(e);
+      process.exit(ERROR_CODE);
    });
 }
