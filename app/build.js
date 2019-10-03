@@ -152,7 +152,7 @@ class Build extends Base {
     * @private
     */
    async _tslibInstall() {
-      const tslib = path.relative(process.cwd(), path.join(this._store, 'ws', '/WS.Core/ext/tslib.js'));
+      const tslib = path.relative(process.cwd(), path.join(this._modulesMap.getRepositoryPath('sbis3-ws'), '/WS.Core/ext/tslib.js'));
       logger.log(tslib, 'tslib_path');
       return this._shell.execute(
          `node node_modules/saby-typescript/install.js --tslib=${tslib}`,
