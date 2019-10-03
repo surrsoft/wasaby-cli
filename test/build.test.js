@@ -11,7 +11,8 @@ describe('Build', () => {
          testRep: ['test1'],
          reposConfig: {
             test1: {},
-            test2: {}
+            test2: {},
+            'sbis3-ws': {}
          },
          store: ''
       });
