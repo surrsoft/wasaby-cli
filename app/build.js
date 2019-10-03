@@ -75,7 +75,7 @@ class Build extends Base {
          srv.service.items[0].ui_module.forEach((item) => {
             if (this._modulesMap.has(item.$.name)) {
                const cfg = this._modulesMap.get(item.$.name);
-               item.$.url = path.relative(dirName, path.join(this._store, cfg.rep, cfg.modulePath));
+               item.$.url = path.relative(dirName, cfg.s3mod);
                srvModules.push(cfg.name);
                cfg.srv = true;
                this._modulesMap.set(cfg.name, cfg);
