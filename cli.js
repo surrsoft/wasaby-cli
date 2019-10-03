@@ -15,7 +15,7 @@ const oldNamesMap = {
    engine: 'sbis3.engine',
    types: 'saby-types',
    i18n: 'saby-i18n',
-   ws: 'sbis-ws',
+   ws: 'sbis3-ws',
    controls: 'sbis3-controls',
    app: 'wasaby-app',
    router: 'Router',
@@ -24,8 +24,7 @@ const oldNamesMap = {
    permission: 'permission',
    viewsettings: 'viewsettings',
    'plugin-client': 'sbis-plugin-client',
-   'navigation-configuration': 'navigation-configuration',
-   rmi_test: 'rmi_test'
+   'navigation-configuration': 'navigation-configuration'
 };
 
 class Cli {
@@ -50,6 +49,11 @@ class Cli {
       //преобразование имен к npm надо удалить как сборщики переименют у себя
       this._testRep = this._testRep.map(name => {
          return oldNamesMap[name] ? oldNamesMap[name] : name;
+      });
+      Object.keys(oldNamesMap).forEach(name => {
+         if (this._argvOptions[name]) {
+            this._argvOptions[oldNamesMap[name]] = this._argvOptions[name];
+         }
       });
    }
 
