@@ -4,7 +4,6 @@ const fs = require('fs-extra');
 const Test = require('../app/test');
 let xml = require('../app/util/xml');
 
-
 let test;
 describe('Test', () => {
    beforeEach(() => {
@@ -55,7 +54,7 @@ describe('Test', () => {
       let stubcli, stubfsjson, stubexecute, stubOutputFile;
       beforeEach(() => {
          stubcli = sinon.stub(test, '_reposConfig').value({
-            'test': {
+            test: {
                unitInBrowser: true
             }
          });
@@ -71,7 +70,7 @@ describe('Test', () => {
             throw new Error();
          });
          stubcli = sinon.stub(test, '_reposConfig').value({
-            'test': {
+            test: {
                unitInBrowser: false
             }
          });
@@ -80,10 +79,32 @@ describe('Test', () => {
       });
 
       it('should run test', (done) => {
-         stubOutputFile = sinon.stub(fs, 'outputFileSync').callsFake(() => {
-         });
+         stubOutputFile = sinon.stub(fs, 'outputFileSync').callsFake(() => undefined);
          stubexecute = sinon.stub(test._shell, 'execute').callsFake((cmd) => {
             chai.expect(cmd).to.includes('--browser');
+            done();
+         });
+
+         test._startBrowserTest('test');
+      });
+
+      it('should start test server', (done) => {
+         test = new Test({
+            rc: 'rc-12',
+            store: '',
+            reposConfig: {
+               test: {
+                  unitInBrowser: true
+               }
+            },
+            workspace: '',
+            workDir: '',
+            resources: '',
+            server: true
+         });
+         stubOutputFile = sinon.stub(fs, 'outputFileSync').callsFake(() => undefined);
+         stubexecute = sinon.stub(test._shell, 'execute').callsFake((cmd) => {
+            chai.expect(cmd).to.includes('server.js');
             done();
          });
 
@@ -103,7 +124,7 @@ describe('Test', () => {
       it('should create report when it not exists', (done) => {
          stubTestReports = sinon.stub(test, '_testReports').value(['test', 'test1']);
          stubexistsSync = sinon.stub(fs, 'existsSync').callsFake((name) => {
-            if (name == 'test1') {
+            if (name === 'test1') {
                return false;
             }
             return true;
@@ -121,12 +142,13 @@ describe('Test', () => {
          });
 
          chai.expect(() => {
-            test.checkReport()
+            test.checkReport();
          }).to.not.throw();
       });
       afterEach(() => {
          stubTestReports.restore();
          stubexistsSync.restore();
+         // tslint:disable-next-line:no-unused-expression
          stubOtput && stubOtput.restore();
       });
    });
@@ -160,6 +182,7 @@ describe('Test', () => {
          stubstartBrowserTest.restore();
          stubtestList.restore();
          stubBuild.restore();
+         // tslint:disable-next-line:no-unused-expression
          stubExecute && stubExecute.restore();
       });
    });
@@ -167,8 +190,7 @@ describe('Test', () => {
    describe('.prepareReport()', () => {
       let stubRead, stubWrite, stubTestReports, fsExistsSync, stubTestError;
       beforeEach(() => {
-         stubWrite = sinon.stub(xml, 'writeXmlFile').callsFake(() => {
-         });
+         stubWrite = sinon.stub(xml, 'writeXmlFile').callsFake(() => undefined);
          stubTestError = sinon.stub(test, '_testErrors').value({});
          stubTestReports = sinon.stub(test, '_testReports').value(new Map([['test', {}], ['test1', {}]]));
          stubRead = sinon.stub(fs, 'readFileSync').callsFake(() => {
@@ -178,7 +200,7 @@ describe('Test', () => {
       });
 
       it('should return all test', (done) => {
-         stubWrite.callsFake(function (name, obj) {
+         stubWrite.callsFake((name, obj) => {
             chai.expect(obj.testsuite.testcase[0].$.classname).to.equal('[test]: test1');
             done();
          });
