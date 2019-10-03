@@ -2,22 +2,22 @@
    "store": "store",
    "workDir": "application",
    "repositories": {
-      "engine": {
+      "sbis3.engine": {
          "url": "https://git.sbis.ru/sbis/engine.git",
          "unitInBrowser": true
       },
-      "types": {
+      "saby-types": {
          "url": "https://platform-git.sbis.ru/saby/Types.git"
       },
-      "i18n": {
+      "saby-i18n": {
          "url": "https://platform-git.sbis.ru/saby/I18n.git",
          "unitInBrowser": true
       },
-      "ws": {
+      "sbis3-ws": {
          "url": "https://git.sbis.ru/sbis/ws.git",
          "unitInBrowser": true
       },
-      "controls": {
+      "sbis3-controls": {
          "url": "https://git.sbis.ru/sbis/controls.git",
          "unitInBrowser": true
       },
@@ -25,15 +25,15 @@
          "url": "https://git.sbis.ru/sbis/rmi.git",
          "unitInBrowser": true
       },
-      "app": {
+      "wasaby-app": {
          "url": "https://platform-git.sbis.ru/saby/wasaby-app.git",
          "unitInBrowser": true
       },
-      "router": {
+      "Router": {
          "url": "https://platform-git.sbis.ru/saby/router.git",
          "unitInBrowser": true
       },
-      "ui": {
+      "saby-ui": {
          "url": "https://platform-git.sbis.ru/saby/ui.git",
          "unitInBrowser": true
       },
@@ -43,7 +43,7 @@
             "/" : "cdn"
          }
       },
-      "schemeeditor": {
+      "sbis3-schemeeditor": {
          "url": "https://git.sbis.ru/engine/schemeeditor.git",
          "unitInBrowser": true
       },
@@ -54,7 +54,7 @@
       "viewsettings": {
          "url": "https://git.sbis.ru/engine/viewsettings.git"
       },
-      "plugin-client": {
+      "sbis-plugin-client": {
          "url": "https://git.sbis.ru/sbis/plugin-client.git"
       },
       "navigation-configuration": {

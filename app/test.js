@@ -43,10 +43,13 @@ class Test extends Base {
       this._reposConfig = cfg.reposConfig;
       this._workspace = cfg.workspace || cfg.workDir;
       this._testErrors = {};
+      this._server = cfg.server;
       this._modulesMap = new ModulesMap({
          reposConfig: cfg.reposConfig,
          store: cfg.store,
-         testRep: cfg.testRep
+         testRep: cfg.testRep,
+         workDir: cfg.workDir,
+         only: cfg.only
       });
    }
 
@@ -141,11 +144,17 @@ class Test extends Base {
       for (const name of this._modulesMap.getTestList()) {
          promiseArray.push(new Promise(resolve => {
             const nodeCfg = this._getTestConfig(name, NODE_SUFFIX);
-            fs.outputFileSync(`./testConfig_${name}.json`, JSON.stringify(nodeCfg, null, 4));
+            fs.outputFileSync(
+               this._getPathToTestConfig(name, false),
+               JSON.stringify(nodeCfg, null, 4)
+            );
             if (this._reposConfig[name].unitInBrowser) {
                const browserCfg = this._getTestConfig(name, BROWSER_SUFFIX);
                browserCfg.url.port = configPorts.shift() || port++;
-               fs.outputFileSync(`./testConfig_${name}InBrowser.json`, JSON.stringify(browserCfg, null, 4));
+               fs.outputFileSync(
+                  this._getPathToTestConfig(name, true),
+                  JSON.stringify(browserCfg, null, 4)
+               );
             }
             resolve();
          }));
@@ -155,11 +164,14 @@ class Test extends Base {
 
    async _startNodeTest(name) {
       try {
-         await this._shell.execute(
-            `node node_modules/saby-units/cli.js --isolated --report --config=testConfig_${name}.json`,
-            process.cwd(),
-            `test node ${name}`
-         );
+         if (!this._server) {
+            const configPath = this._getPathToTestConfig(name, false);
+            await this._shell.execute(
+               `node node_modules/saby-units/cli.js --isolated --report --config=${configPath}`,
+               process.cwd(),
+               `test node ${name}`
+            );
+         }
       } catch (e) {
          this._testErrors[name + NODE_SUFFIX] = e;
       }
@@ -176,8 +188,15 @@ class Test extends Base {
       if (cfg.unitInBrowser) {
          logger.log('Запуск тестов в браузере', name);
          try {
+            const configPath = this._getPathToTestConfig(name, true);
+            let cmd = '';
+            if (this._server) {
+               cmd = `node node_modules/saby-units/cli/server.js --config=${configPath}`;
+            } else {
+               cmd = `node node_modules/saby-units/cli.js --browser --report --config=${configPath}`;
+            }
             await this._shell.execute(
-               `node node_modules/saby-units/cli.js --browser --report --config=testConfig_${name}InBrowser.json`,
+               cmd,
                process.cwd(),
                `test browser ${name}`
             );
@@ -232,6 +251,15 @@ class Test extends Base {
          throw new Error(`Тестирование завершено с ошибкой ${e}`);
       }
    }
+
+   _getPathToTestConfig(name, isBrowser) {
+      const browser = isBrowser ? '_browser' : '';
+      return path.relative(
+         process.cwd(),
+         path.normalize(path.join( __dirname, '..', `testConfig_${name}${browser}.json`))
+      );
+   }
+
 }
 
 module.exports = Test;
