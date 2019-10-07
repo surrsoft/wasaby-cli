@@ -66,10 +66,9 @@ class Store extends Base {
          await this._shell.execute('git reset --hard HEAD', pathToRepos, `git_reset ${name}`);
          await this._shell.execute('git clean -fdx', pathToRepos, `git_clean ${name}`);
          await this._shell.execute('git fetch', pathToRepos, `git_fetch ${name}`);
+         await this._shell.execute(`git checkout ${checkoutBranch}`, pathToRepos, `git_checkout ${name}`);
          if (checkoutBranch.includes('/') || checkoutBranch === this._rc) {
-            await this._shell.execute(`git checkout -B -f origin/${checkoutBranch}`, pathToRepos, `git_checkout ${name}`);
-         } else {
-            await this._shell.execute(`git checkout ${checkoutBranch}`, pathToRepos, `git_checkout ${name}`);
+            await this._shell.execute('git pull', pathToRepos, `git_pull ${name}`);
          }
       } catch (err) {
          if (/rc-.*00/.test(checkoutBranch)) {
