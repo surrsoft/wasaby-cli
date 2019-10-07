@@ -1,3 +1,6 @@
+//tslint:disable:no-unused-expression
+//tslint:disable:one-variable-per-declaration
+
 const chai = require('chai');
 const sinon = require('sinon');
 const fs = require('fs-extra');
@@ -11,7 +14,7 @@ describe('Store', () => {
       store = new Store({
          rc: 'rc-12',
          store: '',
-         argvOptions:{},
+         argvOptions: {},
          reposConfig: {
             test1: {},
             test2: {}
@@ -69,7 +72,7 @@ describe('Store', () => {
                url: 'test@test.git'
             }
          });
-         stubfs = sinon.stub(fs, 'existsSync').callsFake(() => false)
+         stubfs = sinon.stub(fs, 'existsSync').callsFake(() => false);
       });
 
       it('cloneRepToStore', (done) => {
@@ -97,7 +100,7 @@ describe('Store', () => {
          stubExecute.restore();
          stubRepos.restore();
          stubfs.restore();
-      })
+      });
    });
 
    describe('.checkout()', () => {
@@ -137,9 +140,7 @@ describe('Store', () => {
       it('should throw error if merge is failed', (done) => {
          stubExecute = sinon.stub(store._shell, 'execute').callsFake((cmd) => {
             if (cmd.includes('merge')) {
-               return Promise.reject();
-            } else {
-               return Promise.resolve();
+               throw new Error();
             }
          });
          stubModule = sinon.stub(store, '_testRep').value('test');
@@ -170,7 +171,7 @@ describe('Store', () => {
    });
 
    describe('.run()', () => {
-      let stubmkdirs, stubRepos, initRepStore;
+      let stubmkdirs, stubRepos, initRepStore, rmdirSync, stubRepConf;
       it('should make store dir', (done) => {
          let makeDir;
          stubmkdirs = sinon.stub(fs, 'mkdirs').callsFake((path) => {
@@ -185,10 +186,31 @@ describe('Store', () => {
          });
       });
 
+      it('should checkout brunch twice', (done) => {
+         let count = 1;
+         rmdirSync = sinon.stub(fs, 'rmdirSync').callsFake(() => undefined);
+         stubRepConf = sinon.stub(store, '_reposConfig').value( {
+            test: {}
+         });
+         initRepStore = sinon.stub(store, 'initRep').callsFake(() => {
+            if (count++ === 1) {
+               const e = new Error('error');
+               e.code = 101;
+               return Promise.reject(e);
+            } else {
+               done();
+               return Promise.resolve();
+            }
+         });
+         store.run();
+      });
+
       afterEach(() => {
          stubmkdirs && stubmkdirs.restore();
          stubRepos && stubRepos.restore();
          initRepStore && initRepStore.restore();
+         rmdirSync && rmdirSync.restore();
+         stubRepConf && stubRepConf.restore();
       });
    });
 });
