@@ -57,7 +57,6 @@ class Cli {
       let config = this.readConfig();
       this._repos = config.repositories;
 
-
       this._testReports = new Map();
       this._argvOptions = this._getArgvOptions();
       this._workDir = this._argvOptions.workDir || path.join(process.cwd(), config.workDir);
@@ -830,14 +829,6 @@ class Cli {
             await this._execute(`git checkout ${checkoutBranch.replace('00', '10')}`, pathToRepos, `checkout ${name}`);
          } else {
             throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${err}`);
-         }
-      }
-      if (this._testRep.includes(name)) {
-         this.log(`Попытка смержить ветку "${checkoutBranch}" с "${this._rc}"`, name);
-         try {
-            await this._execute(`git merge origin/${this._rc}`, pathToRepos, `git_merge ${name}`);
-         } catch (e) {
-            throw new Error(`При мерже "${checkoutBranch}" в "${this._rc}" произошел конфликт`);
          }
       }
    }
