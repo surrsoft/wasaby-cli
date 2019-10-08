@@ -33,6 +33,7 @@ class Store extends Base {
                   logger.log(`Повторное клонирование ${name}`);
                   return this.initRep(name);
                }
+               throw error;
             });
          }));
          logger.log('Инициализация хранилища завершена успешно');
