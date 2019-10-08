@@ -5,6 +5,8 @@ const walkDir = require('./util/walkDir');
 const logger = require('./util/logger');
 const Base = require('./base');
 
+const ERROR_MERGE_CODE = 101;
+
 class Store extends Base {
    constructor(cfg) {
       super(cfg);
@@ -24,7 +26,15 @@ class Store extends Base {
       try {
          await fs.mkdirs(this._store);
          await Promise.all(Object.keys(this._reposConfig).map((name) => {
-            return this.initRep(name);
+            return this.initRep(name).catch(error => {
+               if (error.code === ERROR_MERGE_CODE) {
+                  logger.log(`Удаление репозитория ${name}`);
+                  fs.rmdirSync(path.join(this._store, name));
+                  logger.log(`Повторное клонирование ${name}`);
+                  return this.initRep(name);
+               }
+               throw error;
+            });
          }));
          logger.log('Инициализация хранилища завершена успешно');
       } catch (e) {
@@ -43,7 +53,7 @@ class Store extends Base {
       if (!cfg.skip && !cfg.path) {
          const branch = this._argvOptions[name] || this._rc;
          await this.cloneRepToStore(name);
-         return this.checkout(
+         await this.checkout(
             name,
             branch
          );
@@ -84,7 +94,9 @@ class Store extends Base {
          try {
             await this._shell.execute(`git merge origin/${this._rc}`, pathToRepos, `git_merge ${name}`);
          } catch (e) {
-            throw new Error(`При мерже '${checkoutBranch}' в '${this._rc}' произошел конфликт`);
+            const error = new Error(`При мерже '${checkoutBranch}' в '${this._rc}' произошел конфликт`);
+            error.code = ERROR_MERGE_CODE;
+            throw error;
          }
       }
    }
