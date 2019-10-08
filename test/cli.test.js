@@ -639,33 +639,6 @@ describe('CLI', () => {
          });
       });
 
-      it('should merge branch with rc', (done) => {
-         let commandsArray = [];
-         stubExecute = sinon.stub(cli, '_execute').callsFake((cmd) => {
-            commandsArray.push(cmd);
-            return Promise.resolve();
-         });
-         stubModule = sinon.stub(cli, '_testRep').value('test');
-         cli.checkout('test', 'branch', 'pathToRep').then(() => {
-            chai.expect(`git merge origin/${cli._rc}`).to.equal(commandsArray[4]);
-            done();
-         });
-      });
-
-      it('should throw error if merge is failed', (done) => {
-         stubExecute = sinon.stub(cli, '_execute').callsFake((cmd) => {
-            if (cmd.includes('merge')) {
-               return Promise.reject();
-            } else {
-               return Promise.resolve();
-            }
-         });
-         stubModule = sinon.stub(cli, '_testRep').value('test');
-         cli.checkout('test', 'branch', 'pathToRep').catch(() => {
-            done();
-         });
-      });
-
       it('should throw error if checkout is failed', (done) => {
          stubExecute = sinon.stub(cli, '_execute').callsFake((cmd) => {
             if (cmd.includes('checkout')) {
