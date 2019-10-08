@@ -42,7 +42,7 @@ class Cli {
       this.tasks = this._argvOptions.tasks ? this._argvOptions.tasks.split(',') : ['initStore', 'build', 'startTest'];
       if (this._argvOptions.withBuilder || this._argvOptions.builderConfig) {
          this._withBuilder = true;
-         this._resources = path.join(this._workDir, 'application');
+         this._resources = this._workDir;
       } else {//если сборка идет джином то исходники лежат в  intest-ps/ui/resources
          this._resources = path.join(this._workDir, 'intest-ps', 'ui', 'resources');
       }
