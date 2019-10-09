@@ -15,7 +15,7 @@ class Build extends Base {
       this._store = cfg.store;
       this._rc = cfg.rc;
       this._reposConfig = cfg.reposConfig;
-      this._withBuilder = cfg.withBuilder;
+      this._buildTools = cfg.buildTools;
       this._resources = cfg.resources;
       this._workDir = cfg.workDir;
       this._builderCache = cfg.builderCache;
@@ -43,7 +43,7 @@ class Build extends Base {
          logger.log('Подготовка тестов');
          await this._modulesMap.build();
          await this._tslibInstall();
-         if (this._withBuilder) {
+         if (this._buildTools === 'builder') {
             await this._initWithBuilder();
          } else {
             await this._initWithGenie();
