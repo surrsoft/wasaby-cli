@@ -18,6 +18,41 @@ describe('Build', () => {
       });
 
    });
+
+   describe('._run', () => {
+      it('should run builder', (done) => {
+         let buildB = new Build({
+            testRep: ['test1'],
+            reposConfig: {
+               test1: {}
+            },
+            store: '',
+            buildTools: 'builder'
+         });
+         sinon.stub(buildB, '_modulesMap').value({build: () => undefined});
+         sinon.stub(buildB, '_tslibInstall').callsFake(() => undefined);
+         sinon.stub(buildB, '_initWithBuilder').callsFake(() => {
+            done();
+         });
+         buildB._run();
+      });
+      it('should run genie', (done) => {
+         let buildG = new Build({
+            testRep: ['test1'],
+            reposConfig: {
+               test1: {}
+            },
+            store: '',
+            buildTools: 'jinnee'
+         });
+         sinon.stub(buildG, '_modulesMap').value({build: () => undefined});
+         sinon.stub(buildG, '_tslibInstall').callsFake(() => undefined);
+         sinon.stub(buildG, '_initWithGenie').callsFake(() => {
+            done();
+         });
+         buildG._run();
+      });
+   });
    describe('._makeBuilderConfig()', () => {
       let stubfs;
       beforeEach(() => {
