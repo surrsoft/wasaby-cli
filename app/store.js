@@ -85,6 +85,7 @@ class Store extends Base {
             // для некоторых репозиториев нет ветки yy.v00 только yy.v10 (19.610) в случае
             // ошибки переключаемся на 10 версию
             await this._shell.execute(`git checkout ${checkoutBranch.replace('00', '10')}`, pathToRepos, `checkout ${name}`);
+            await this._shell.execute('git pull', pathToRepos, `git_pull ${name}`);
          } else {
             throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${err}`);
          }
