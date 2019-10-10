@@ -93,7 +93,7 @@ class Store extends Base {
       if (this._testRep.includes(name)) {
          logger.log(`Попытка смержить ветку '${checkoutBranch}' с '${this._rc}'`, name);
          try {
-            await this._shell.execute(`git merge origin/${this._rc}`, pathToRepos, `git_merge ${name}`);
+            await this._shell.execute(`git merge remotes/origin/${this._rc}`, pathToRepos, `git_merge ${name}`);
          } catch (e) {
             const error = new Error(`При мерже '${checkoutBranch}' в '${this._rc}' произошел конфликт`);
             error.code = ERROR_MERGE_CODE;
