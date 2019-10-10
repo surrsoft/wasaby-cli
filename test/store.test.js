@@ -132,7 +132,7 @@ describe('Store', () => {
          });
          stubModule = sinon.stub(store, '_testRep').value('test');
          store.checkout('test', 'branch', 'pathToRep').then(() => {
-            chai.expect(`git merge origin/${store._rc}`).to.equal(commandsArray[4]);
+            chai.expect(`git merge remotes/origin/${store._rc}`).to.equal(commandsArray[4]);
             done();
          });
       });
