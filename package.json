@@ -1,6 +1,6 @@
 {
    "name": "test-cli",
-   "version": "19.610.0",
+   "version": "19.620.0",
    "description": "",
    "main": "cli.js",
    "scripts": {
@@ -11,14 +11,14 @@
    "author": "",
    "dependencies": {
       "cookie-parser": "^1.4.3",
-    "express": "^4.16.3",
-    "fs-extra": "^7.0.1",
+      "express": "^4.16.3",
+      "fs-extra": "^7.0.1",
       "p-map": "^2.1.0",
       "body-parser": "^1.18.3",
       "serve-static": "^1.14.1",
-      "saby-typescript": "git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-19.610",
-      "saby-units": "git+https://platform-git.sbis.ru/saby/Units.git#rc-19.610",
-      "sbis3-builder": "git+https://platform-git.sbis.ru/saby/Builder.git#rc-19.610",
+      "saby-typescript": "git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-19.620",
+      "saby-units": "git+https://platform-git.sbis.ru/saby/Units.git#rc-19.620",
+      "sbis3-builder": "git+https://platform-git.sbis.ru/saby/Builder.git#rc-19.620",
       "shelljs": "^0.8.3",
       "webdriverio": "5.7.2",
       "xml2js": "^0.4.19"
