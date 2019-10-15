@@ -6,7 +6,6 @@ const logger = require('./util/logger');
 const Base = require('./base');
 
 const ERROR_MERGE_CODE = 101;
-const TEMP_BRANCH = 'test-cli-temp-branch';
 
 class Store extends Base {
    constructor(cfg) {
@@ -77,18 +76,10 @@ class Store extends Base {
          await this._shell.execute('git reset --hard HEAD', pathToRepos, `git_reset ${name}`);
          await this._shell.execute('git clean -fdx', pathToRepos, `git_clean ${name}`);
          await this._shell.execute('git fetch', pathToRepos, `git_fetch ${name}`);
-
          if (checkoutBranch.includes('/') || checkoutBranch === this._rc) {
-            //Создадим и переключимся на новую ветку, чтобы мы не пытались удалить ветку на которой стоим.
-            await this._shell.execute(`git checkout -b ${TEMP_BRANCH}`, pathToRepos, `git_checkout ${name}`);
-
             await this._shell.execute(`git branch -D ${checkoutBranch}`, pathToRepos, true, `git_delete ${name}`);
-            await this._shell.execute(`git checkout ${checkoutBranch}`, pathToRepos, `git_checkout ${name}`);
-
-            await this._shell.execute(`git branch -D ${TEMP_BRANCH}`, pathToRepos, true, `git_delete ${name}`);
-         } else {
-            await this._shell.execute(`git checkout ${checkoutBranch}`, pathToRepos, `git_checkout ${name}`);
          }
+         await this._shell.execute(`git checkout ${checkoutBranch}`, pathToRepos, `git_checkout ${name}`);
       } catch (err) {
          if (/rc-.*00/.test(checkoutBranch)) {
             // для некоторых репозиториев нет ветки yy.v00 только yy.v10 (19.610) в случае
