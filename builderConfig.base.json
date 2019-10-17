@@ -1,5 +1,5 @@
 {
-   "cache": "./application/build-ui/builder-json-cache",
+   "cache": "./build-ui/builder-json-cache",
    "output": "./application/unit",
    "logs": "./application/logs",
    "typescript": true,
