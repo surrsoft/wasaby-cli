@@ -205,30 +205,30 @@ describe('modulesMap', () => {
       beforeEach(() => {
          stubModulesMap = sinon.stub(modulesMap, '_modulesMap').value(
              new Map([
-                ['testModule', {name: 'test11', rep: 'test1', depends: ['test12']}],
-                ['justModule', {name: 'test12', rep: 'test1', depends: []}],
-                ['undependedModule', {name: 'test13', rep: 'test1', depends: []}]
+                ['testModule', {name: 'testModule', rep: 'test1', depends: ['justModule']}],
+                ['justModule', {name: 'justModule', rep: 'test1', depends: []}],
+                ['independedModule', {name: 'independedModule', rep: 'test1', depends: []}]
              ])
          );
          stubTestModulesMap = sinon.stub(modulesMap, '_testModulesMap').value(new Map([
-            ['test1', ['test11']]
+            ['test1', ['testModule']]
          ]));
       });
 
       it('should mark module as for test', () => {
          modulesMap._markModulesForTest();
-         chai.expect(modulesMap.get('test12').forTests).to.be.true;
+         chai.expect(modulesMap.get('justModule').forTests).to.be.true;
       });
 
 
       it('should not mark module as for test when module has not been depended on test module', () => {
          modulesMap._markModulesForTest();
-         chai.expect(modulesMap.get('test13').forTests).to.be.undefined;
+         chai.expect(modulesMap.get('independedModule').forTests).to.be.undefined;
       });
 
       it('should mark module test module', () => {
          modulesMap._markModulesForTest();
-         chai.expect(modulesMap.get('test11').forTests).to.be.true;
+         chai.expect(modulesMap.get('testModule').forTests).to.be.true;
       });
 
       afterEach(() => {
