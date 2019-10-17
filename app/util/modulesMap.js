@@ -250,6 +250,8 @@ class ModulesMap {
                      this._modulesMap.set(moduleName, cfg);
                   }
                });
+               testModuleCfg.forTests = true;
+               this._modulesMap.set(testModuleName, testModuleCfg);
             });
          }
       });

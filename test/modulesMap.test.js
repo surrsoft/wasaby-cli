@@ -198,4 +198,42 @@ describe('modulesMap', () => {
          stubModulesMap.restore();
       });
    });
+
+   describe('_markModulesForTest()',() => {
+      let stubModulesMap;
+      let stubTestModulesMap;
+      beforeEach(() => {
+         stubModulesMap = sinon.stub(modulesMap, '_modulesMap').value(
+             new Map([
+                ['testModule', {name: 'testModule', rep: 'test1', depends: ['justModule']}],
+                ['justModule', {name: 'justModule', rep: 'test1', depends: []}],
+                ['independedModule', {name: 'independedModule', rep: 'test1', depends: []}]
+             ])
+         );
+         stubTestModulesMap = sinon.stub(modulesMap, '_testModulesMap').value(new Map([
+            ['test1', ['testModule']]
+         ]));
+      });
+
+      it('should mark module as for test', () => {
+         modulesMap._markModulesForTest();
+         chai.expect(modulesMap.get('justModule').forTests).to.be.true;
+      });
+
+
+      it('should not mark module as for test when module has not been depended on test module', () => {
+         modulesMap._markModulesForTest();
+         chai.expect(modulesMap.get('independedModule').forTests).to.be.undefined;
+      });
+
+      it('should mark module test module', () => {
+         modulesMap._markModulesForTest();
+         chai.expect(modulesMap.get('testModule').forTests).to.be.true;
+      });
+
+      afterEach(() => {
+         stubModulesMap.restore();
+         stubTestModulesMap.restore();
+      });
+   });
 });
