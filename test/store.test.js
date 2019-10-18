@@ -188,7 +188,7 @@ describe('Store', () => {
 
       it('should checkout brunch twice', (done) => {
          let count = 1;
-         rmdirSync = sinon.stub(fs, 'rmdirSync').callsFake(() => undefined);
+         rmdirSync = sinon.stub(fs, 'removeSync').callsFake(() => undefined);
          stubRepConf = sinon.stub(store, '_reposConfig').value( {
             test: {}
          });

@@ -29,7 +29,7 @@ class Store extends Base {
             return this.initRep(name).catch(error => {
                if (error.code === ERROR_MERGE_CODE) {
                   logger.log(`Удаление репозитория ${name}`);
-                  fs.rmdirSync(path.join(this._store, name));
+                  fs.removeSync(path.join(this._store, name));
                   logger.log(`Повторное клонирование ${name}`);
                   return this.initRep(name);
                }
