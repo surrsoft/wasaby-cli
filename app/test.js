@@ -194,7 +194,7 @@ class Test extends Base {
             if (this._server) {
                cmd = `node node_modules/saby-units/cli/server.js --config=${configPath}`;
             } else {
-               cmd = `node node_modules/saby-units/cli.js --browser --report --config=${configPath}`;
+               cmd = `node node_modules/saby-units/cli.js --selenium --browser --report --config=${configPath}`;
             }
             await this._shell.execute(
                cmd,
