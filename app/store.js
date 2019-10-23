@@ -74,7 +74,7 @@ class Store extends Base {
       try {
          logger.log(`Переключение на ветку ${checkoutBranch}`, name);
          await this._shell.execute('git fetch --all --prune', pathToRepos, `git_fetch ${name}`);
-         await this._shell.execute('git merge --abort', pathToRepos, `merge abort ${name}`);
+         await this._shell.execute('git merge --abort', pathToRepos, true, `merge abort ${name}`);
          await this._shell.execute('git reset --hard HEAD', pathToRepos, `git_reset ${name}`);
          await this._shell.execute('git clean -fdx', pathToRepos, `git_clean ${name}`);
          await this._shell.execute(`git checkout ${checkoutBranch}`, pathToRepos, `git_checkout ${name}`);
