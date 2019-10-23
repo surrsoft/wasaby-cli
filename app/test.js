@@ -8,6 +8,7 @@ const Base = require('./base');
 
 const BROWSER_SUFFIX = '_browser';
 const NODE_SUFFIX = '_node';
+const PARALLEL_TEST_COUNT = 2;
 
 let getReportTemplate = () => {
    return {
@@ -193,7 +194,7 @@ class Test extends Base {
             if (this._server) {
                cmd = `node node_modules/saby-units/cli/server.js --config=${configPath}`;
             } else {
-               cmd = `node node_modules/saby-units/cli.js --browser --report --config=${configPath}`;
+               cmd = `node node_modules/saby-units/cli.js --selenium --browser --report --config=${configPath}`;
             }
             await this._shell.execute(
                cmd,
@@ -240,7 +241,7 @@ class Test extends Base {
                this._startBrowserTest(name)
             ]);
          }, {
-            concurrency: 4
+            concurrency: PARALLEL_TEST_COUNT
          });
          await this._setContents('release');
          await this.checkReport();

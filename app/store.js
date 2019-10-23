@@ -29,7 +29,7 @@ class Store extends Base {
             return this.initRep(name).catch(error => {
                if (error.code === ERROR_MERGE_CODE) {
                   logger.log(`Удаление репозитория ${name}`);
-                  fs.rmdirSync(path.join(this._store, name));
+                  fs.removeSync(path.join(this._store, name));
                   logger.log(`Повторное клонирование ${name}`);
                   return this.initRep(name);
                }
@@ -54,8 +54,8 @@ class Store extends Base {
          const branch = this._argvOptions[name] || this._rc;
          await this.cloneRepToStore(name);
          await this.checkout(
-            name,
-            branch
+             name,
+             branch
          );
       }
    }
@@ -73,19 +73,20 @@ class Store extends Base {
       }
       try {
          logger.log(`Переключение на ветку ${checkoutBranch}`, name);
+         await this._shell.execute('git fetch --all --prune', pathToRepos, `git_fetch ${name}`);
+         await this._shell.execute('git merge --abort', pathToRepos, true, `merge abort ${name}`);
          await this._shell.execute('git reset --hard HEAD', pathToRepos, `git_reset ${name}`);
          await this._shell.execute('git clean -fdx', pathToRepos, `git_clean ${name}`);
-         await this._shell.execute('git fetch', pathToRepos, `git_fetch ${name}`);
-         if (checkoutBranch.includes('/') || checkoutBranch === this._rc) {
-            await this._shell.execute(`git branch -D ${checkoutBranch}`, pathToRepos, true, `git_delete ${name}`);
-         }
          await this._shell.execute(`git checkout ${checkoutBranch}`, pathToRepos, `git_checkout ${name}`);
+         if (checkoutBranch.includes('/') || checkoutBranch === this._rc) {
+            await this._shell.execute('git pull --force', pathToRepos, `git_pull ${name}`);
+         }
       } catch (err) {
          if (/rc-.*00/.test(checkoutBranch)) {
             // для некоторых репозиториев нет ветки yy.v00 только yy.v10 (19.610) в случае
             // ошибки переключаемся на 10 версию
             await this._shell.execute(`git checkout ${checkoutBranch.replace('00', '10')}`, pathToRepos, `checkout ${name}`);
-            await this._shell.execute('git pull', pathToRepos, `git_pull ${name}`);
+            await this._shell.execute('git pull --force', pathToRepos, `git_pull ${name}`);
          } else {
             throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${err}`);
          }
