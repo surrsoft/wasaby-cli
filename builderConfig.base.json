@@ -8,6 +8,7 @@
    "clearOutput": true,
    "less": true,
    "themes": true,
+   "symlinks": false,
    "modules": [
    ]
 }
