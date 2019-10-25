@@ -109,7 +109,7 @@ describe('Store', () => {
       it('should checkout branch', (done) => {
          stubExecute = sinon.stub(store._shell, 'execute').callsFake((cmd, path, label) => {
             if (typeof label === 'string' && label.includes('git_checkout')) {
-               chai.expect(cmd).to.equal('git checkout branch');
+               chai.expect(cmd).to.equal('git checkout -f branch');
                done();
             }
             return Promise.resolve();
@@ -132,7 +132,7 @@ describe('Store', () => {
          });
          stubModule = sinon.stub(store, '_testRep').value('test');
          store.checkout('test', 'branch', 'pathToRep').then(() => {
-            chai.expect(`git merge remotes/origin/${store._rc}`).to.equal(commandsArray[4]);
+            chai.expect(`git merge remotes/origin/${store._rc}`).to.equal(commandsArray[6]);
             done();
          });
       });
