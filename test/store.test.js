@@ -6,11 +6,13 @@ const sinon = require('sinon');
 const fs = require('fs-extra');
 const path = require('path');
 const Store = require('../app/store');
-
+const Git = require('../app/util/git');
+const shell = require('../app/util/shell');
 let store;
-
+let stubExecute;
 describe('Store', () => {
    beforeEach(() => {
+      stubExecute = sinon.stub(shell.prototype, 'execute').callsFake(() => {});
       store = new Store({
          rc: 'rc-12',
          store: '',
@@ -18,9 +20,12 @@ describe('Store', () => {
          reposConfig: {
             test1: {},
             test2: {}
-         }
+         },
+         testRep:['name']
       });
-
+   });
+   afterEach(() => {
+      stubExecute.restore();
    });
    describe('initRep', () => {
       let stubCheckout, stubClone, stubMkDir, stubRepConf;
@@ -65,7 +70,7 @@ describe('Store', () => {
    });
 
    describe('.cloneRepToStore()', () => {
-      let stubRepos, stubExecute, stubfs;
+      let stubRepos, stubfs;
       beforeEach(() => {
          stubRepos = sinon.stub(store, '_reposConfig').value({
             test: {
@@ -76,7 +81,7 @@ describe('Store', () => {
       });
 
       it('cloneRepToStore', (done) => {
-         stubExecute = sinon.stub(store._shell, 'execute').callsFake((cmd) => {
+         stubExecute.callsFake((cmd) => {
             chai.expect(cmd).to.equal('git clone test@test.git test');
             done();
             return Promise.resolve();
@@ -87,7 +92,7 @@ describe('Store', () => {
       });
 
       it('cloneRepToStore2', (done) => {
-         stubExecute = sinon.stub(store._shell, 'execute').callsFake((cmd) => {
+         stubExecute.callsFake((cmd) => {
             return Promise.reject();
          });
 
@@ -97,19 +102,18 @@ describe('Store', () => {
       });
 
       afterEach(() => {
-         stubExecute.restore();
          stubRepos.restore();
          stubfs.restore();
       });
    });
 
    describe('.checkout()', () => {
-      let stubExecute, stubModule;
+      let stubModule;
 
       it('should checkout branch', (done) => {
-         stubExecute = sinon.stub(store._shell, 'execute').callsFake((cmd, path, label) => {
-            if (label.includes('git_checkout')) {
-               chai.expect(cmd).to.equal('git checkout branch');
+         stubExecute.callsFake((cmd, path, label) => {
+            if (typeof label === 'string' && label.includes('checkout')) {
+               chai.expect(cmd).to.equal('git checkout -f branch');
                done();
             }
             return Promise.resolve();
@@ -126,19 +130,19 @@ describe('Store', () => {
 
       it('should merge branch with rc', (done) => {
          let commandsArray = [];
-         stubExecute = sinon.stub(store._shell, 'execute').callsFake((cmd) => {
+         stubExecute.callsFake((cmd) => {
             commandsArray.push(cmd);
             return Promise.resolve();
          });
          stubModule = sinon.stub(store, '_testRep').value('test');
          store.checkout('test', 'branch', 'pathToRep').then(() => {
-            chai.expect(`git merge remotes/origin/${store._rc}`).to.equal(commandsArray[4]);
+            chai.expect(`git merge remotes/origin/${store._rc}`).to.equal(commandsArray[5]);
             done();
          });
       });
 
       it('should throw error if merge is failed', (done) => {
-         stubExecute = sinon.stub(store._shell, 'execute').callsFake((cmd) => {
+         stubExecute.callsFake((cmd) => {
             if (cmd.includes('merge')) {
                throw new Error();
             }
@@ -150,7 +154,7 @@ describe('Store', () => {
       });
 
       it('should throw error if checkout is failed', (done) => {
-         stubExecute = sinon.stub(store._shell, 'execute').callsFake((cmd) => {
+         stubExecute.callsFake((cmd) => {
             if (cmd.includes('checkout')) {
                return Promise.reject();
             } else {
@@ -165,7 +169,6 @@ describe('Store', () => {
 
 
       afterEach(() => {
-         stubExecute.restore();
          stubModule && stubModule.restore();
       });
    });
