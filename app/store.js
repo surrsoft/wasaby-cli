@@ -92,7 +92,7 @@ class Store extends Base {
       }
 
       if (checkoutBranch.includes('/') || checkoutBranch === this._rc) {
-         await git.pull();
+         await git.pull(checkoutBranch);
       }
 
       if (this._testRep.includes(name)) {

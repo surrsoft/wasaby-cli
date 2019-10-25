@@ -39,7 +39,7 @@ class Git {
         await this.clean();
     }
 
-    async pull() {
+    async pull(checkoutBranch) {
         try {
             await this._shell.execute('git pull -f', this._pathToRep, `${this._name} git pull`);
         } catch (e) {
