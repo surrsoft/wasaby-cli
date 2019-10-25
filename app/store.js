@@ -1,9 +1,8 @@
 const fs = require('fs-extra');
-const pMap = require('p-map');
 const path = require('path');
-const walkDir = require('./util/walkDir');
 const logger = require('./util/logger');
 const Base = require('./base');
+const Git = require('./util/git');
 
 const ERROR_MERGE_CODE = 101;
 
@@ -67,34 +66,41 @@ class Store extends Base {
     * @return {Promise<void>}
     */
    async checkout(name, checkoutBranch) {
-      let pathToRepos = path.join(this._store, name);
+      const git = new Git({
+         path: path.join(this._store, name),
+         name: name
+      });
+
       if (!checkoutBranch) {
          throw new Error(`Не удалось определить ветку для репозитория ${name}`);
       }
+
+      logger.log(`Переключение на ветку ${checkoutBranch}`, name);
+
+      await git.update();
+
       try {
-         logger.log(`Переключение на ветку ${checkoutBranch}`, name);
-         await this._shell.execute('git reset --hard HEAD', pathToRepos, `git_reset ${name}`);
-         await this._shell.execute('git clean -fdx', pathToRepos, `git_clean ${name}`);
-         await this._shell.execute('git fetch', pathToRepos, `git_fetch ${name}`);
-         await this._shell.execute(`git checkout ${checkoutBranch}`, pathToRepos, `git_checkout ${name}`);
-         if (checkoutBranch.includes('/') || checkoutBranch === this._rc) {
-            await this._shell.execute('git pull --force', pathToRepos, `git_pull ${name}`);
-         }
+         await git.checkout(checkoutBranch);
       } catch (err) {
          if (/rc-.*00/.test(checkoutBranch)) {
             // для некоторых репозиториев нет ветки yy.v00 только yy.v10 (19.610) в случае
             // ошибки переключаемся на 10 версию
-            await this._shell.execute(`git checkout ${checkoutBranch.replace('00', '10')}`, pathToRepos, `checkout ${name}`);
-            await this._shell.execute('git pull --force', pathToRepos, `git_pull ${name}`);
+            await git.checkout(checkoutBranch.replace('00', '10'));
          } else {
             throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${err}`);
          }
       }
+
+      if (checkoutBranch.includes('/') || checkoutBranch === this._rc) {
+         await git.pull();
+      }
+
       if (this._testRep.includes(name)) {
          logger.log(`Попытка смержить ветку '${checkoutBranch}' с '${this._rc}'`, name);
          try {
-            await this._shell.execute(`git merge remotes/origin/${this._rc}`, pathToRepos, `git_merge ${name}`);
+            git.merge(this._rc)
          } catch (e) {
+            await git.mergeAbort();
             const error = new Error(`При мерже '${checkoutBranch}' в '${this._rc}' произошел конфликт`);
             error.code = ERROR_MERGE_CODE;
             throw error;
