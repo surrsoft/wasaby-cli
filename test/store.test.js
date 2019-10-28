@@ -112,8 +112,8 @@ describe('Store', () => {
 
       it('should checkout branch', (done) => {
          stubExecute.callsFake((cmd, path, label) => {
-            if (typeof label === 'string' && label.includes('checkout')) {
-               chai.expect(cmd).to.equal('git checkout -f branch');
+            if (typeof label === 'string' && label.includes('reset')) {
+               chai.expect(cmd).to.equal('git reset --hard branch');
                done();
             }
             return Promise.resolve();
@@ -136,7 +136,7 @@ describe('Store', () => {
          });
          stubModule = sinon.stub(store, '_testRep').value('test');
          store.checkout('test', 'branch', 'pathToRep').then(() => {
-            chai.expect(`git merge remotes/origin/${store._rc}`).to.equal(commandsArray[5]);
+            chai.expect(`git merge remotes/origin/${store._rc}`).to.equal(commandsArray[4]);
             done();
          });
       });
@@ -155,7 +155,7 @@ describe('Store', () => {
 
       it('should throw error if checkout is failed', (done) => {
          stubExecute.callsFake((cmd) => {
-            if (cmd.includes('checkout')) {
+            if (cmd.includes('reset')) {
                return Promise.reject();
             } else {
                return Promise.resolve();
