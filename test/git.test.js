@@ -9,7 +9,7 @@ const shell = require('../app/util/shell');
 let git;
 let stubExecute;
 
-describe('Store', () => {
+describe('Git', () => {
     beforeEach(() => {
         stubExecute = sinon.stub(shell.prototype, 'execute').callsFake(() => {});
         git = new Git({
@@ -20,31 +20,29 @@ describe('Store', () => {
     afterEach(() => {
         stubExecute.restore();
     });
-    describe('pull', () => {
-        it('should call git pull', (done) => {
+    describe('merge', () => {
+        it('should call git merge', (done) => {
             stubExecute.callsFake((cmd) => {
-                chai.expect(cmd).to.includes('pull');
+                chai.expect(cmd).to.includes('merge');
                 done();
                 return Promise.resolve();
             });
 
-            git.pull('test');
+            git.merge('test');
         });
 
-        it('should call git pull', () => {
+        it('should abort merge if it failed', () => {
             let cmdArray = [];
             stubExecute.callsFake((cmd) => {
-                if (cmd.includes('pull')) {
-                    return Promise.reject();
-                } else {
+                if (cmd.includes('abort')) {
                     cmdArray.push(cmd);
+                    return Promise.resolve();
                 }
-                return Promise.resolve();
+                return Promise.reject();
             });
 
-            return git.pull('test').then(function () {
+            return git.merge('test').catch(function () {
                 chai.expect(cmdArray[0]).to.includes('merge --abort');
-                chai.expect(cmdArray[1]).to.includes('reset --hard origin/test');
             });
         });
     });
