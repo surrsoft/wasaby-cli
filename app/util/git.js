@@ -24,29 +24,38 @@ class Git {
         return this._shell.execute('git clean -fdx', this._pathToRep, `${this._name} git clean`);
     }
 
-    checkout(branch) {
+    _checkout(branch) {
         return this._shell.execute(`git checkout -f ${branch}`, this._pathToRep, `${this._name} git checkout`);
     }
 
-    merge(branch) {
-        return this._shell.execute(`git merge remotes/origin/${branch}`, this._pathToRep, `${this._name} git merge`);
+    async checkout(branch) {
+        try {
+            await this._checkout(branch);
+        } catch (err) {
+            if (/rc-.*00/.test(branch)) {
+                // для некоторых репозиториев нет ветки yy.v00 только yy.v10 (19.610) в случае
+                // ошибки переключаемся на 10 версию
+                await this._checkout(branch.replace('00', '10'));
+            } else {
+                throw new Error(`Ошибка при переключение на ветку ${branch} в репозитории ${this._name}: ${err}`);
+            }
+        }
+    }
+
+    async merge(branch) {
+        try {
+            await this._shell.execute(`git merge remotes/origin/${branch}`, this._pathToRep, `${this._name} git merge`);
+        } catch (e) {
+            await this.mergeAbort();
+            const error = new Error(`При мерже '${branch}' в '${this._rc}' произошел конфликт`);
+            error.code = ERROR_MERGE_CODE;
+            throw error;
+        }
     }
 
     async update() {
         await this.fetch();
         await this.mergeAbort();
-        await this.reset('HEAD');
-        await this.clean();
-    }
-
-    async pull(checkoutBranch) {
-        try {
-            await this._shell.execute('git pull -f', this._pathToRep, `${this._name} git pull`);
-        } catch (e) {
-            logger.log(`При пуле ветки произошла ошибка: ${e}`, `${this._name} git pull`);
-            await this.mergeAbort();
-            await this.reset(`origin/${checkoutBranch}`);
-        }
     }
 
 }

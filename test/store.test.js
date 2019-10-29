@@ -113,13 +113,13 @@ describe('Store', () => {
       it('should checkout branch', (done) => {
          stubExecute.callsFake((cmd, path, label) => {
             if (typeof label === 'string' && label.includes('checkout')) {
-               chai.expect(cmd).to.equal('git checkout -f branch');
+               chai.expect(cmd).to.equal('git checkout -f 20.1000/branch');
                done();
             }
             return Promise.resolve();
          });
 
-         store.checkout('name', 'branch', 'pathToRep');
+         store.checkout('name', '20.1000/branch', 'pathToRep');
       });
 
       it('should throw error if checkoutBranch is undefined', (done) => {
@@ -135,7 +135,7 @@ describe('Store', () => {
             return Promise.resolve();
          });
          stubModule = sinon.stub(store, '_testRep').value('test');
-         store.checkout('test', 'branch', 'pathToRep').then(() => {
+         store.checkout('test', '20.1000/branch', 'pathToRep').then(() => {
             chai.expect(`git merge remotes/origin/${store._rc}`).to.equal(commandsArray[5]);
             done();
          });
@@ -162,11 +162,22 @@ describe('Store', () => {
             }
          });
          stubModule = sinon.stub(store, '_testRep').value('test');
-         store.checkout('test', 'branch', 'pathToRep').catch(() => {
+         store.checkout('test', '20.1000/branch', 'pathToRep').catch(() => {
             done();
          });
       });
 
+      it('should reset rep to commit', (done) => {
+         stubExecute.callsFake((cmd, path, label) => {
+            if (typeof label === 'string' && label.includes('reset')) {
+               chai.expect(cmd).to.equal('git reset --hard b2563dfa');
+               done();
+            }
+            return Promise.resolve();
+         });
+
+         store.checkout('name', 'b2563dfa', 'pathToRep');
+      });
 
       afterEach(() => {
          stubModule && stubModule.restore();
