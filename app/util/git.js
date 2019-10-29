@@ -24,22 +24,8 @@ class Git {
         return this._shell.execute('git clean -fdx', this._pathToRep, `${this._name} git clean`);
     }
 
-    _checkout(branch) {
+    checkout(branch) {
         return this._shell.execute(`git checkout -f ${branch}`, this._pathToRep, `${this._name} git checkout`);
-    }
-
-    async checkout(branch) {
-        try {
-            await this._checkout(branch);
-        } catch (err) {
-            if (/rc-.*00/.test(branch)) {
-                // для некоторых репозиториев нет ветки yy.v00 только yy.v10 (19.610) в случае
-                // ошибки переключаемся на 10 версию
-                await this._checkout(branch.replace('00', '10'));
-            } else {
-                throw new Error(`Ошибка при переключение на ветку ${branch} в репозитории ${this._name}: ${err}`);
-            }
-        }
     }
 
     async merge(branch) {
