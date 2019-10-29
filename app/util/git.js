@@ -28,25 +28,20 @@ class Git {
         return this._shell.execute(`git checkout -f ${branch}`, this._pathToRep, `${this._name} git checkout`);
     }
 
-    merge(branch) {
-        return this._shell.execute(`git merge remotes/origin/${branch}`, this._pathToRep, `${this._name} git merge`);
+    async merge(branch) {
+        try {
+            await this._shell.execute(`git merge remotes/origin/${branch}`, this._pathToRep, `${this._name} git merge`);
+        } catch (e) {
+            await this.mergeAbort();
+            const error = new Error(`При мерже '${branch}' в '${this._rc}' произошел конфликт`);
+            error.code = ERROR_MERGE_CODE;
+            throw error;
+        }
     }
 
     async update() {
         await this.fetch();
         await this.mergeAbort();
-        await this.reset('HEAD');
-        await this.clean();
-    }
-
-    async pull(checkoutBranch) {
-        try {
-            await this._shell.execute('git pull -f', this._pathToRep, `${this._name} git pull`);
-        } catch (e) {
-            logger.log(`При пуле ветки произошла ошибка: ${e}`, `${this._name} git pull`);
-            await this.mergeAbort();
-            await this.reset(`origin/${checkoutBranch}`);
-        }
     }
 
 }
