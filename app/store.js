@@ -86,7 +86,7 @@ class Store extends Base {
                // для некоторых репозиториев нет ветки yy.v00 только yy.v10 (19.610) в случае
                // ошибки переключаемся на 10 версию
                commit = commit.replace('00', '10');
-               await git.checkout(branch.replace('00', '10'));
+               await git.checkout(commit.replace('00', '10'));
             } else {
                throw new Error(`Ошибка при переключение на ветку ${commit} в репозитории ${this._name}: ${err}`);
             }
