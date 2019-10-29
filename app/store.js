@@ -62,28 +62,49 @@ class Store extends Base {
    /**
     * переключает репозиторий на нужную ветку
     * @param {String} name - название репозитория в конфиге
-    * @param {String} commit - ветка или хеш комита на который нужно переключиться
+    * @param {String} checkoutBranch - ветка на которую нужно переключиться
     * @return {Promise<void>}
     */
-   async checkout(name, commit) {
+   async checkout(name, checkoutBranch) {
       const git = new Git({
          path: path.join(this._store, name),
          name: name
       });
 
-      if (!commit) {
+      if (!checkoutBranch) {
          throw new Error(`Не удалось определить ветку для репозитория ${name}`);
       }
 
-      logger.log(`Переключение на ветку ${commit}`, name);
+      logger.log(`Переключение на ветку ${checkoutBranch}`, name);
 
       await git.update();
-      await git.checkout(commit);
-      await git.clean();
+
+      try {
+         await git.checkout(checkoutBranch);
+      } catch (err) {
+         if (/rc-.*00/.test(checkoutBranch)) {
+            // для некоторых репозиториев нет ветки yy.v00 только yy.v10 (19.610) в случае
+            // ошибки переключаемся на 10 версию
+            await git.checkout(checkoutBranch.replace('00', '10'));
+         } else {
+            throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${err}`);
+         }
+      }
+
+      if (checkoutBranch.includes('/') || checkoutBranch === this._rc) {
+         await git.pull(checkoutBranch);
+      }
 
       if (this._testRep.includes(name)) {
-         logger.log(`Попытка смержить ветку '${commit}' с '${this._rc}'`, name);
-         await git.merge(this._rc);
+         logger.log(`Попытка смержить ветку '${checkoutBranch}' с '${this._rc}'`, name);
+         try {
+            await git.merge(this._rc)
+         } catch (e) {
+            await git.mergeAbort();
+            const error = new Error(`При мерже '${checkoutBranch}' в '${this._rc}' произошел конфликт`);
+            error.code = ERROR_MERGE_CODE;
+            throw error;
+         }
       }
    }
 
