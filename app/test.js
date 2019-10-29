@@ -207,22 +207,6 @@ class Test extends Base {
       }
    }
 
-   async _setContents(value) {
-      if (fs.existsSync(path.join(this._resources, 'contents.json'))) {
-         logger.log(`Замена buildMode в contents на ${value} путь '${path.join(this._resources, 'contents.js')}'`, 'replace_contents');
-         let contents = await fs.readJson(path.join(this._resources, 'contents.json'), 'utf8');
-         contents.buildMode = value;
-         if (value === 'debug') {
-            this._buildNumber = contents.buildnumber;
-            contents.buildnumber = '';
-         } else {
-            contents.buildnumber = this._buildNumber;
-         }
-         await fs.outputFile(`${path.join(this._resources, 'contents.js')}`, `contents=${JSON.stringify(contents)};`);
-         await fs.outputFile(`${path.join(this._resources, 'contents.json')}`, JSON.stringify(contents));
-      }
-   }
-
    /**
     * Запускает тестирование
     * @return {Promise<void>}
@@ -231,7 +215,6 @@ class Test extends Base {
       try {
          logger.log('Запуск тестов');
          await this._modulesMap.build();
-         await this._setContents('debug');
          await this._makeTestConfig();
          await pMap(this._modulesMap.getTestList(), (name) => {
             logger.log('Запуск тестов', name);
@@ -242,7 +225,6 @@ class Test extends Base {
          }, {
             concurrency: 4
          });
-         await this._setContents('release');
          await this.checkReport();
          await this.prepareReport();
          logger.log('Тестирование завершено');
