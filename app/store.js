@@ -62,49 +62,42 @@ class Store extends Base {
    /**
     * переключает репозиторий на нужную ветку
     * @param {String} name - название репозитория в конфиге
-    * @param {String} checkoutBranch - ветка на которую нужно переключиться
+    * @param {String} commit - ветка или хеш комита на который нужно переключиться
     * @return {Promise<void>}
     */
-   async checkout(name, checkoutBranch) {
+   async checkout(name, commit) {
+      if (!commit) {
+         throw new Error(`Не удалось определить ветку для репозитория ${name}`);
+      }
+
       const git = new Git({
          path: path.join(this._store, name),
          name: name
       });
+      const isBranch = commit.includes('/') || commit.includes('rc-');
 
-      if (!checkoutBranch) {
-         throw new Error(`Не удалось определить ветку для репозитория ${name}`);
-      }
-
-      logger.log(`Переключение на ветку ${checkoutBranch}`, name);
-
+      logger.log(`Переключение на ветку ${commit}`, name);
       await git.update();
-
-      try {
-         await git.checkout(checkoutBranch);
-      } catch (err) {
-         if (/rc-.*00/.test(checkoutBranch)) {
-            // для некоторых репозиториев нет ветки yy.v00 только yy.v10 (19.610) в случае
-            // ошибки переключаемся на 10 версию
-            await git.checkout(checkoutBranch.replace('00', '10'));
-         } else {
-            throw new Error(`Ошибка при переключение на ветку ${checkoutBranch} в репозитории ${name}: ${err}`);
+      if (isBranch) {
+         try {
+            await git.checkout(commit);
+         } catch (err) {
+            if (/rc-.*00/.test(commit)) {
+               // для некоторых репозиториев нет ветки yy.v00 только yy.v10 (19.610) в случае
+               // ошибки переключаемся на 10 версию
+               commit = commit.replace('00', '10');
+               await git.checkout(commit.replace('00', '10'));
+            } else {
+               throw new Error(`Ошибка при переключение на ветку ${commit} в репозитории ${this._name}: ${err}`);
+            }
          }
       }
-
-      if (checkoutBranch.includes('/') || checkoutBranch === this._rc) {
-         await git.pull(checkoutBranch);
-      }
+      await git.reset(isBranch ? `remotes/origin/${commit}` : commit);
+      await git.clean();
 
       if (this._testRep.includes(name)) {
-         logger.log(`Попытка смержить ветку '${checkoutBranch}' с '${this._rc}'`, name);
-         try {
-            await git.merge(this._rc)
-         } catch (e) {
-            await git.mergeAbort();
-            const error = new Error(`При мерже '${checkoutBranch}' в '${this._rc}' произошел конфликт`);
-            error.code = ERROR_MERGE_CODE;
-            throw error;
-         }
+         logger.log(`Попытка смержить ветку '${commit}' с '${this._rc}'`, name);
+         await git.merge(this._rc);
       }
    }
 
