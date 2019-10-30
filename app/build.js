@@ -62,8 +62,7 @@ class Build extends Base {
          `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._builderCfg}`,
          process.cwd(), {
             force: true,
-            name:  'builder',
-            timeout: 1
+            name:  'builder'
          }
       );
    }
