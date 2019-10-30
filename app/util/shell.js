@@ -7,40 +7,41 @@ class Shell {
    }
 
    /**
+    * @typedef {ExecParams} Items параметры child_process.exec https://nodejs.org/api/child_process.html#child_process_child_process_exec_command_options_callback
+    * @property {String} force Если true в случае ошибки вернет промис resolve.
+    * @property {String} processName Метка процесса в логах.
+    */
+   /**
     * Выполняет команду shell
     * @param {String} command - текст команды
     * @param {String} path - путь по которому надо выполнить команду
-    * @param {Boolean} force - если true в случае ошибки вернет промис resolve
-    * @param {String} processName - метка процесса в логах
+    * @param {ExecParams} params
     * @return {Promise<any>}
     * @private
     */
-   execute(command, path, force, processName) {
+   execute(command, path, params) {
       let errors = [];
-
-      if (typeof force === 'string') {
-         processName = force;
-         force = false;
-      }
+      params = Object.assign({
+         async: true,
+         silent: true
+      }, params);
 
       return new Promise((resolve, reject) => {
-         const cloneProcess = shell.exec(`cd ${path} && ${command}`, {
-            async: true,
-            silent: true
-         });
+         const cloneProcess = shell.exec(`cd ${path} && ${command}`, params);
          this._childProcessMap.push(cloneProcess);
+
          cloneProcess.stdout.on('data', (data) => {
-            logger.log(data, processName);
+            logger.log(data, params.processName);
          });
 
          cloneProcess.stderr.on('data', (data) => {
-            logger.log(data, processName);
+            logger.log(data, params.processName);
             errors.push(data);
          });
 
          cloneProcess.on('exit', (code) => {
             this._childProcessMap.splice(this._childProcessMap.indexOf(cloneProcess), 1);
-            if (force || !code && !cloneProcess.withErrorKill) {
+            if (params.force || !code && !cloneProcess.withErrorKill) {
                resolve();
             } else {
                reject(errors);

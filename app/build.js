@@ -56,13 +56,15 @@ class Build extends Base {
       }
    }
 
-   async _initWithBuilder() {
-      await this._makeBuilderConfig();
+   async _initWithBuilder(builderOutput) {
+      await this._makeBuilderConfig(builderOutput);
       await this._shell.execute(
          `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._builderCfg}`,
-         process.cwd(),
-         true,
-         'builder'
+         process.cwd(), {
+            force: true,
+            name:  'builder',
+            timeout: 1
+         }
       );
    }
 
@@ -107,7 +109,6 @@ class Build extends Base {
       let genieCli = '';
 
       await this._prepareSrv(path.join(this._projectDir, 'InTestUI.s3srv'));
-      await this._makeBuilderConfig(builderOutput);
 
       if (process.platform === 'win32') {
          let sdkPath = process.env['SBISPlatformSDK_' + sdkVersion];
@@ -119,7 +120,9 @@ class Build extends Base {
          genieFolder = path.join(this._workspace, 'jinnee');
          await this._shell.execute(
             `7za x ${path.join(sdkPath, 'tools', 'jinnee', 'jinnee.zip')} -y -o${genieFolder} > /dev/null`,
-            process.cwd()
+            process.cwd(), {
+               name: '7z'
+            }
          );
          genieCli = `${path.join(genieFolder, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
       }
@@ -128,16 +131,12 @@ class Build extends Base {
 
       await this._shell.execute(
          `${genieCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
-         genieFolder,
-         'jinnee'
+         genieFolder, {
+             name: 'jinnee'
+         }
       );
 
-      await this._shell.execute(
-         `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._builderCfg}`,
-         process.cwd(),
-         true,
-         'builder'
-      );
+      await this._initWithBuilder(builderOutput);
 
       fs.readdirSync(builderOutput).forEach(f => {
          let dirPath = path.join(builderOutput, f);
@@ -156,9 +155,10 @@ class Build extends Base {
       logger.log(tslib, 'tslib_path');
       return this._shell.execute(
          `node node_modules/saby-typescript/install.js --tslib=${tslib}`,
-         process.cwd(),
-         true,
-         'typescriptInstall'
+         process.cwd(), {
+            force: true,
+            name:   'typescriptInstall'
+         }
       );
    }
 
