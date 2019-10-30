@@ -110,7 +110,9 @@ class Store extends Base {
       if (!fs.existsSync(path.join(this._store, name))) {
          try {
             logger.log(`git clone ${this._reposConfig[name].url}`, name);
-            await this._shell.execute(`git clone ${this._reposConfig[name].url} ${name}`, this._store, `clone ${name}`);
+            await this._shell.execute(`git clone ${this._reposConfig[name].url} ${name}`, this._store, {
+               name: `clone ${name}`
+            });
          } catch (err) {
             throw new Error(`Ошибка при клонировании репозитория ${name}: ${err}`);
          }

@@ -9,28 +9,41 @@ class Git {
     }
 
     fetch() {
-        return this._shell.execute('git fetch --all --prune', this._pathToRep, `${this._name} git fetch`);
+        return this._shell.execute('git fetch --all --prune', this._pathToRep, {
+            name: `${this._name} git fetch`
+        });
     }
 
     mergeAbort() {
-        return this._shell.execute('git merge --abort', this._pathToRep, true, `${this._name} git merge abort`);
+        return this._shell.execute('git merge --abort', this._pathToRep, {
+            force: true,
+            name: `${this._name} git merge abort`
+        });
     }
 
     reset(revision) {
-        return this._shell.execute(`git reset --hard ${revision}`, this._pathToRep, `${this._name} git reset`);
+        return this._shell.execute(`git reset --hard ${revision}`, this._pathToRep, {
+            name:`${this._name} git reset`
+        });
     }
 
     clean() {
-        return this._shell.execute('git clean -fdx', this._pathToRep, `${this._name} git clean`);
+        return this._shell.execute('git clean -fdx', this._pathToRep, {
+            name:`${this._name} git clean`
+        });
     }
 
     checkout(branch) {
-        return this._shell.execute(`git checkout -f ${branch}`, this._pathToRep, `${this._name} git checkout`);
+        return this._shell.execute(`git checkout -f ${branch}`, this._pathToRep, {
+            name:`${this._name} git checkout`
+        });
     }
 
     async merge(branch) {
         try {
-            await this._shell.execute(`git merge remotes/origin/${branch}`, this._pathToRep, `${this._name} git merge`);
+            await this._shell.execute(`git merge remotes/origin/${branch}`, this._pathToRep, {
+                name:`${this._name} git merge`
+            });
         } catch (e) {
             await this.mergeAbort();
             const error = new Error(`При мерже '${branch}' в '${this._rc}' произошел конфликт`);
