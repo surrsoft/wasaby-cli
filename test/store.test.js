@@ -111,8 +111,8 @@ describe('Store', () => {
       let stubModule;
 
       it('should checkout branch', (done) => {
-         stubExecute.callsFake((cmd, path, label) => {
-            if (typeof label === 'string' && label.includes('checkout')) {
+         stubExecute.callsFake((cmd, path, params) => {
+            if (typeof params.name === 'string' && params.name.includes('checkout')) {
                chai.expect(cmd).to.equal('git checkout -f 20.1000/branch');
                done();
             }
@@ -168,8 +168,8 @@ describe('Store', () => {
       });
 
       it('should reset rep to commit', (done) => {
-         stubExecute.callsFake((cmd, path, label) => {
-            if (typeof label === 'string' && label.includes('reset')) {
+         stubExecute.callsFake((cmd, path, params) => {
+            if (typeof params.name === 'string' && params.name.includes('reset')) {
                chai.expect(cmd).to.equal('git reset --hard b2563dfa');
                done();
             }

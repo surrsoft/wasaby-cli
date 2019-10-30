@@ -102,7 +102,9 @@ describe('Shell', () => {
             });
             return process;
          });
-         shellUtil.execute('help', 'path', true).then(() => {
+         shellUtil.execute('help', 'path', {
+            force: true
+         }).then(() => {
             done();
          });
       });
