@@ -224,7 +224,9 @@ class ModulesMap {
                   const testModules = this._testModulesMap.get(cfg.rep) || [];
                   testModules.push(cfg.name);
                   this._testModulesMap.set(cfg.rep, testModules);
+                  cfg.testInBrowser = !(xmlObj.ui_module.unit_test[0].$ && xmlObj.ui_module.unit_test[0].$.onlyNode);
                }
+
                this._modulesMap.set(cfg.name, cfg);
             }
          });
