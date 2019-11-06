@@ -75,7 +75,7 @@ describe('Test', () => {
       });
 
       it('shouldnt start test if it node only', () => {
-         stubOutputFile = sinon.stub(fs, 'outputFileSync').callsFake(() => {
+         stubOutputFile = sinon.stub(fs, 'outputFile').callsFake(() => {
             throw new Error();
          });
          stubcli = sinon.stub(test, '_reposConfig').value({
@@ -85,6 +85,18 @@ describe('Test', () => {
          });
 
          chai.expect(() => test._startBrowserTest('test')).to.not.throw();
+      });
+
+      it('should filter module with testInBrowser flag', (done) => {
+         stubModuleMapGet.callsFake((name) => {
+            return name == 'test1' ? {name: 'test1', testInBrowser: true} : {name: 'test2', testInBrowser: false};
+         });
+         stubOutputFile = sinon.stub(fs, 'outputFile').callsFake((path, config) => {
+            config = JSON.parse(config);
+            chai.expect(config.tests).to.deep.equal(['test1']);
+            done();
+         });
+         test._startBrowserTest('test', ['test1', 'test2']);
       });
 
       it('should run test', (done) => {
@@ -236,4 +248,8 @@ describe('Test', () => {
          stubTestError.restore();
       });
    });
+
+   describe('_checkDiff', () => {
+      
+   })
 });
