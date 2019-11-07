@@ -70,7 +70,7 @@ class Git {
             name:`${this._name} git branch`
         });
 
-        return res.join('\n').split('\n').filter((name) => !!name);
+        return res.length > 0 ? res[0] : '';
     }
 
 }
