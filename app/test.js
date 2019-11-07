@@ -336,13 +336,15 @@ class Test extends Base {
     */
    async _checkDiff() {
       for (const name of this._testRep) {
-         const git = new Git({
-            path: this._modulesMap.getRepositoryPath(name),
-            name: name
-         });
-         const branch = await git.getBranch();
-         if (branch !== this._rc) {
-            this._diff.set(name,  await git.diff(branch, this._rc));
+         if (name !== 'all') {
+            const git = new Git({
+               path: this._modulesMap.getRepositoryPath(name),
+               name: name
+            });
+            const branch = await git.getBranch();
+            if (branch !== this._rc) {
+               this._diff.set(name, await git.diff(branch, this._rc));
+            }
          }
       }
    }
