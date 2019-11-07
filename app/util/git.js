@@ -59,7 +59,7 @@ class Git {
 
     async diff(branch, rc) {
         let res = await this._shell.execute(`git diff --name-only ${branch}..origin/${rc}`, this._pathToRep, {
-            name:`diff`
+            name:`${this._name} git diff`
         });
 
         return res.join('\n').split('\n').filter((name) => !!name);
@@ -67,7 +67,7 @@ class Git {
 
     async getBranch() {
         let res = await this._shell.execute(`git symbolic-ref --short HEAD`, this._pathToRep, {
-            name:`diff`
+            name:`${this._name} git branch`
         });
 
         return res.join('\n').split('\n').filter((name) => !!name);
