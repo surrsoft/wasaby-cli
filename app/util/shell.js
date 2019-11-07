@@ -21,6 +21,7 @@ class Shell {
     */
    execute(command, path, params) {
       let errors = [];
+      let result = [];
       params = Object.assign({
          async: true,
          silent: true
@@ -32,6 +33,7 @@ class Shell {
 
          cloneProcess.stdout.on('data', (data) => {
             logger.log(data, params.processName);
+            result.push(data.trim());
          });
 
          cloneProcess.stderr.on('data', (data) => {
@@ -42,7 +44,7 @@ class Shell {
          cloneProcess.on('exit', (code) => {
             this._childProcessMap.splice(this._childProcessMap.indexOf(cloneProcess), 1);
             if (params.force || !code && !cloneProcess.withErrorKill) {
-               resolve();
+               resolve(result);
             } else {
                reject(errors);
             }
