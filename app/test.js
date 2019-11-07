@@ -157,7 +157,7 @@ class Test extends Base {
 
    /**
     * Возвращает модули с юнит тестами
-    * @param {String} name
+    * @param {String} name - название репозитория
     * @returns {Array}
     * @private
     */

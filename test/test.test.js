@@ -249,7 +249,34 @@ describe('Test', () => {
       });
    });
 
-   describe('_checkDiff', () => {
-      
+   describe('._getTestModules()', () => {
+      let stubDiff, stubGet, stubTestModules;
+      beforeEach(() => {
+         stubDiff = sinon.stub(test, '_diff').value(new Map());
+         stubGet = sinon.stub(test._modulesMap, 'get').callsFake((name) => {
+            return {
+                'test11': {name: 'test11', rep: 'test1', depends: ['test13']},
+                'test12': {name: 'test12', rep: 'test1', depends: []},
+                'test13': {name: 'test13', rep: 'test1', depends: []}
+            }[name];
+         });
+         stubTestModules = sinon.stub(test._modulesMap, 'getTestModules').callsFake(() => ['test11', 'test12', 'test13']);
+      });
+      afterEach(() => {
+         stubDiff.restore();
+         stubGet.restore();
+         stubTestModules.restore();
+      });
+      it('should filter modules by diff', () => {
+         stubDiff.value(new Map([['test1', ['test11/test1.js']]]));
+         chai.expect(test._getTestModules('test1')).to.deep.equal(['test11']);
+      });
+      it('should return test modules', () => {
+         chai.expect(test._getTestModules('test1')).to.deep.equal(['test11', 'test12', "test13"]);
+      });
+      it('should filter modules by diff in depend module', () => {
+         stubDiff.value(new Map([['test1', ['test13/1.js']]]));
+         chai.expect(test._getTestModules('test1')).to.deep.equal(['test11', 'test13']);
+      });
    })
 });
