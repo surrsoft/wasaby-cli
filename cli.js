@@ -11,6 +11,21 @@ const ERROR_CODE = 2;
  * @class Cli
  * @author Ганшин Я.О.
  */
+const oldNamesMap = {
+   engine: 'sbis3.engine',
+   types: 'saby-types',
+   i18n: 'saby-i18n',
+   ws: 'sbis3-ws',
+   controls: 'sbis3-controls',
+   app: 'wasaby-app',
+   router: 'Router',
+   ui: 'saby-ui',
+   schemeeditor: 'sbis3-schemeeditor',
+   permission: 'permission',
+   viewsettings: 'viewsettings',
+   'plugin-client': 'sbis-plugin-client',
+   'navigation-configuration': 'navigation-configuration'
+};
 
 class Cli {
    constructor() {
@@ -33,7 +48,15 @@ class Cli {
          this._buildTools = 'builder';
          this._resources = this._workDir;
       }
-
+      //преобразование имен к npm надо удалить как сборщики переименют у себя
+      this._testRep = this._testRep.map(name => {
+         return oldNamesMap[name] ? oldNamesMap[name] : name;
+      });
+      Object.keys(oldNamesMap).forEach(name => {
+         if (this._argvOptions[name]) {
+            this._argvOptions[oldNamesMap[name]] = this._argvOptions[name];
+         }
+      });
    }
 
    /**
