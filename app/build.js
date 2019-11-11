@@ -207,6 +207,7 @@ class Build extends Base {
 
       if (process.env.SDK) {
          pathToSDK = process.env.SDK;
+         process.env['SBISPlatformSDK_' + sdkVersion] = pathToSDK;
       } else {
          pathToSDK = process.env['SBISPlatformSDK_' + sdkVersion];
       }
