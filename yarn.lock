@@ -143,7 +143,7 @@
   resolved "https://registry.npmjs.org/@types/sinon/-/sinon-7.0.13.tgz#ca039c23a9e27ebea53e0901ef928ea2a1a6d313"
   integrity sha512-d7c/C/+H/knZ3L8/cxhicHUiTDxdgap0b/aNJfsmLwFu/iOP17mdgbQsbHA3SJmrzsjD0l3UEE5SN4xxuz5ung==
 
-"@wdio/config@5.16.6", "@wdio/config@^5.7.2":
+"@wdio/config@5.16.6":
   version "5.16.6"
   resolved "https://registry.npmjs.org/@wdio/config/-/config-5.16.6.tgz#72d657f7437b9980f9cd011ec35ece92236d9a09"
   integrity sha512-L8ug03UwZCsMixGSFE0zbhT62H55MxhsAWXOcZ1rio/u2zXEIlllOpiolRpsQQS2w5KMDQoRzZo5SKhHa3FCow==
@@ -152,7 +152,7 @@
     deepmerge "^4.0.0"
     glob "^7.1.2"
 
-"@wdio/logger@5.16.5", "@wdio/logger@^5.7.0":
+"@wdio/logger@5.16.5":
   version "5.16.5"
   resolved "https://registry.npmjs.org/@wdio/logger/-/logger-5.16.5.tgz#3c82a4f55d689e76e54e3718e4402b465c202214"
   integrity sha512-6HGhoc1/la9zaw8CPGJD3YAzo0yefM8SpcF7YKTSU3YA545nhbrGAU2rLb0spquR3cJm1yqK0TzHvf3EhgHdwA==
@@ -167,7 +167,7 @@
   resolved "https://registry.npmjs.org/@wdio/protocols/-/protocols-5.16.4.tgz#d7c5c2ac38d78c79a9864e696e2cee031684a210"
   integrity sha512-KvZByzqbSbIUew1LWVCCH6/9zSvrTpanrP0ceaQ7zBWo3C4TvD/LWiqvKCI7MRLCZizSg4pXZ7NNLKMBr5cwsA==
 
-"@wdio/repl@5.16.5", "@wdio/repl@^5.7.2":
+"@wdio/repl@5.16.5":
   version "5.16.5"
   resolved "https://registry.npmjs.org/@wdio/repl/-/repl-5.16.5.tgz#68c6ea2a58535cc3414d090c3bfa727d3074e5d6"
   integrity sha512-LzQVxbZ9P3zUPS/M5//KR8kNGkYVhS3MOEx+vHtXyvxdoMj8qCkmzIbGj8SqnfAdHcTyeixI5qwFZ3PCnqo/LQ==
@@ -1267,11 +1267,6 @@ deep-is@~0.1.3:
   version "0.1.3"
   resolved "https://registry.npmjs.org/deep-is/-/deep-is-0.1.3.tgz#b369d6fb5dbc13eecf524f91b070feedc357cf34"
   integrity sha1-s2nW+128E+7PUk+RsHD+7cNXzzQ=
-
-deepmerge@^2.0.1:
-  version "2.2.1"
-  resolved "https://registry.npmjs.org/deepmerge/-/deepmerge-2.2.1.tgz#5d3ff22a01c00f645405a2fbc17d0778a1801170"
-  integrity sha512-R9hc1Xa/NOBi9WRVUWg19rl1UB7Tt4kuPd+thNJgFZoxXsTz7ncaPaeIm+40oSGuP33DfMb4sZt1QIGiJzC4EA==
 
 deepmerge@^4.0.0:
   version "4.2.2"
@@ -4445,8 +4440,8 @@ rimraf@^2.6.1, rimraf@^2.6.2, rimraf@^2.6.3:
 
 "saby-units@git+https://github.com/saby/Units.git#rc-20.1000":
   version "20.1000.0"
-  uid "5f982e2ab17118e464b55c292f29d7fc0ef18bd2"
-  resolved "git+https://github.com/saby/Units.git#5f982e2ab17118e464b55c292f29d7fc0ef18bd2"
+  uid bf948fbc498b162a2a3808355bc4b8648d3f4a5e
+  resolved "git+https://github.com/saby/Units.git#bf948fbc498b162a2a3808355bc4b8648d3f4a5e"
   dependencies:
     "@types/chai" "4.2.0"
     "@types/mocha" "5.2.7"
@@ -4463,12 +4458,12 @@ rimraf@^2.6.1, rimraf@^2.6.2, rimraf@^2.6.3:
     serve-static "1.14.1"
     sinon "7.4.2"
     url "0.11.0"
-    webdriver "5.7.2"
-    webdriverio "5.7.2"
+    webdriver "5.16.6"
+    webdriverio "5.16.6"
 
 "saby-units@git+https://platform-git.sbis.ru/saby/Units.git#rc-20.1000":
   version "20.1000.0"
-  resolved "git+https://platform-git.sbis.ru/saby/Units.git#5f982e2ab17118e464b55c292f29d7fc0ef18bd2"
+  resolved "git+https://platform-git.sbis.ru/saby/Units.git#bf948fbc498b162a2a3808355bc4b8648d3f4a5e"
   dependencies:
     "@types/chai" "4.2.0"
     "@types/mocha" "5.2.7"
@@ -4485,8 +4480,8 @@ rimraf@^2.6.1, rimraf@^2.6.2, rimraf@^2.6.3:
     serve-static "1.14.1"
     sinon "7.4.2"
     url "0.11.0"
-    webdriver "5.7.2"
-    webdriverio "5.7.2"
+    webdriver "5.16.6"
+    webdriverio "5.16.6"
 
 safe-buffer@5.1.2, safe-buffer@~5.1.0, safe-buffer@~5.1.1:
   version "5.1.2"
@@ -4524,7 +4519,7 @@ saxes@^3.1.9:
 
 "sbis3-builder@git+https://platform-git.sbis.ru/saby/Builder.git#rc-20.1000":
   version "20.1000.0-BUILD"
-  resolved "git+https://platform-git.sbis.ru/saby/Builder.git#3a00d7e2bb761463cc04abc72acdb5c87c180950"
+  resolved "git+https://platform-git.sbis.ru/saby/Builder.git#ef258499b3ff8e966b26d22fa453586befc4358e"
   dependencies:
     async "2.6.1"
     autoprefixer "9.5.0"
@@ -4594,11 +4589,6 @@ send@0.17.1:
     on-finished "~2.3.0"
     range-parser "~1.2.1"
     statuses "~1.5.0"
-
-serialize-error@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.npmjs.org/serialize-error/-/serialize-error-3.0.0.tgz#80100282b09be33c611536f50033481cb9cc87cf"
-  integrity sha512-+y3nkkG/go1Vdw+2f/+XUXM1DXX1XcxTl99FfiD/OEPUNw4uo0i6FKABfTAN5ZcgGtjTRZcEbxcE/jtXbEY19A==
 
 serialize-error@^5.0.0:
   version "5.0.0"
@@ -5505,7 +5495,7 @@ w3c-xmlserializer@^1.1.2:
     webidl-conversions "^4.0.2"
     xml-name-validator "^3.0.0"
 
-webdriver@5.16.6, webdriver@^5.7.2:
+webdriver@5.16.6:
   version "5.16.6"
   resolved "https://registry.npmjs.org/webdriver/-/webdriver-5.16.6.tgz#6210ff6d04bcff94668b410c461f16bf44a619b4"
   integrity sha512-+HtRM3SNsZW49l/iQEY76yudVdnCMdY6wInyg0OgtzpQgeGqBaS9E54gEejNflHw32PqNM96n/Kz6qT35YjTlQ==
@@ -5514,17 +5504,6 @@ webdriver@5.16.6, webdriver@^5.7.2:
     "@wdio/logger" "5.16.5"
     "@wdio/protocols" "5.16.4"
     "@wdio/utils" "5.16.5"
-    lodash.merge "^4.6.1"
-    request "^2.83.0"
-
-webdriver@5.7.2:
-  version "5.7.2"
-  resolved "https://registry.npmjs.org/webdriver/-/webdriver-5.7.2.tgz#239b188b3418c49e907125bd256e1e3c6d40c37c"
-  integrity sha512-TJE1DNcCiqDUijZx+vP+tlfrtaF3BotMt5xP9NxamUoecGPRL2sslv06Lc0Pw6dV+21vbPs8nva8Nqs02YL2bw==
-  dependencies:
-    "@wdio/config" "^5.7.2"
-    "@wdio/logger" "^5.7.0"
-    deepmerge "^2.0.1"
     lodash.merge "^4.6.1"
     request "^2.83.0"
 
@@ -5548,23 +5527,6 @@ webdriverio@5.16.6:
     rgb2hex "^0.1.0"
     serialize-error "^5.0.0"
     webdriver "5.16.6"
-
-webdriverio@5.7.2:
-  version "5.7.2"
-  resolved "https://registry.npmjs.org/webdriverio/-/webdriverio-5.7.2.tgz#95ad8bd4a684b6b047da274f388469a995fd1bcb"
-  integrity sha512-8XaV3WYjZMf9xNVXQP3o9Qx9m+CBnYXXThhWAUFGd1ytbAUwZlUn3QTI9acJMj+hos9Ma49GGSKDV8cVWU/wSA==
-  dependencies:
-    "@wdio/config" "^5.7.2"
-    "@wdio/logger" "^5.7.0"
-    "@wdio/repl" "^5.7.2"
-    css-value "^0.0.1"
-    grapheme-splitter "^1.0.2"
-    lodash.isobject "^3.0.2"
-    lodash.merge "^4.6.1"
-    lodash.zip "^4.2.0"
-    rgb2hex "^0.1.0"
-    serialize-error "^3.0.0"
-    webdriver "^5.7.2"
 
 webidl-conversions@^4.0.2:
   version "4.0.2"
