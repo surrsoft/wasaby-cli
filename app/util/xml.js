@@ -1,6 +1,11 @@
 const fs = require('fs-extra');
 const xml2js = require('xml2js');
 
+/**
+ * Читает xml файл
+ * @param {String} filePath Путь до файла
+ * @returns {Promise<*>}
+ */
 function readXmlFile(filePath) {
    return new Promise((resolve, reject) => {
       const parser = new xml2js.Parser();

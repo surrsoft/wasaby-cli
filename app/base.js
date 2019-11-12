@@ -1,7 +1,7 @@
 const Shell = require('./util/shell');
 
 class Base {
-   constructor(cfg) {
+   constructor() {
       this._shell = new Shell();
    }
 
@@ -9,11 +9,12 @@ class Base {
       try {
          await this._run();
       } catch (e) {
-         this._shell.closeChildProcess();
+         await this._shell.closeChildProcess();
          throw e;
       }
    }
 
+   // eslint-disable-next-line class-methods-use-this,require-await
    async _run() {
       throw new Error('method _run must be impemented');
    }

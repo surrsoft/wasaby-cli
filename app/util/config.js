@@ -2,13 +2,15 @@ const path = require('path');
 const fs = require('fs-extra');
 
 const CONFIG = '../../config.json';
+
 /**
  * Возвращает конфиг
  * return Object
  */
 function get() {
    const packageConfig = _getPackageConfig();
-   const config = {...require(CONFIG)};
+   const config = { ...require(CONFIG) };
+
    if (packageConfig) {
       if (packageConfig.devDependencies) {
          for (const name of Object.keys(packageConfig.devDependencies)) {
@@ -49,6 +51,7 @@ function _getPackageConfig() {
          return config;
       }
    }
+   return undefined;
 }
 
 module.exports = {

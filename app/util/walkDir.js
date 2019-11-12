@@ -1,16 +1,25 @@
 const fs = require('fs-extra');
 const path = require('path');
 
+/**
+ * Рекурсивно обходит дректории исключая симлинки
+ * @param {String} rootDir - Директория которую надо обойти
+ * @param {Function} callback - Коллбек, вызывается для файлов
+ * @param {Array} exclude - Пути которые надо исключить
+ */
 function walkDir(rootDir, callback, exclude, currentDir) {
-   currentDir = currentDir || rootDir;
-   exclude = exclude || [];
-   const relativePath = path.relative(rootDir, currentDir);
+   const defCurrentDir = currentDir || rootDir;
+   const defExclude = exclude || [];
+   const relativePath = path.relative(rootDir, defCurrentDir);
 
-   fs.readdirSync(currentDir).forEach(file => {
-      const fullPath = path.join(currentDir, file);
-      if (!exclude.includes(fullPath) && !fs.lstatSync(fullPath).isSymbolicLink()) {
-         const isDirectory = fs.lstatSync(fullPath).isDirectory();
-         isDirectory ? walkDir(rootDir, callback, exclude, fullPath) : callback(path.join(relativePath, file));
+   fs.readdirSync(defCurrentDir).forEach((file) => {
+      const fullPath = path.join(defCurrentDir, file);
+      if (!defExclude.includes(fullPath) && !fs.lstatSync(fullPath).isSymbolicLink()) {
+         if (fs.lstatSync(fullPath).isDirectory()) {
+            walkDir(rootDir, callback, defExclude, fullPath);
+         } else {
+            callback(path.join(relativePath, file));
+         }
       }
    });
 }

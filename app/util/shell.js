@@ -7,8 +7,9 @@ class Shell {
    }
 
    /**
-    * @typedef {ExecParams} Items параметры child_process.exec https://nodejs.org/api/child_process.html#child_process_child_process_exec_command_options_callback
-    * @property {String} force Если true в случае ошибки вернет промис resolve.
+    * Параметры child_process.exec https://nodejs.org/api/child_process.html#child_process_child_process_exec_command_options_callback
+    * @typedef {Object}
+    * @property {Boolean} force Если true в случае ошибки вернет промис resolve.
     * @property {String} processName Метка процесса в логах.
     */
    /**
@@ -17,33 +18,34 @@ class Shell {
     * @param {String} path - путь по которому надо выполнить команду
     * @param {ExecParams} params
     * @return {Promise<any>}
-    * @private
+    * @public
     */
    execute(command, path, params) {
-      let errors = [];
-      let result = [];
-      params = Object.assign({
+      const errors = [];
+      const result = [];
+      const execParams = {
          async: true,
-         silent: true
-      }, params);
+         silent: true,
+         ...params
+      };
 
       return new Promise((resolve, reject) => {
-         const cloneProcess = shell.exec(`cd ${path} && ${command}`, params);
+         const cloneProcess = shell.exec(`cd ${path} && ${command}`, execParams);
          this._childProcessMap.push(cloneProcess);
 
          cloneProcess.stdout.on('data', (data) => {
-            logger.log(data, params.processName);
+            logger.log(data, execParams.processName);
             result.push(data.trim());
          });
 
          cloneProcess.stderr.on('data', (data) => {
-            logger.log(data, params.processName);
+            logger.log(data, execParams.processName);
             errors.push(data);
          });
 
          cloneProcess.on('exit', (code) => {
             this._childProcessMap.splice(this._childProcessMap.indexOf(cloneProcess), 1);
-            if (params.force || !code && !cloneProcess.withErrorKill) {
+            if (execParams.force || (!code && !cloneProcess.withErrorKill)) {
                resolve(result);
             } else {
                reject(errors);
@@ -55,21 +57,20 @@ class Shell {
    /**
     * Закрвыает все дочерние процессы
     * @return {Promise<void>}
-    * @private
+    * @public
     */
    async closeChildProcess() {
-      await Promise.all(this._childProcessMap.map((process) => {
-         return new Promise((resolve) => {
+      await Promise.all(this._childProcessMap.map(process => (
+         new Promise((resolve) => {
             process.on('close', () => {
                resolve();
             });
             process.withErrorKill = true;
             process.kill('SIGKILL');
-         });
-      }));
+         })
+      )));
       this._childProcessMap = [];
    }
-
 }
 
 module.exports = Shell;

@@ -4,8 +4,6 @@ const logger = require('./util/logger');
 const Base = require('./base');
 const Git = require('./util/git');
 
-const ERROR_MERGE_CODE = 101;
-
 class Store extends Base {
    constructor(cfg) {
       super(cfg);
@@ -24,17 +22,17 @@ class Store extends Base {
       logger.log('Инициализация хранилища');
       try {
          await fs.mkdirs(this._store);
-         await Promise.all(Object.keys(this._reposConfig).map((name) => {
-            return this.initRep(name).catch(error => {
-               if (error.code === ERROR_MERGE_CODE) {
+         await Promise.all(Object.keys(this._reposConfig).map(name => (
+            this.initRep(name).catch((error) => {
+               if (error.code === Git.ERROR_MERGE_CODE) {
                   logger.log(`Удаление репозитория ${name}`);
                   fs.removeSync(path.join(this._store, name));
                   logger.log(`Повторное клонирование ${name}`);
                   return this.initRep(name);
                }
                throw error;
-            });
-         }));
+            })
+         )));
          logger.log('Инициализация хранилища завершена успешно');
       } catch (e) {
          throw new Error(`Инициализация хранилища завершена с ошибкой ${e}`);
@@ -48,13 +46,14 @@ class Store extends Base {
     */
    async initRep(name) {
       const cfg = this._reposConfig[name];
-      //если есть путь до репозитория то его не надо выкачивать
+
+      // если есть путь до репозитория то его не надо выкачивать
       if (!cfg.skip && !cfg.path) {
          const branch = this._argvOptions[name] || this._rc;
          await this.cloneRepToStore(name);
          await this.checkout(
-             name,
-             branch
+            name,
+            branch
          );
       }
    }
@@ -85,8 +84,8 @@ class Store extends Base {
             if (/rc-.*00/.test(commit)) {
                // для некоторых репозиториев нет ветки yy.v00 только yy.v10 (19.610) в случае
                // ошибки переключаемся на 10 версию
-               commit = commit.replace('00', '10');
-               await git.checkout(commit.replace('00', '10'));
+               let replacedCommit = commit.replace('00', '10');
+               await git.checkout(replacedCommit.replace('00', '10'));
             } else {
                throw new Error(`Ошибка при переключение на ветку ${commit} в репозитории ${this._name}: ${err}`);
             }
@@ -111,14 +110,13 @@ class Store extends Base {
          try {
             logger.log(`git clone ${this._reposConfig[name].url}`, name);
             await this._shell.execute(`git clone ${this._reposConfig[name].url} ${name}`, this._store, {
-               name: `clone ${name}`
+               processName: `clone ${name}`
             });
          } catch (err) {
             throw new Error(`Ошибка при клонировании репозитория ${name}: ${err}`);
          }
       }
    }
-
 }
 
 module.exports = Store;

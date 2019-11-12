@@ -8,15 +8,18 @@ const path = require('path');
 const pMap = require('p-map');
 const Base = require('./base');
 
-
-
 const BROWSER_SUFFIX = '_browser';
 const NODE_SUFFIX = '_node';
 const PARALLEL_TEST_COUNT = 2;
 const DEFAULT_PORT = 10026;
 
-let getReportTemplate = () => {
-   return {
+const _private = {
+
+   /**
+    * Возвращает шаблон xml файла
+    * @returns {{testsuite: {$: {failures: string, tests: string, name: string, errors: string}, testcase: []}}}
+    */
+   getReportTemplate: () => ({
       testsuite: {
          $: {
             errors: '1',
@@ -26,18 +29,37 @@ let getReportTemplate = () => {
          },
          testcase: []
       }
-   };
-};
+   }),
 
-let getErrorTestCase = (name, details) => {
-   return {
+   /**
+    * Возвращает шаблон тескейса для xml
+    * @param {String} testName Название теста
+    * @param {String} details Детализация ошибки
+    * @returns {{$: {classname: string, name: string, time: string}, failure: *}}
+    */
+   getErrorTestCase: (testName, details) => ({
       $: {
-         classname: `[${name}]: Test runtime error`,
+         classname: `[${testName}]: Test runtime error`,
          name: 'Some test has not been run, see details',
          time: '0'
       },
       failure: details
-   };
+   }),
+
+   /**
+    * Возвращает путь до конфига юнит тестов
+    * @param {String} repName Название репозитрия
+    * @param {Boolean} isBrowser - Юниты в браузере
+    * @returns {string}
+    * @private
+    */
+   getPathToTestConfig: (repName, isBrowser) => {
+      const browser = isBrowser ? '_browser' : '';
+      return path.relative(
+         process.cwd(),
+         path.normalize(path.join(__dirname, '..', `testConfig_${repName}${browser}.json`))
+      );
+   }
 };
 
 class Test extends Base {
@@ -66,7 +88,7 @@ class Test extends Base {
    /**
     * Дописывает в отчеты название репозитория
     */
-   async prepareReport() {
+   prepareReport() {
       let promisArray = [];
 
       logger.log('Подготовка отчетов');
@@ -76,7 +98,8 @@ class Test extends Base {
             if (this._testErrors[name]) {
                errorText = this._testErrors[name].join('<br/>');
             }
-            let readPromise = xml.readXmlFile(filePath).then((result) => {
+            let readPromise = xml.readXmlFile(filePath).then((xmlObject) => {
+               let result = xmlObject;
                if (result.testsuite && result.testsuite.testcase) {
                   result.testsuite.testcase.forEach((item) => {
                      item.$.classname = `[${name}]: ${item.$.classname}`;
@@ -90,13 +113,11 @@ class Test extends Base {
                }
 
                if (errorText) {
-                  result.testsuite.testcase.push(getErrorTestCase(name, errorText));
+                  result.testsuite.testcase.push(_private.getErrorTestCase(name, errorText));
                }
 
                xml.writeXmlFile(filePath, result);
-            }).catch(error => {
-               logger.log(error);
-            });
+            }).catch(error => logger.error(error));
 
             promisArray.push(readPromise);
          }
@@ -114,22 +135,13 @@ class Test extends Base {
       this._testReports.forEach((pathToReport, name) => {
          if (!fs.existsSync(pathToReport)) {
             error.push(name);
-            this._createReport(pathToReport);
+            xml.writeXmlFile(pathToReport, _private.getReportTemplate());
          }
       });
       if (error.length > 0) {
-         logger.log(`Сгенерированы отчеты с ошибками: ${error.join(', ')}`);
+         logger.error(`Сгенерированы отчеты с ошибками: ${error.join(', ')}`);
       }
       logger.log('Проверка пройдена успешно');
-   }
-
-   /**
-    * Создает отчет юнит тестов
-    * @param {String} pathToFile - путь до отчета
-    * @private
-    */
-   _createReport(pathToFile) {
-      xml.writeXmlFile(pathToFile, getReportTemplate());
    }
 
    /**
@@ -141,39 +153,39 @@ class Test extends Base {
     */
    _getTestConfig(name, suffix, testModules) {
       const testConfig = require('../testConfig.base.json');
-      let cfg = {...testConfig};
+      let cfg = { ...testConfig };
       const fullName = name + (suffix || '');
       const workspace = path.relative(process.cwd(), this._workspace);
-      cfg.url = {...cfg.url};
+      cfg.url = { ...cfg.url };
       cfg.url.port = this._portsMap[name];
       cfg.tests = testModules;
       cfg.root = path.relative(process.cwd(), this._resources);
-      cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('${module}', fullName).replace('${workspace}', workspace);
-      cfg.jsonCoverageReport = cfg.jsonCoverageReport.replace('${module}', fullName).replace('${workspace}', workspace);
-      cfg.report = cfg.report.replace('${module}', fullName).replace('${workspace}', workspace);
+      cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('{module}', fullName).replace('{workspace}', workspace);
+      cfg.jsonCoverageReport = cfg.jsonCoverageReport.replace('{module}', fullName).replace('{workspace}', workspace);
+      cfg.report = cfg.report.replace('{module}', fullName).replace('{workspace}', workspace);
       this._testReports.set(fullName, cfg.report);
       return cfg;
    }
 
    /**
     * Возвращает модули с юнит тестами
-    * @param {String} name - название репозитория
+    * @param {String} repName - название репозитория
     * @returns {Array}
     * @private
     */
-   _getTestModules(name) {
-      const modules = this._modulesMap.getTestModules(name);
+   _getTestModules(repName) {
+      const modules = this._modulesMap.getTestModules(repName);
 
-      if (this._diff.has(name)) {
-         const diff = this._diff.get(name);
+      if (this._diff.has(repName)) {
+         const diff = this._diff.get(repName);
 
-         const filteredModules = modules.filter((name) => {
-            const cfg = this._modulesMap.get(name);
-            const checkModules = [name].concat(cfg.depends);
+         const filteredModules = modules.filter((moduleName) => {
+            const cfg = this._modulesMap.get(moduleName);
+            const checkModules = [moduleName].concat(cfg.depends);
 
-            return checkModules.some((dependModuleName) => {
-               return diff.some(filePath => filePath.includes(dependModuleName + path.sep));
-            });
+            return checkModules.some(dependModuleName => (
+               diff.some(filePath => filePath.includes(dependModuleName + path.sep))
+            ));
          });
 
          return filteredModules.length > 0 ? filteredModules : modules;
@@ -184,19 +196,19 @@ class Test extends Base {
 
    /**
     * Создает файл с конфигом для запуска юнит тестов
-    * @param params
+    * @param params - параметры для запуска юнит тестов
     * @returns {Promise<void>}
     * @private
     */
    async _makeTestConfig(params) {
       const cfg = this._getTestConfig(
-          params.name,
-          params.isBrowser ? BROWSER_SUFFIX : NODE_SUFFIX,
-          params.testModules
+         params.name,
+         params.isBrowser ? BROWSER_SUFFIX : NODE_SUFFIX,
+         params.testModules
       );
       await fs.outputFile(
-          params.path,
-          JSON.stringify(cfg, null, 4)
+         params.path,
+         JSON.stringify(cfg, null, 4)
       );
    }
 
@@ -205,8 +217,9 @@ class Test extends Base {
     * @returns {Promise<[]>}
     * @private
     */
-   async _startTest() {
-      return  pMap(this._modulesMap.getTestList(), (name) => {
+   _startTest() {
+      // eslint-disable-next-line consistent-return
+      return pMap(this._modulesMap.getTestList(), (name) => {
          const testModules = this._getTestModules(name);
          if (testModules.length > 0) {
             logger.log('Запуск тестов', name);
@@ -214,9 +227,8 @@ class Test extends Base {
                this._startNodeTest(name, testModules),
                this._startBrowserTest(name, testModules)
             ]);
-         } else  {
-            logger.log('Тесты не были запущены т.к. изменения не в модулях', name);
          }
+         logger.log('Тесты не были запущены т.к. изменения не в модулях', name);
       }, {
          concurrency: PARALLEL_TEST_COUNT
       });
@@ -224,18 +236,18 @@ class Test extends Base {
 
    /**
     * Запускает юниты под нодой
-    * @param {String} name
-    * @param {String} testModules
-    * @returns {Promise<void>}
+    * @param {String} repName - Название репозитория в конфиге
+    * @param {Array} testModules - Список модулей с тестами
+    * @return {Promise<void>}
     * @private
     */
-   async _startNodeTest(name, testModules) {
+   async _startNodeTest(repName, testModules) {
       try {
          if (!this._server) {
-            const pathToConfig = this._getPathToTestConfig(name, false);
+            const pathToConfig = _private.getPathToTestConfig(repName, false);
 
             await this._makeTestConfig({
-               name: name,
+               name: repName,
                testModules: testModules,
                path: pathToConfig,
                isBrowser: false
@@ -244,30 +256,31 @@ class Test extends Base {
             await this._shell.execute(
                `node node_modules/saby-units/cli.js --isolated --report --config=${pathToConfig}`,
                process.cwd(),
-               `test node ${name}`
+               {processName: `test node ${repName}`}
             );
          }
       } catch (e) {
-         this._testErrors[name + NODE_SUFFIX] = e;
+         this._testErrors[repName + NODE_SUFFIX] = e;
       }
    }
 
    /**
-    * запускает тесты в браузере
-    * @param {String} name - название репозитория в конфиге
+    * Запускает тесты в браузере
+    * @param {String} repName - Название репозитория в конфиге
+    * @param {Array} testModules - Список модулей с тестами
     * @return {Promise<void>}
     * @private
     */
-   async _startBrowserTest(name, testModules) {
-      let cfg = this._reposConfig[name];
+   async _startBrowserTest(repName, testModules) {
+      let cfg = this._reposConfig[repName];
       if (cfg.unitInBrowser) {
-         const configPath = this._getPathToTestConfig(name, true);
+         const configPath = _private.getPathToTestConfig(repName, true);
+         const browserTestModules = testModules.filter(module => !!this._modulesMap.get(module).testInBrowser);
          let cmd = '';
-         const browserTestModules = testModules.filter((name) => !!this._modulesMap.get(name).testInBrowser);
 
          if (browserTestModules.length > 0) {
             await this._makeTestConfig({
-               name: name,
+               name: repName,
                testModules: browserTestModules,
                path: configPath,
                isBrowser: true
@@ -280,16 +293,16 @@ class Test extends Base {
             }
 
             try {
-               logger.log('Запуск тестов в браузере', name);
+               logger.log('Запуск тестов в браузере', repName);
                await this._shell.execute(
-                   cmd,
-                   process.cwd(),
-                   `test browser ${name}`
+                  cmd,
+                  process.cwd(),
+                  {processName: `test browser ${repName}`}
                );
             } catch (e) {
-               this._testErrors[name + BROWSER_SUFFIX] = e;
+               this._testErrors[repName + BROWSER_SUFFIX] = e;
             }
-            logger.log('тесты в браузере завершены', name);
+            logger.log('тесты в браузере завершены', repName);
          }
       }
    }
@@ -302,50 +315,46 @@ class Test extends Base {
       try {
          logger.log('Запуск тестов');
          await this._modulesMap.build();
-         await this._checkDiff();
+         await this._setDiff();
          this._setPorts();
          await this._startTest();
          await this.checkReport();
          await this.prepareReport();
          logger.log('Тестирование завершено');
       } catch (e) {
-         throw e;
          throw new Error(`Тестирование завершено с ошибкой ${e}`);
       }
    }
 
    /**
-    * Возвращает путь до конфига юнит тестов
-    * @param {String} name название репозитрия
-    * @param {Boolean} isBrowser - юниты в браузере
-    * @returns {string}
+    * Проверяет diff в репозитории для запуска тестов только по измененным модулям
+    * @returns {Promise<[]>}
     * @private
     */
-   _getPathToTestConfig(name, isBrowser) {
-      const browser = isBrowser ? '_browser' : '';
-      return path.relative(
-         process.cwd(),
-         path.normalize(path.join( __dirname, '..', `testConfig_${name}${browser}.json`))
-      );
+   _setDiff() {
+      const result = [];
+      for (const name of this._testRep) {
+         if (name !== 'all') {
+            result.push(this._setDiffByRep(name));
+         }
+      }
+      return Promise.all(result);
    }
 
    /**
-    * Проверяет
+    * Заполняет diff по репозиторию
+    * @param repName Название репозитория
     * @returns {Promise<void>}
     * @private
     */
-   async _checkDiff() {
-      for (const name of this._testRep) {
-         if (name !== 'all') {
-            const git = new Git({
-               path: this._modulesMap.getRepositoryPath(name),
-               name: name
-            });
-            const branch = await git.getBranch();
-            if (branch !== this._rc) {
-               this._diff.set(name, await git.diff(branch, this._rc));
-            }
-         }
+   async _setDiffByRep(repName) {
+      const git = new Git({
+         path: this._modulesMap.getRepositoryPath(repName),
+         name: repName
+      });
+      const branch = await git.getBranch();
+      if (branch !== this._rc) {
+         this._diff.set(repName, await git.diff(branch, this._rc));
       }
    }
 
@@ -353,15 +362,13 @@ class Test extends Base {
     * Распределяет порты по тестам
     * @private
     */
-    _setPorts() {
+   _setPorts() {
       const ports = this._ports ? this._ports.split(',') : [];
       let defaultPort = DEFAULT_PORT;
-
-      this._modulesMap.getTestList().forEach(name => {
+      this._modulesMap.getTestList().forEach((name) => {
          this._portsMap[name] = ports.shift() || defaultPort++;
       });
    }
-
 }
 
 module.exports = Test;
