@@ -65,7 +65,8 @@ class Cli {
          workDir: this._workDir,
          workspace: this._workspace,
          builderBaseConfig: this._argvOptions.builderConfig,
-         only: !!this._argvOptions.only
+         only: !!this._argvOptions.only,
+         pathToJinnee: this._argvOptions.pathToJinnee
       });
 
       await build.run();
