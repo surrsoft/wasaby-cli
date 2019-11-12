@@ -112,7 +112,7 @@ describe('Store', () => {
 
       it('should checkout branch', (done) => {
          stubExecute.callsFake((cmd, path, params) => {
-            if (typeof params.name === 'string' && params.name.includes('checkout')) {
+            if (typeof params.processName === 'string' && params.processName.includes('checkout')) {
                chai.expect(cmd).to.equal('git checkout -f 20.1000/branch');
                done();
             }
@@ -169,7 +169,7 @@ describe('Store', () => {
 
       it('should reset rep to commit', (done) => {
          stubExecute.callsFake((cmd, path, params) => {
-            if (typeof params.name === 'string' && params.name.includes('reset')) {
+            if (typeof params.processName === 'string' && params.processName.includes('reset')) {
                chai.expect(cmd).to.equal('git reset --hard b2563dfa');
                done();
             }
@@ -203,7 +203,7 @@ describe('Store', () => {
       it('should checkout brunch twice', (done) => {
          let count = 1;
          rmdirSync = sinon.stub(fs, 'removeSync').callsFake(() => undefined);
-         stubRepConf = sinon.stub(store, '_reposConfig').value( {
+         stubRepConf = sinon.stub(store, '_reposConfig').value({
             test: {}
          });
          initRepStore = sinon.stub(store, 'initRep').callsFake(() => {

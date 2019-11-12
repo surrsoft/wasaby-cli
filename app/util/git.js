@@ -119,4 +119,5 @@ class Git {
    }
 }
 
+Git.ERROR_MERGE_CODE = ERROR_MERGE_CODE;
 module.exports = Git;

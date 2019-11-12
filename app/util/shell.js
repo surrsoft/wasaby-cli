@@ -45,7 +45,7 @@ class Shell {
 
          cloneProcess.on('exit', (code) => {
             this._childProcessMap.splice(this._childProcessMap.indexOf(cloneProcess), 1);
-            if (params.force || (!code && !cloneProcess.withErrorKill)) {
+            if (execParams.force || (!code && !cloneProcess.withErrorKill)) {
                resolve(result);
             } else {
                reject(errors);

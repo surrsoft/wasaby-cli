@@ -223,8 +223,9 @@ describe('Test', () => {
 
       it('should return all test', (done) => {
          stubWrite.callsFake((name, obj) => {
-            chai.expect(obj.testsuite.testcase[0].$.classname).to.equal('[test]: test1');
-            done();
+            if (obj.testsuite.testcase[0].$.classname === '[test]: test1') {
+               done();
+            }
          });
          test.prepareReport();
       });
@@ -234,8 +235,10 @@ describe('Test', () => {
          stubTestReports = sinon.stub(test._modulesMap, 'getTestModules').callsFake(() => ['test']);
          stubTestError.value({test: ['error']});
          stubWrite.callsFake((name, obj) => {
-            chai.expect(obj.testsuite.testcase[0].failure).to.equal('error');
-            done();
+            if (obj.testsuite.testcase[0]) {
+               chai.expect(obj.testsuite.testcase[0].failure).to.equal('error');
+               done();
+            }
          });
          test.prepareReport();
       });
