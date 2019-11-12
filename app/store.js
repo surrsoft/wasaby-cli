@@ -4,8 +4,6 @@ const logger = require('./util/logger');
 const Base = require('./base');
 const Git = require('./util/git');
 
-const ERROR_MERGE_CODE = 101;
-
 class Store extends Base {
    constructor(cfg) {
       super(cfg);
@@ -111,7 +109,7 @@ class Store extends Base {
          try {
             logger.log(`git clone ${this._reposConfig[name].url}`, name);
             await this._shell.execute(`git clone ${this._reposConfig[name].url} ${name}`, this._store, {
-               name: `clone ${name}`
+               processName: `clone ${name}`
             });
          } catch (err) {
             throw new Error(`Ошибка при клонировании репозитория ${name}: ${err}`);
