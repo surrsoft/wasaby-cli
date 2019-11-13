@@ -291,7 +291,7 @@ class Test extends Base {
                cmd = `node node_modules/saby-units/cli/server.js --config=${configPath}`;
             } else {
                // пока безголовый хром работает только для избранных
-               const selenium = HEADLESS_CHROME_TESTER.includes(repName) ? '' : '--selenium';
+               const selenium = HEADLESS_CHROME_TESTER.includes(this._testRep) ? '' : '--selenium';
                cmd = `node node_modules/saby-units/cli.js ${selenium} --browser --report --config=${configPath}`;
             }
 
