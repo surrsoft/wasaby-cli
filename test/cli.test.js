@@ -17,7 +17,7 @@ describe('CLI', () => {
    describe('._getArgvOptions()', () => {
       it('should return argv options', () => {
          stubArgv.value(['', '', '--rep=12', '--b=15']);
-         let config = cli._getArgvOptions();
+         let config = Cli._getArgvOptions();
          chai.expect(config).to.be.an('object').to.deep.equal({
             b: '15',
             rep: '12'

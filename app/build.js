@@ -8,8 +8,23 @@ const Base = require('./base');
 const builderConfigName = 'builderConfig.json';
 const builderBaseConfig = '../builderConfig.base.json';
 
-class Build extends Base {
+const _private = {
 
+   /**
+    * Возвращает путь до исполняемого файла джина
+    * @param {String} pathToJinnee
+    * @returns {string}
+    * @private
+    */
+   _getJinneeCli(pathToJinnee) {
+      if (process.platform === 'win32') {
+         return `"${path.join(pathToJinnee, 'jinnee-utility.exe')}" jinnee-dbg-stand-deployment300.dll`;
+      }
+      return `${path.join(pathToJinnee, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
+   }
+};
+
+class Build extends Base {
    constructor(cfg) {
       super(cfg);
       this._store = cfg.store;
@@ -22,9 +37,6 @@ class Build extends Base {
       this._workspace = cfg.workspace;
       this._projectDir = cfg.projectDir;
       this._pathToJinnee = cfg.pathToJinnee;
-      this._builderBaseConfig = cfg.builderBaseConfig ?
-         path.normalize(path.join(process.cwd(), cfg.builderBaseConfig)) :
-         builderBaseConfig;
       this._builderCfg = path.join(process.cwd(), 'builderConfig.json');
       this._modulesMap = new ModulesMap({
          reposConfig: this._reposConfig,
@@ -33,6 +45,11 @@ class Build extends Base {
          workDir: this._workDir,
          only: cfg.only
       });
+      if (cfg.builderBaseConfig) {
+         this._builderBaseConfig = path.normalize(path.join(process.cwd(), cfg.builderBaseConfig));
+      } else {
+         this._builderBaseConfig = builderBaseConfig;
+      }
    }
 
    /**
@@ -68,7 +85,7 @@ class Build extends Base {
          `node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=${this._builderCfg}`,
          process.cwd(), {
             force: true,
-            name:  'builder'
+            name: 'builder'
          }
       );
    }
@@ -82,22 +99,20 @@ class Build extends Base {
    async _prepareSrv(srvPath) {
       if (fs.existsSync(srvPath)) {
          const srv = await xml.readXmlFile(srvPath);
-         const srvModules = [];
          const dirName = path.dirname(srvPath);
 
          srv.service.items[0].ui_module.forEach((item) => {
             if (this._modulesMap.has(item.$.name)) {
                const cfg = this._modulesMap.get(item.$.name);
                item.$.url = path.relative(dirName, cfg.s3mod);
-               srvModules.push(cfg.name);
                cfg.srv = true;
                this._modulesMap.set(cfg.name, cfg);
             }
          });
          if (srv.service.parent) {
-            await Promise.all(srv.service.parent.map(item => {
-               return this._prepareSrv(path.normalize(path.join(dirName, item.$.path)));
-            }));
+            await Promise.all(srv.service.parent.map(item => (
+               this._prepareSrv(path.normalize(path.join(dirName, item.$.path)))
+            )));
          }
          xml.writeXmlFile(srvPath, srv);
       }
@@ -110,8 +125,8 @@ class Build extends Base {
     */
    _prepareDeployCfg(filePath) {
       let cfgString = fs.readFileSync(filePath, 'utf8');
-      cfgString = cfgString.replace(/\{site_root\}/g, this._workDir);
-      cfgString = cfgString.replace(/\{json_cache\}/g, this._builderCache);
+      cfgString = cfgString.replace(/{site_root}/g, this._workDir);
+      cfgString = cfgString.replace(/{json_cache}/g, this._builderCache);
       fs.outputFileSync(filePath, cfgString);
    }
 
@@ -125,7 +140,7 @@ class Build extends Base {
       const logs = path.join(this._workDir, 'logs');
       const project = path.join(this._projectDir, 'InTest.s3cld');
       const pathToJinnee = await this._getPathToJinnee();
-      const jinneeCli = this._getJinneeCli(pathToJinnee);
+      const jinneeCli = _private._getJinneeCli(pathToJinnee);
 
       await this._prepareSrv(path.join(this._projectDir, 'InTestUI.s3srv'));
 
@@ -134,32 +149,18 @@ class Build extends Base {
       await this._shell.execute(
          `${jinneeCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
          pathToJinnee, {
-             name: 'jinnee'
+            name: 'jinnee'
          }
       );
 
       const builderOutput = path.join(this._workDir, 'builder_test');
       await this._initWithBuilder(builderOutput);
-      fs.readdirSync(builderOutput).forEach(f => {
+      fs.readdirSync(builderOutput).forEach((f) => {
          let dirPath = path.join(builderOutput, f);
          if (fs.statSync(dirPath).isDirectory()) {
             fs.ensureSymlink(dirPath, path.join(this._resources, f));
          }
       });
-   }
-
-   /**
-    * Возвращает путь до исполняемого файла джина
-    * @param {String} pathToJinnee
-    * @returns {string}
-    * @private
-    */
-   _getJinneeCli(pathToJinnee) {
-      if (process.platform === 'win32') {
-         return `"${path.join(pathToJinnee, 'jinnee-utility.exe')}" jinnee-dbg-stand-deployment300.dll`;
-      } else {
-         return `${path.join(pathToJinnee, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
-      }
    }
 
    /**
@@ -173,8 +174,8 @@ class Build extends Base {
       if (this._pathToJinnee) {
          pathToJinnee = this._pathToJinnee;
       } else if (process.env.SDK) {
-         //todo Удалить после выполнения задачи
-         //https://online.sbis.ru/opendoc.html?guid=aa23030c-d1ac-4f40-923d-8f8349f32595
+         // todo Удалить после выполнения задачи
+         // https://online.sbis.ru/opendoc.html?guid=aa23030c-d1ac-4f40-923d-8f8349f32595
          pathToJinnee = path.join(pathToSDK, 'tools', 'jinnee', 'jinnee.zip');
       } else {
          pathToJinnee = path.join(pathToSDK, 'tools', 'jinnee');
@@ -185,10 +186,10 @@ class Build extends Base {
       }
 
       if (fs.statSync(pathToJinnee).isFile()) {
-         const unpack =  path.join(this._workspace, 'jinnee');
+         const unpack = path.join(this._workspace, 'jinnee');
          await this._shell.execute(
-             `7za x ${pathToJinnee} -y -o${unpack} > /dev/null`,
-             process.cwd()
+            `7za x ${pathToJinnee} -y -o${unpack} > /dev/null`,
+            process.cwd()
          );
          return unpack;
       }
@@ -227,14 +228,14 @@ class Build extends Base {
     * Копирует tslib
     * @private
     */
-   async _tslibInstall() {
+   _tslibInstall() {
       const tslib = path.relative(process.cwd(), path.join(this._modulesMap.getRepositoryPath('sbis3-ws'), '/WS.Core/ext/tslib.js'));
       logger.log(tslib, 'tslib_path');
       return this._shell.execute(
          `node node_modules/saby-typescript/cli/install.js --tslib=${tslib}`,
          process.cwd(), {
             force: true,
-            name:   'typescriptInstall'
+            name: 'typescriptInstall'
          }
       );
    }
@@ -244,16 +245,18 @@ class Build extends Base {
     * @return {Promise<void>}
     * @private
     */
-   async _linkFolder() {
+   _linkFolder() {
+      const promises = [];
       for (const name of Object.keys(this._reposConfig)) {
          if (this._reposConfig[name].linkFolders) {
             for (const pathOriginal of Object.keys(this._reposConfig[name].linkFolders)) {
                const pathDir = path.join(this._store, name, pathOriginal);
-               const pathLink =  path.join(this._resources, this._reposConfig[name].linkFolders[pathOriginal]);
-               await fs.ensureSymlink(pathDir, pathLink);
+               const pathLink = path.join(this._resources, this._reposConfig[name].linkFolders[pathOriginal]);
+               promises.push(fs.ensureSymlink(pathDir, pathLink));
             }
          }
       }
+      return Promise.all(promises);
    }
 
    /**
@@ -270,7 +273,7 @@ class Build extends Base {
          modules.forEach((moduleName) => {
             const cfg = this._modulesMap.get(moduleName);
             if (moduleName !== 'unit' && !cfg.srv) {
-               const isNameInConfig = builderConfig.modules.find((item) => (item.name === moduleName));
+               const isNameInConfig = builderConfig.modules.find(item => (item.name === moduleName));
                if (!isNameInConfig) {
                   builderConfig.modules.push({
                      name: moduleName,

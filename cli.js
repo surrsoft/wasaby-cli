@@ -6,6 +6,7 @@ const Test = require('./app/test');
 const config = require('./app/util/config');
 const logger = require('./app/util/logger');
 const ERROR_CODE = 2;
+
 /**
  * Модуль для запуска юнит тестов
  * @class Cli
@@ -16,9 +17,10 @@ class Cli {
    constructor() {
       const cfg = config.get();
       this._reposConfig = cfg.repositories;
-      this._argvOptions = this._getArgvOptions();
+      this._argvOptions = Cli._getArgvOptions();
       this._store = this._argvOptions.store || path.join(__dirname, cfg.store);
-      //на _repos остались завязаны srv и скрипт сборки пока это не убрать
+
+      // на _repos остались завязаны srv и скрипт сборки пока это не убрать
       this._store = path.join(this._store, '_repos');
       this._testRep = this._argvOptions.rep ? this._argvOptions.rep.split(',').map(name => name.trim()) : cfg.testRep;
       this._rc = this._argvOptions.rc || cfg.rc;
@@ -27,13 +29,13 @@ class Cli {
       this.tasks = this._argvOptions.tasks ? this._argvOptions.tasks.split(',') : ['initStore', 'build', 'startTest'];
       if (this._argvOptions.projectDir) {
          this._buildTools = 'jinnee';
-         //если сборка идет джином то исходники лежат в  intest-ps/ui/resources
+
+         // если сборка идет джином то исходники лежат в  intest-ps/ui/resources
          this._resources = path.join(this._workDir, 'intest-ps', 'ui', 'resources');
       } else {
          this._buildTools = 'builder';
          this._resources = this._workDir;
       }
-
    }
 
    /**
@@ -105,9 +107,9 @@ class Cli {
     * Возвращает опции командной строки
     * @private
     */
-   _getArgvOptions() {
+   static _getArgvOptions() {
       const options = {};
-      process.argv.slice(2).forEach(arg => {
+      process.argv.slice(2).forEach((arg) => {
          if (arg.startsWith('--')) {
             const argName = arg.substr(2);
             const [name, value] = argName.split('=', 2);
@@ -121,8 +123,9 @@ class Cli {
 
 module.exports = Cli;
 
+// eslint-disable-next-line id-match
 if (require.main.filename === __filename) {
-   //Если файл запущен напрямую запускаем тестирование
+   // Если файл запущен напрямую запускаем тестирование
    const cli = new Cli();
    cli.run().catch((e) => {
       logger.error(e);
