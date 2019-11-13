@@ -62,6 +62,9 @@
       },
       "rmi_test": {
          "url": "https://git.sbis.ru/sbis/rmi_test.git"
+      },
+      "saby-devtool": {
+         "url": "https://platform-git.sbis.ru/saby/devtools.git"
       }
    }
 }
