@@ -256,7 +256,7 @@ class Test extends Base {
             await this._shell.execute(
                `node node_modules/saby-units/cli.js --isolated --report --config=${pathToConfig}`,
                process.cwd(),
-               {processName: `test node ${repName}`}
+               { processName: `test node ${repName}` }
             );
          }
       } catch (e) {
@@ -297,7 +297,7 @@ class Test extends Base {
                await this._shell.execute(
                   cmd,
                   process.cwd(),
-                  {processName: `test browser ${repName}`}
+                  { processName: `test browser ${repName}` }
                );
             } catch (e) {
                this._testErrors[repName + BROWSER_SUFFIX] = e;
