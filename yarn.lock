@@ -4419,70 +4419,6 @@ rimraf@^2.6.1, rimraf@^2.6.2, rimraf@^2.6.3:
   dependencies:
     glob "^7.1.3"
 
-"saby-typescript@git+https://github.com/saby/TypeScript.git#rc-20.1000":
-  version "20.1000.0"
-  uid a4bc736eac1c70a396d3c73ad68f91125cd371a6
-  resolved "git+https://github.com/saby/TypeScript.git#a4bc736eac1c70a396d3c73ad68f91125cd371a6"
-  dependencies:
-    "@types/node" "12.12.6"
-    tslib "1.10.0"
-    tslint "5.20.1"
-    typescript "3.7.2"
-
-"saby-typescript@git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-20.1000":
-  version "20.1000.0"
-  resolved "git+https://platform-git.sbis.ru/saby/TypeScript.git#a4bc736eac1c70a396d3c73ad68f91125cd371a6"
-  dependencies:
-    "@types/node" "12.12.6"
-    tslib "1.10.0"
-    tslint "5.20.1"
-    typescript "3.7.2"
-
-"saby-units@git+https://github.com/saby/Units.git#rc-20.1000":
-  version "20.1000.0"
-  uid bf948fbc498b162a2a3808355bc4b8648d3f4a5e
-  resolved "git+https://github.com/saby/Units.git#bf948fbc498b162a2a3808355bc4b8648d3f4a5e"
-  dependencies:
-    "@types/chai" "4.2.0"
-    "@types/mocha" "5.2.7"
-    "@types/sinon" "7.0.13"
-    chai "4.2.0"
-    chrome-launcher "0.11.2"
-    chrome-remote-interface "0.28.0"
-    connect "3.7.0"
-    jsdom "15.1.1"
-    jsdom-global "3.0.2"
-    mime "2.4.4"
-    mocha "6.2.0"
-    requirejs "2.3.6"
-    serve-static "1.14.1"
-    sinon "7.4.2"
-    url "0.11.0"
-    webdriver "5.16.6"
-    webdriverio "5.16.6"
-
-"saby-units@git+https://platform-git.sbis.ru/saby/Units.git#rc-20.1000":
-  version "20.1000.0"
-  resolved "git+https://platform-git.sbis.ru/saby/Units.git#bf948fbc498b162a2a3808355bc4b8648d3f4a5e"
-  dependencies:
-    "@types/chai" "4.2.0"
-    "@types/mocha" "5.2.7"
-    "@types/sinon" "7.0.13"
-    chai "4.2.0"
-    chrome-launcher "0.11.2"
-    chrome-remote-interface "0.28.0"
-    connect "3.7.0"
-    jsdom "15.1.1"
-    jsdom-global "3.0.2"
-    mime "2.4.4"
-    mocha "6.2.0"
-    requirejs "2.3.6"
-    serve-static "1.14.1"
-    sinon "7.4.2"
-    url "0.11.0"
-    webdriver "5.16.6"
-    webdriverio "5.16.6"
-
 safe-buffer@5.1.2, safe-buffer@~5.1.0, safe-buffer@~5.1.1:
   version "5.1.2"
   resolved "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.1.2.tgz#991ec69d296e0313747d59bdfd2b745c35f8828d"
@@ -4516,43 +4452,6 @@ saxes@^3.1.9:
   integrity sha512-Ydydq3zC+WYDJK1+gRxRapLIED9PWeSuuS41wqyoRmzvhhh9nc+QQrVMKJYzJFULazeGhzSV0QleN2wD3boh2g==
   dependencies:
     xmlchars "^2.1.1"
-
-"sbis3-builder@git+https://platform-git.sbis.ru/saby/Builder.git#rc-20.1000":
-  version "20.1000.0-BUILD"
-  resolved "git+https://platform-git.sbis.ru/saby/Builder.git#ef258499b3ff8e966b26d22fa453586befc4358e"
-  dependencies:
-    async "2.6.1"
-    autoprefixer "9.5.0"
-    clean-css "4.1.11"
-    escodegen "1.11.0"
-    esprima "4.0.1"
-    estraverse "4.2.0"
-    fs-extra "7.0.0"
-    gulp "4.0.0"
-    gulp-chmod "2.0.0"
-    gulp-if "2.0.2"
-    gulp-plumber "1.2.0"
-    gulp-rename "1.3.0"
-    humanize "0.0.9"
-    iltorb "2.4.3"
-    is-glob "4.0.0"
-    less "3.7.1"
-    map-stream "0.0.7"
-    minimatch "3.0.4"
-    p-map "1.2.0"
-    postcss "7.0.1"
-    postcss-safe-parser "4.0.1"
-    postcss-url "7.3.2"
-    saby-typescript "git+https://github.com/saby/TypeScript.git#rc-20.1000"
-    saby-units "git+https://github.com/saby/Units.git#rc-20.1000"
-    semver "6.3.0"
-    strip-bom "3.0.0"
-    tensor-xmldom "0.2.0-b9"
-    through2 "2.0.3"
-    typescript "3.7.2"
-    uglify-js "3.3.23"
-    vinyl "2.2.0"
-    workerpool "2.3.0"
 
 semver-greatest-satisfied-range@^1.1.0:
   version "1.1.0"
