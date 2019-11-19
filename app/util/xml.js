@@ -1,6 +1,6 @@
 const fs = require('fs-extra');
 const xml2js = require('xml2js');
-
+const logger = require('./logger');
 /**
  * Читает xml файл
  * @param {String} filePath Путь до файла
@@ -14,7 +14,7 @@ function readXmlFile(filePath) {
          if (error === null) {
             resolve(result);
          } else {
-            this.log(error);
+            logger.log(error, 'readXmlFile');
             reject(error);
          }
       });
