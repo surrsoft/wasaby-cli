@@ -3,6 +3,7 @@ const path = require('path');
 const Store = require('./app/store');
 const Build = require('./app/build');
 const Test = require('./app/test');
+const DevServer = require('./app/devServer');
 const config = require('./app/util/config');
 const logger = require('./app/util/logger');
 const ERROR_CODE = 2;
@@ -52,6 +53,10 @@ class Cli {
       if (this.tasks.includes('startTest')) {
          await this.test();
       }
+      if (this.tasks.includes('devServer')) {
+         this.devServer()
+      }
+
    }
 
    async build() {
@@ -101,6 +106,19 @@ class Cli {
       });
 
       await test.run();
+   }
+
+   devServer(comand) {
+      const devServer = new DevServer({
+         name: 'intest',
+         workDir: this._workDir,
+      });
+
+      if (this._argvOptions.start) {
+         devServer.start();
+      } else if (this._argvOptions.stop) {
+         devServer.stop();
+      }
    }
 
    /**
