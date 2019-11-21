@@ -43,9 +43,14 @@ class Shell {
             errors.push(data);
          });
 
-         cloneProcess.on('exit', (code) => {
+         cloneProcess.on('exit', (code, signal) => {
             this._childProcessMap.splice(this._childProcessMap.indexOf(cloneProcess), 1);
-            if (execParams.force || (!code && !cloneProcess.withErrorKill)) {
+            if (signal === 'SIGTERM') {
+               const message = `Process ${execParams.processName} has been terminated`;
+               errors.push(message);
+               logger.log(message, execParams.processName);
+               reject(errors);
+            } else if (execParams.force || (!code && !cloneProcess.withErrorKill)) {
                resolve(result);
             } else {
                reject(errors);

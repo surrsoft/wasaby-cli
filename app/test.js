@@ -12,7 +12,7 @@ const BROWSER_SUFFIX = '_browser';
 const NODE_SUFFIX = '_node';
 const PARALLEL_TEST_COUNT = 2;
 const DEFAULT_PORT = 10026;
-
+const TEST_TIMEOUT = 60*5*1000;
 const _private = {
 
    /**
@@ -256,7 +256,10 @@ class Test extends Base {
             await this._shell.execute(
                `node node_modules/saby-units/cli.js --isolated --report --config=${pathToConfig}`,
                process.cwd(),
-               { processName: `test node ${repName}` }
+               {
+                  processName: `test node ${repName}`,
+                  timeout: TEST_TIMEOUT
+               }
             );
          }
       } catch (e) {
@@ -297,7 +300,10 @@ class Test extends Base {
                await this._shell.execute(
                   cmd,
                   process.cwd(),
-                  { processName: `test browser ${repName}` }
+                  {
+                     processName: `test browser ${repName}`,
+                     timeout: TEST_TIMEOUT
+                  }
                );
             } catch (e) {
                this._testErrors[repName + BROWSER_SUFFIX] = e;
