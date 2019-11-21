@@ -12,7 +12,6 @@ const BROWSER_SUFFIX = '_browser';
 const NODE_SUFFIX = '_node';
 const PARALLEL_TEST_COUNT = 2;
 const DEFAULT_PORT = 10026;
-const HEADLESS_CHROME_TESTER = ['all', 'saby-i18n'];
 
 const _private = {
 
@@ -290,9 +289,7 @@ class Test extends Base {
             if (this._server) {
                cmd = `node node_modules/saby-units/cli/server.js --config=${configPath}`;
             } else {
-               // пока безголовый хром работает только для избранных
-               const selenium = HEADLESS_CHROME_TESTER.some(name => this._testRep.includes(name)) ? '' : '--selenium';
-               cmd = `node node_modules/saby-units/cli.js ${selenium} --browser --report --config=${configPath}`;
+               cmd = `node node_modules/saby-units/cli.js --browser --report --config=${configPath}`;
             }
 
             try {
