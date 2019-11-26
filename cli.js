@@ -108,10 +108,11 @@ class Cli {
       await test.run();
    }
 
-   devServer(comand) {
+   devServer() {
       const devServer = new DevServer({
          name: 'intest',
          workDir: this._workDir,
+         store: this._store
       });
 
       if (this._argvOptions.start) {
@@ -147,6 +148,7 @@ if (require.main.filename === __filename) {
    const cli = new Cli();
    cli.run().catch((e) => {
       logger.error(e);
-      process.exit(ERROR_CODE);
+      throw e;
+      //process.exit(ERROR_CODE);
    });
 }

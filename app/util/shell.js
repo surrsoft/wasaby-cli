@@ -1,5 +1,6 @@
 const shell = require('shelljs');
 const logger = require('./logger');
+const cdn_path = 'intest-ps/ui';
 
 class Shell {
    constructor() {
