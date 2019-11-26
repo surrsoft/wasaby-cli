@@ -174,8 +174,6 @@ class Build extends Base {
       if (this._pathToJinnee) {
          pathToJinnee = this._pathToJinnee;
       } else if (process.env.SDK) {
-         // todo Удалить после выполнения задачи
-         // https://online.sbis.ru/opendoc.html?guid=aa23030c-d1ac-4f40-923d-8f8349f32595
          pathToJinnee = path.join(pathToSDK, 'tools', 'jinnee', 'jinnee.zip');
       } else {
          pathToJinnee = path.join(pathToSDK, 'tools', 'jinnee');

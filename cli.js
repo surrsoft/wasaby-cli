@@ -54,9 +54,8 @@ class Cli {
          await this.test();
       }
       if (this.tasks.includes('devServer')) {
-         this.devServer()
+         await this.devServer();
       }
-
    }
 
    async build() {
@@ -108,7 +107,7 @@ class Cli {
       await test.run();
    }
 
-   devServer() {
+   async devServer() {
       const devServer = new DevServer({
          name: 'intest',
          workDir: this._workDir,
@@ -119,6 +118,8 @@ class Cli {
          devServer.start();
       } else if (this._argvOptions.stop) {
          devServer.stop();
+      } else if (this._argvOptions.convertBD) {
+         await devServer.convertBD();
       }
    }
 
@@ -146,9 +147,10 @@ module.exports = Cli;
 if (require.main.filename === __filename) {
    // Если файл запущен напрямую запускаем тестирование
    const cli = new Cli();
-   cli.run().catch((e) => {
+   cli.run().then(() => {
+      process.exit(0);
+   }).catch((e) => {
       logger.error(e);
-      throw e;
-      //process.exit(ERROR_CODE);
+      process.exit(ERROR_CODE);
    });
 }
