@@ -60,7 +60,7 @@ class Cli {
 
    async build() {
       //todo удалить как переведут сборки
-      const projectDir = this._argvOptions._projectDir ? path.join(this._projectDir, 'InTest.s3cld') : '';
+      const projectDir = this._argvOptions.projectDir ? path.join(this._argvOptions.projectDir, 'InTest.s3cld') : '';
       const build = new Build({
          builderCache: this._argvOptions.builderCache || 'builder-json-cache',
          projectPath: this._argvOptions.project || projectDir,
