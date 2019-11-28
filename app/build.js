@@ -20,7 +20,7 @@ class Build extends Base {
       this._resources = cfg.resources;
       this._workDir = cfg.workDir;
       this._builderCache = cfg.builderCache;
-      this._projectDir = cfg.projectDir;
+      this._workspace = cfg.workspace;
       this._projectPath = cfg.projectPath;
       this._builderCfg = path.join(process.cwd(), 'builderConfig.json');
       this._modulesMap = new ModulesMap({
