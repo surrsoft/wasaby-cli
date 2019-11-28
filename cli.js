@@ -28,7 +28,7 @@ class Cli {
       this._workDir = this._argvOptions.workDir || path.join(process.cwd(), cfg.workDir);
       this._workspace = this._argvOptions.workspace || './application';
       this.tasks = this._argvOptions.tasks ? this._argvOptions.tasks.split(',') : ['initStore', 'build', 'startTest'];
-      if (this._argvOptions.projectDir) {
+      if (this._argvOptions.projectDir || this._argvOptions.project) {
          this._buildTools = 'jinnee';
 
          // если сборка идет джином то исходники лежат в  intest-ps/ui/resources
@@ -59,9 +59,11 @@ class Cli {
    }
 
    async build() {
+      //todo удалить как переведут сборки
+      const projectDir = this._argvOptions._projectDir ? path.join(this._projectDir, 'InTest.s3cld') : '';
       const build = new Build({
          builderCache: this._argvOptions.builderCache || 'builder-json-cache',
-         projectDir: this._argvOptions.projectDir,
+         projectPath: this._argvOptions.project || projectDir,
          rc: this._rc,
          reposConfig: this._reposConfig,
          resources: this._resources,
@@ -109,17 +111,24 @@ class Cli {
 
    async devServer() {
       const devServer = new DevServer({
-         name: 'intest',
          workDir: this._workDir,
-         store: this._store
+         store: this._store,
+         rc: this._rc,
+         project: this._argvOptions.project,
+         workspace: this._workspace,
+         dbHost: this._argvOptions.dbHost,
+         dbName: this._argvOptions.dbName,
+         dbLogin: this._argvOptions.dbLogin,
+         dbPassword: this._argvOptions.dbPassword,
+         dbPort: this._argvOptions.dbPort,
       });
 
       if (this._argvOptions.start) {
-         devServer.start();
+         await devServer.start();
       } else if (this._argvOptions.stop) {
-         devServer.stop();
-      } else if (this._argvOptions.convertBD) {
-         await devServer.convertBD();
+         await devServer.stop();
+      } else if (this._argvOptions.convertDB) {
+         await devServer.convertDB();
       }
    }
 
@@ -147,9 +156,7 @@ module.exports = Cli;
 if (require.main.filename === __filename) {
    // Если файл запущен напрямую запускаем тестирование
    const cli = new Cli();
-   cli.run().then(() => {
-      process.exit(0);
-   }).catch((e) => {
+   cli.run().catch((e) => {
       logger.error(e);
       process.exit(ERROR_CODE);
    });

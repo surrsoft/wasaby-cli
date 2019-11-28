@@ -2,7 +2,7 @@ const chai = require('chai');
 const sinon = require('sinon');
 const fs = require('fs-extra');
 const xml2js = require('xml2js');
-let xml = require('../app/util/xml');
+let xml = require('../../app/xml/xml');
 
 describe('._writeXmlFile()', () => {
    let stuBuilder, stubFsWrite;
