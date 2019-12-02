@@ -3,7 +3,7 @@ const chai = require('chai');
 const sinon = require('sinon');
 const fs = require('fs-extra');
 const Test = require('../app/test');
-let xml = require('../app/util/xml');
+let xml = require('../app/xml/xml');
 const shell = require('../app/util/shell');
 
 let test;

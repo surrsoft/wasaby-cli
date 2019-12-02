@@ -1,28 +1,14 @@
 const fs = require('fs-extra');
 const path = require('path');
 const logger = require('./util/logger');
-const xml = require('./util/xml');
+const xml = require('./xml/xml');
 const ModulesMap = require('./util/modulesMap');
 const Base = require('./base');
+const Sdk = require('./util/sdk');
+const Project = require('./xml/project');
 
 const builderConfigName = 'builderConfig.json';
 const builderBaseConfig = '../builderConfig.base.json';
-
-const _private = {
-
-   /**
-    * Возвращает путь до исполняемого файла джина
-    * @param {String} pathToJinnee
-    * @returns {string}
-    * @private
-    */
-   _getJinneeCli(pathToJinnee) {
-      if (process.platform === 'win32') {
-         return `"${path.join(pathToJinnee, 'jinnee-utility.exe')}" jinnee-dbg-stand-deployment300.dll`;
-      }
-      return `${path.join(pathToJinnee, 'jinnee-utility')} libjinnee-dbg-stand-deployment300.so`;
-   }
-};
 
 class Build extends Base {
    constructor(cfg) {
@@ -35,8 +21,7 @@ class Build extends Base {
       this._workDir = cfg.workDir;
       this._builderCache = cfg.builderCache;
       this._workspace = cfg.workspace;
-      this._projectDir = cfg.projectDir;
-      this._pathToJinnee = cfg.pathToJinnee;
+      this._projectPath = cfg.projectPath;
       this._builderCfg = path.join(process.cwd(), 'builderConfig.json');
       this._modulesMap = new ModulesMap({
          reposConfig: this._reposConfig,
@@ -100,8 +85,8 @@ class Build extends Base {
       if (fs.existsSync(srvPath)) {
          const srv = await xml.readXmlFile(srvPath);
          const dirName = path.dirname(srvPath);
-
-         srv.service.items[0].ui_module.forEach((item) => {
+         const uiModules = srv.service.items[0].ui_module || [];
+         uiModules.forEach((item) => {
             if (this._modulesMap.has(item.$.name)) {
                const cfg = this._modulesMap.get(item.$.name);
                item.$.url = path.relative(dirName, cfg.s3mod);
@@ -123,11 +108,11 @@ class Build extends Base {
     * @param {String} filePath Путь до .deploy файлаы
     * @private
     */
-   _prepareDeployCfg(filePath) {
-      let cfgString = fs.readFileSync(filePath, 'utf8');
+   async _prepareDeployCfg(filePath) {
+      let cfgString = await fs.readFile(filePath, 'utf8');
       cfgString = cfgString.replace(/{site_root}/g, this._workDir);
       cfgString = cfgString.replace(/{json_cache}/g, this._builderCache);
-      fs.outputFileSync(filePath, cfgString);
+      await fs.outputFile(filePath, cfgString);
    }
 
    /**
@@ -136,22 +121,21 @@ class Build extends Base {
     * @private
     */
    async _initWithJinnee() {
-      const deploy = path.join(this._projectDir, 'InTest.s3deploy');
       const logs = path.join(this._workDir, 'logs');
-      const project = path.join(this._projectDir, 'InTest.s3cld');
-      const pathToJinnee = await this._getPathToJinnee();
-      const jinneeCli = _private._getJinneeCli(pathToJinnee);
+      const sdk = new Sdk({
+         rc: this._rc,
+         workspace: this._workspace
+      });
+      const project = new Project({
+         file:  this._projectPath
+      });
+      const srvPaths = await project.getServices();
+      const deploy = await project.getDeploy();
 
-      await this._prepareSrv(path.join(this._projectDir, 'InTestUI.s3srv'));
+      await Promise.all(srvPaths.map((srv) => this._prepareSrv(srv)));
+      await this._prepareDeployCfg(deploy);
 
-      this._prepareDeployCfg(path.join(this._projectDir, 'InTest.s3deploy'));
-
-      await this._shell.execute(
-         `${jinneeCli} --deploy_stand=${deploy} --logs_dir=${logs} --project=${project}`,
-         pathToJinnee, {
-            name: 'jinnee'
-         }
-      );
+      await sdk.jinneeDeploy(deploy, logs, project.file);
 
       const builderOutput = path.join(this._workDir, 'builder_test');
       await this._initWithBuilder(builderOutput);
@@ -161,67 +145,6 @@ class Build extends Base {
             fs.ensureSymlink(dirPath, path.join(this._resources, f));
          }
       });
-   }
-
-   /**
-    * Возвращает путь до папки с джином, если джин в архиве распаковывает в рабочую директорию
-    * @returns {Promise<string|*>}
-    * @private
-    */
-   async _getPathToJinnee() {
-      const pathToSDK = this._getPathToSdk();
-      let pathToJinnee = '';
-      if (this._pathToJinnee) {
-         pathToJinnee = this._pathToJinnee;
-      } else if (process.env.SDK) {
-         // todo Удалить после выполнения задачи
-         // https://online.sbis.ru/opendoc.html?guid=aa23030c-d1ac-4f40-923d-8f8349f32595
-         pathToJinnee = path.join(pathToSDK, 'tools', 'jinnee', 'jinnee.zip');
-      } else {
-         pathToJinnee = path.join(pathToSDK, 'tools', 'jinnee');
-      }
-
-      if (!fs.existsSync(pathToJinnee)) {
-         throw new Error(`Не существует путь до джина: ${pathToJinnee}`);
-      }
-
-      if (fs.statSync(pathToJinnee).isFile()) {
-         const unpack = path.join(this._workspace, 'jinnee');
-         await this._shell.execute(
-            `7za x ${pathToJinnee} -y -o${unpack} > /dev/null`,
-            process.cwd()
-         );
-         return unpack;
-      }
-
-      return pathToJinnee;
-   }
-
-   /**
-    * Возвращает путь до SDK
-    * @returns {string}
-    * @private
-    */
-   _getPathToSdk() {
-      let pathToSDK;
-      const sdkVersion = this._rc.replace('rc-', '').replace('.', '');
-
-      if (process.env.SDK) {
-         pathToSDK = process.env.SDK;
-         process.env['SBISPlatformSDK_' + sdkVersion] = pathToSDK;
-      } else {
-         pathToSDK = process.env['SBISPlatformSDK_' + sdkVersion];
-      }
-
-      if (!pathToSDK) {
-         throw new Error(`SDK версии ${sdkVersion} не установлен`);
-      }
-
-      if (!fs.existsSync(pathToSDK)) {
-         throw new Error(`Не найден SDK по пути: ${pathToSDK}`);
-      }
-
-      return pathToSDK;
    }
 
    /**

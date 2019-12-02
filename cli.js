@@ -3,6 +3,7 @@ const path = require('path');
 const Store = require('./app/store');
 const Build = require('./app/build');
 const Test = require('./app/test');
+const DevServer = require('./app/devServer');
 const config = require('./app/util/config');
 const logger = require('./app/util/logger');
 const ERROR_CODE = 2;
@@ -27,7 +28,7 @@ class Cli {
       this._workDir = this._argvOptions.workDir || path.join(process.cwd(), cfg.workDir);
       this._workspace = this._argvOptions.workspace || './application';
       this.tasks = this._argvOptions.tasks ? this._argvOptions.tasks.split(',') : ['initStore', 'build', 'startTest'];
-      if (this._argvOptions.projectDir) {
+      if (this._argvOptions.projectDir || this._argvOptions.project) {
          this._buildTools = 'jinnee';
 
          // если сборка идет джином то исходники лежат в  intest-ps/ui/resources
@@ -52,12 +53,17 @@ class Cli {
       if (this.tasks.includes('startTest')) {
          await this.test();
       }
+      if (this.tasks.includes('devServer')) {
+         await this.devServer();
+      }
    }
 
    async build() {
+      //todo удалить как переведут сборки
+      const projectDir = this._argvOptions.projectDir ? path.join(this._argvOptions.projectDir, 'InTest.s3cld') : '';
       const build = new Build({
          builderCache: this._argvOptions.builderCache || 'builder-json-cache',
-         projectDir: this._argvOptions.projectDir,
+         projectPath: this._argvOptions.project || projectDir,
          rc: this._rc,
          reposConfig: this._reposConfig,
          resources: this._resources,
@@ -101,6 +107,29 @@ class Cli {
       });
 
       await test.run();
+   }
+
+   async devServer() {
+      const devServer = new DevServer({
+         workDir: this._workDir,
+         store: this._store,
+         rc: this._rc,
+         project: this._argvOptions.project,
+         workspace: this._workspace,
+         dbHost: this._argvOptions.dbHost,
+         dbName: this._argvOptions.dbName,
+         dbLogin: this._argvOptions.dbLogin,
+         dbPassword: this._argvOptions.dbPassword,
+         dbPort: this._argvOptions.dbPort,
+      });
+
+      if (this._argvOptions.start) {
+         await devServer.start();
+      } else if (this._argvOptions.stop) {
+         await devServer.stop();
+      } else if (this._argvOptions.convertDB) {
+         await devServer.convertDB();
+      }
    }
 
    /**
