@@ -1,6 +1,6 @@
 const fs = require('fs-extra');
 const xml2js = require('xml2js');
-const logger = require('./logger');
+const logger = require('../util/logger');
 /**
  * Читает xml файл
  * @param {String} filePath Путь до файла
