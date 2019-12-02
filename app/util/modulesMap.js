@@ -1,6 +1,6 @@
 const path = require('path');
 const pMap = require('p-map');
-const xml = require('./xml');
+const xml = require('../xml/xml');
 const walkDir = require('./walkDir');
 
 class ModulesMap {

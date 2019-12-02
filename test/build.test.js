@@ -2,7 +2,7 @@ const chai = require('chai');
 const sinon = require('sinon');
 const fs = require('fs-extra');
 const Build = require('../app/build');
-const path = require('path');
+
 
 let build;
 
@@ -94,7 +94,7 @@ describe('Build', () => {
    });
 
    describe('.prepareSrv()', () => {
-      const xml = require('../app/util/xml');
+      const xml = require('../app/xml/xml');
       let stubxmlRead;
       let stubxmlWrite;
       let stubExists;
@@ -211,95 +211,4 @@ describe('Build', () => {
       });
    });
 
-   describe('._getPathToJinnee()', () => {
-      let stubsdk;
-      let stubExistsSync;
-      let stubStatSync;
-
-      beforeEach(() => {
-         stubsdk = sinon.stub(build, '_getPathToSdk').callsFake(() => 'sdk');
-         stubExistsSync = sinon.stub(fs, 'existsSync').callsFake(() => true);
-         stubStatSync = sinon.stub(fs, 'statSync').callsFake(() => {
-            return {isFile: () => false};
-         });
-      });
-
-      afterEach(() => {
-         stubsdk.restore();
-         stubExistsSync.restore();
-         stubStatSync.restore();
-      });
-
-      it('should return path to jinnee', async () => {
-         chai.expect(await build._getPathToJinnee()).to.equal(path.join('sdk', 'tools', 'jinnee'));
-      });
-
-      it('should throw an error when jinnee not exists', (done) => {
-         stubExistsSync.callsFake(() => false);
-         build._getPathToJinnee().catch(() => {
-            done();
-         });
-      });
-
-      it('should unpack archive', (done) => {
-         stubStatSync.callsFake(() => {
-            return {isFile: () => true};
-         });
-         stubExecute.callsFake((cmd) => {
-            chai.expect(cmd).to.includes(`7za x ${path.join('sdk', 'tools', 'jinnee')}`);
-            done();
-         });
-         build._getPathToJinnee();
-      });
-
-      it('should return path to unpack archive', async () => {
-         stubStatSync.callsFake(() => {
-            return {isFile: () => true};
-         });
-         stubExecute.callsFake((cmd) => {
-            chai.expect(cmd).to.includes(`7za x ${path.join('sdk', 'tools', 'jinnee')}`);
-         });
-         chai.expect(await build._getPathToJinnee()).to.equal(path.join('application', 'jinnee'));
-      });
-   });
-
-   describe('_getPathToSdk()', () => {
-      let stubSdk;
-      let stubExists;
-
-      before(() => {
-         process.env.SDK = process.env.SDK || '';
-         process.env.SBISPlatformSDK_101000 = process.env.SBISPlatformSDK_101000 || '';
-      });
-
-      beforeEach(() => {
-         stubExists = sinon.stub(fs, 'existsSync').callsFake(() => true);
-      });
-
-      afterEach(() => {
-         stubSdk.restore();
-         stubExists.restore();
-      });
-
-      it('should return sdk path from SDK', () => {
-         stubSdk = sinon.stub(process.env, 'SDK').value('path/to/sdk');
-         chai.expect(build._getPathToSdk()).to.equal('path/to/sdk');
-      });
-
-      it('should return sdk path from SDK with version', () => {
-         stubSdk = sinon.stub(process.env, 'SBISPlatformSDK_101000').value('path/to/sdk');
-         chai.expect(build._getPathToSdk()).to.equal('path/to/sdk');
-      });
-
-      it('should throw an error when path to sdk is empty', () => {
-         stubSdk = sinon.stub(process.env, 'SBISPlatformSDK_101000').value('');
-         chai.expect(() => build._getPathToSdk()).to.throw();
-      });
-
-      it('should throw an error when sdk is not exists', () => {
-         stubSdk = sinon.stub(process.env, 'SBISPlatformSDK_101000').value('path/to/sdk');
-         stubExists.callsFake(() => false);
-         chai.expect(() => build._getPathToSdk()).to.throw();
-      });
-   });
 });

@@ -1,6 +1,6 @@
 const logger = require('./util/logger');
 const ModulesMap = require('./util/modulesMap');
-const xml = require('./util/xml');
+const xml = require('./xml/xml');
 const Git = require('./util/git');
 
 const fs = require('fs-extra');
