@@ -11,7 +11,7 @@ const DB_CONNECTION = {
    port: 5432,
    login: 'postgres',
    password: 'postgres',
-   dbName: 'intest'
+   dbName: 'InTest'
 };
 
 /**
@@ -90,8 +90,8 @@ class DevServer {
    async _start(name) {
       try {
          await this._shell.execute(
-            `${this._workDir}/${name}/sbis-daemon --name "${name}" --library` +
-            `"libsbis-rpc-service300.so" --ep "FcgiEntryPoint" start --http--port ${this._port}`,
+            `${this._workDir}/${name}/sbis-daemon.exe --name="${name}" --library` +
+            `="libsbis-rpc-service300.dll" --ep="FcgiEntryPoint" start --http --port=${this._port}`,
             process.cwd()
          );
       } catch(e) {
