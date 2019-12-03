@@ -5,6 +5,14 @@ const Sdk = require('./util/sdk');
 const logger = require('./util/logger');
 const Project = require('./xml/project');
 
+let LIB = '.so';
+let EXE = '';
+
+if (process.platform === 'win32') {
+   LIB = '.dll';
+   EXE = '.exe';
+}
+
 const DEFAULT_PORT = 2001;
 const DB_CONNECTION = {
    host: 'localhost',
@@ -13,7 +21,6 @@ const DB_CONNECTION = {
    password: 'postgres',
    dbName: 'InTest'
 };
-
 /**
  * Класс для управления локальным сервером
  * @class DevServer
@@ -49,7 +56,7 @@ class DevServer {
    async start() {
       await this._linkCDN();
       await this._copyServiceIni(path.join(this._workDir, await this._getServicePath()));
-      await this._copyServiceIni(path.join(this._workDir, await this._getServicePathPS()));
+      await this._copyServicePSIni(path.join(this._workDir, await this._getServicePathPS()));
 
       await Promise.all([
          this._start(await this._getServicePath()),
@@ -90,8 +97,8 @@ class DevServer {
    async _start(name) {
       try {
          await this._shell.execute(
-            `${this._workDir}/${name}/sbis-daemon.exe --name="${name}" --library` +
-            `="libsbis-rpc-service300.dll" --ep="FcgiEntryPoint" start --http --port=${this._port}`,
+            `${this._workDir}/${name}/sbis-daemon${EXE} --name="${name}" --library` +
+            `="libsbis-rpc-service300${LIB}" --ep="FcgiEntryPoint" start --http --port=${this._port}`,
             process.cwd()
          );
       } catch(e) {
@@ -108,7 +115,7 @@ class DevServer {
    async _stop(name) {
       try {
          this._shell.execute(
-            `${this._workDir}/${name}/sbis-daemon --name "${name}" stop`,
+            `${this._workDir}/${name}/sbis-daemon${EXE} --name "${name}" stop`,
             process.cwd()
          );
       } catch(e) {
@@ -157,6 +164,18 @@ class DevServer {
       cfgString = cfgString.replace(/{dbPassword}/g, this._dbConnection.password);
       cfgString = cfgString.replace(/{dbPort}/g, this._dbConnection.port);
       cfgString = cfgString.replace(/{host}/g, this._host);
+      cfgString = cfgString.replace(/{port}/g, this._port);
+      await fs.outputFile(path.join(service, 'sbis-rpc-service.ini'), cfgString);
+   }
+
+   /**
+    * Копирует ini файлы в сервис
+    * @param service Директория в которой развернут сервис
+    * @returns {Promise<void>}
+    * @private
+    */
+   async _copyServicePSIni(service) {
+      let cfgString = await fs.readFile(path.join(process.cwd(), '/resources/sbis-rpc-service.base.ps.ini'), 'utf8');
       cfgString = cfgString.replace(/{port}/g, this._port);
       await fs.outputFile(path.join(service, 'sbis-rpc-service.ini'), cfgString);
    }
