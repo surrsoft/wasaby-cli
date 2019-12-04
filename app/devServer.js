@@ -55,13 +55,22 @@ class DevServer {
     */
    async start() {
       await this._linkCDN();
-      await this._copyServiceIni(path.join(this._workDir, await this._getServicePath()));
-      await this._copyServicePSIni(path.join(this._workDir, await this._getServicePathPS()));
+      const pathService = path.join(this._workDir, await this._getServicePath());
+      const pathServicePS = path.join(this._workDir, await this._getServicePathPS());
+
+      await this._copyServiceIni(pathService);
+      await this._copyServicePSIni(pathServicePS);
+
+      process.on('SIGINT', async () => {
+         await this.stop();
+      });
 
       await Promise.all([
-         this._start(await this._getServicePath()),
-         this._start(await this._getServicePathPS()),
+         this._start(await this._getServicePath(), pathService),
+         this._start(await this._getServicePathPS(), pathServicePS)
       ]);
+
+
    }
 
    /**
@@ -69,10 +78,14 @@ class DevServer {
     * @returns {Promise<void>}
     */
    async stop() {
-      await Promise.all([
-         this._stop(await this._getServicePath()),
-         this._stop(await this._getServicePathPS())
-      ]);
+      if (process.platform === 'win32') {
+         await this._shell.execute(`taskkill /im sbis-daemon.exe /F`, process.cwd());
+      } else {
+         await Promise.all([
+            this._stop(await this._getServicePath()),
+            this._stop(await this._getServicePathPS())
+         ]);
+      }
    }
 
    /**
@@ -94,12 +107,11 @@ class DevServer {
     * @param {String} name Название сервиса который нужно остановить
     * @private
     */
-   async _start(name) {
+   async _start(name, workDir) {
       try {
          await this._shell.execute(
-            `${this._workDir}/${name}/sbis-daemon${EXE} --name="${name}" --library` +
-            `="libsbis-rpc-service300${LIB}" --ep="FcgiEntryPoint" start --http --port=${this._port}`,
-            process.cwd()
+            `sbis-daemon${EXE} --http --port=${this._port}`,
+            workDir
          );
       } catch(e) {
          logger.error(e);
