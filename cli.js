@@ -114,13 +114,14 @@ class Cli {
          workDir: this._workDir,
          store: this._store,
          rc: this._rc,
+         port: this._argvOptions.port,
          project: this._argvOptions.project,
          workspace: this._workspace,
          dbHost: this._argvOptions.dbHost,
          dbName: this._argvOptions.dbName,
          dbLogin: this._argvOptions.dbLogin,
          dbPassword: this._argvOptions.dbPassword,
-         dbPort: this._argvOptions.dbPort,
+         dbPort: this._argvOptions.dbPort
       });
 
       if (this._argvOptions.start) {
@@ -160,4 +161,5 @@ if (require.main.filename === __filename) {
       logger.error(e);
       process.exit(ERROR_CODE);
    });
+
 }
