@@ -94,7 +94,7 @@ class Store extends Base {
       await git.reset(isBranch ? `remotes/origin/${commit}` : commit);
       await git.clean();
 
-      if (this._testRep.includes(name)) {
+      if (isBranch && this._testRep.includes(name)) {
          logger.log(`Попытка смержить ветку '${commit}' с '${this._rc}'`, name);
          await git.merge(this._rc);
       }
