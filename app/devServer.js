@@ -5,11 +5,9 @@ const Sdk = require('./util/sdk');
 const logger = require('./util/logger');
 const Project = require('./xml/project');
 
-let LIB = '.so';
 let EXE = '';
 
 if (process.platform === 'win32') {
-   LIB = '.dll';
    EXE = '.exe';
 }
 
