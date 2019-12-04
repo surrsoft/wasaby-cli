@@ -108,7 +108,7 @@ class DevServer {
    async _start(name, workDir) {
       try {
          await this._shell.execute(
-            `sbis-daemon${EXE} start --http --port=${this._port}`,
+            `sbis-daemon${EXE} --http --port=${this._port}`,
             workDir
          );
       } catch(e) {
