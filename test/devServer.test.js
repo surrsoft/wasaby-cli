@@ -47,7 +47,7 @@ describe('DevServer', () => {
       });
       it('should start dev server', (done) => {
          stubExecute.callsFake((cmd) => {
-            chai.expect(cmd).includes('start');
+            chai.expect(cmd).includes('sbis-daemon --http');
             done();
             stubExecute.restore();
             return Promise.resolve();

@@ -5,15 +5,20 @@ const Sdk = require('./util/sdk');
 const logger = require('./util/logger');
 const Project = require('./xml/project');
 
+let EXE = '';
+
+if (process.platform === 'win32') {
+   EXE = '.exe';
+}
+
 const DEFAULT_PORT = 2001;
 const DB_CONNECTION = {
    host: 'localhost',
    port: 5432,
    login: 'postgres',
    password: 'postgres',
-   dbName: 'intest'
+   dbName: 'InTest'
 };
-
 /**
  * Класс для управления локальным сервером
  * @class DevServer
@@ -48,13 +53,22 @@ class DevServer {
     */
    async start() {
       await this._linkCDN();
-      await this._copyServiceIni(path.join(this._workDir, await this._getServicePath()));
-      await this._copyServiceIni(path.join(this._workDir, await this._getServicePathPS()));
+      const pathService = path.join(this._workDir, await this._getServicePath());
+      const pathServicePS = path.join(this._workDir, await this._getServicePathPS());
+
+      await this._copyServiceIni(pathService);
+      await this._copyServicePSIni(pathServicePS);
+
+      process.on('SIGINT', async () => {
+         await this.stop();
+      });
 
       await Promise.all([
-         this._start(await this._getServicePath()),
-         this._start(await this._getServicePathPS()),
+         this._start(await this._getServicePath(), pathService),
+         this._start(await this._getServicePathPS(), pathServicePS)
       ]);
+
+
    }
 
    /**
@@ -62,10 +76,14 @@ class DevServer {
     * @returns {Promise<void>}
     */
    async stop() {
-      await Promise.all([
-         this._stop(await this._getServicePath()),
-         this._stop(await this._getServicePathPS())
-      ]);
+      if (process.platform === 'win32') {
+         await this._shell.execute(`taskkill /im sbis-daemon.exe /F`, process.cwd());
+      } else {
+         await Promise.all([
+            this._stop(await this._getServicePath()),
+            this._stop(await this._getServicePathPS())
+         ]);
+      }
    }
 
    /**
@@ -87,12 +105,11 @@ class DevServer {
     * @param {String} name Название сервиса который нужно остановить
     * @private
     */
-   async _start(name) {
+   async _start(name, workDir) {
       try {
          await this._shell.execute(
-            `${this._workDir}/${name}/sbis-daemon --name "${name}" --library` +
-            `"libsbis-rpc-service300.so" --ep "FcgiEntryPoint" start --http--port ${this._port}`,
-            process.cwd()
+            `sbis-daemon${EXE} --http --port=${this._port}`,
+            workDir
          );
       } catch(e) {
          logger.error(e);
@@ -108,7 +125,7 @@ class DevServer {
    async _stop(name) {
       try {
          this._shell.execute(
-            `${this._workDir}/${name}/sbis-daemon --name "${name}" stop`,
+            `${this._workDir}/${name}/sbis-daemon${EXE} --name "${name}" stop`,
             process.cwd()
          );
       } catch(e) {
@@ -157,6 +174,18 @@ class DevServer {
       cfgString = cfgString.replace(/{dbPassword}/g, this._dbConnection.password);
       cfgString = cfgString.replace(/{dbPort}/g, this._dbConnection.port);
       cfgString = cfgString.replace(/{host}/g, this._host);
+      cfgString = cfgString.replace(/{port}/g, this._port);
+      await fs.outputFile(path.join(service, 'sbis-rpc-service.ini'), cfgString);
+   }
+
+   /**
+    * Копирует ini файлы в сервис
+    * @param service Директория в которой развернут сервис
+    * @returns {Promise<void>}
+    * @private
+    */
+   async _copyServicePSIni(service) {
+      let cfgString = await fs.readFile(path.join(process.cwd(), '/resources/sbis-rpc-service.base.ps.ini'), 'utf8');
       cfgString = cfgString.replace(/{port}/g, this._port);
       await fs.outputFile(path.join(service, 'sbis-rpc-service.ini'), cfgString);
    }
