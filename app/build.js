@@ -109,10 +109,22 @@ class Build extends Base {
     * @private
     */
    async _prepareDeployCfg(filePath) {
-      let cfgString = await fs.readFile(filePath, 'utf8');
-      cfgString = cfgString.replace(/{site_root}/g, this._workDir);
-      cfgString = cfgString.replace(/{json_cache}/g, this._builderCache);
-      await fs.outputFile(filePath, cfgString);
+      let deploy = await xml.readXmlFile(filePath);
+      const business_logic = deploy.distribution_deploy_schema.site[0].business_logic;
+      const static_content = deploy.distribution_deploy_schema.site[0].static_content;
+
+      business_logic[0].$.target_path = this._workDir;
+      static_content[0].$.target_path = this._workDir;
+
+      deploy.distribution_deploy_schema.$.json_cache = this._builderCache;
+
+      if (process.platform === 'win32') {
+         deploy.distribution_deploy_schema.$.compiler = 'clang';
+         deploy.distribution_deploy_schema.$.architecture = 'i686';
+         deploy.distribution_deploy_schema.$.os = 'windows';
+      }
+
+      await xml.writeXmlFile(filePath, deploy);
    }
 
    /**

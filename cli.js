@@ -62,7 +62,7 @@ class Cli {
       //todo удалить как переведут сборки
       const projectDir = this._argvOptions.projectDir ? path.join(this._argvOptions.projectDir, 'InTest.s3cld') : '';
       const build = new Build({
-         builderCache: this._argvOptions.builderCache || 'builder-json-cache',
+         builderCache: this._argvOptions.builderCache || path.join(this._workDir, 'builder-json-cache'),
          projectPath: this._argvOptions.project || projectDir,
          rc: this._rc,
          reposConfig: this._reposConfig,
