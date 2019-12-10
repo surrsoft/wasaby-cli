@@ -55,19 +55,6 @@ describe('Shell', () => {
          shellUtil.execute('help', 'path');
       });
 
-      it('should return resolved promise if command result ok', (done) => {
-         stubExec = sinon.stub(shell, 'exec').callsFake((cmd) => {
-            let process = getProcess();
-            setTimeout(() => {
-               process.kill();
-            });
-            return process;
-         });
-         shellUtil.execute('help', 'path').then(() => {
-            done();
-         });
-      });
-
       it('should return resolved promise if command result is ok', (done) => {
          stubExec = sinon.stub(shell, 'exec').callsFake((cmd) => {
             let process = getProcess();
