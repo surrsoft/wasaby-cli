@@ -77,7 +77,7 @@ class Git {
          });
       } catch (e) {
          await this.mergeAbort();
-         const error = new Error(`При мерже '${branch}' в '${this._rc}' произошел конфликт`);
+         const error = new Error(`Ошибка при мерже '${branch}': ${e}`);
          error.code = ERROR_MERGE_CODE;
          throw error;
       }
