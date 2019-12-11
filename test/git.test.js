@@ -45,5 +45,19 @@ describe('Git', () => {
                 chai.expect(cmdArray[0]).to.includes('merge --abort');
             });
         });
+
+        it('should return origin error', () => {
+            stubExecute.callsFake((cmd) => {
+                if (cmd.includes('merge test')) {
+                    const err = new Error('origin');
+                    return Promise.reject(err);
+                }
+                return Promise.resolve();
+            });
+
+            return git.merge('test').catch(function (e) {
+                chai.expect(e.message).to.equal('Ошибка при мерже test: origin');
+            });
+        });
     });
 });
