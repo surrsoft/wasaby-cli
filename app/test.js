@@ -22,8 +22,8 @@ const _private = {
    getReportTemplate: () => ({
       testsuite: {
          $: {
-            errors: '1',
-            failures: '1',
+            errors: '0',
+            failures: '0',
             name: 'Mocha Tests',
             tests: '1'
          },
@@ -111,8 +111,9 @@ class Test extends Base {
                      }
                   };
                }
-
-               if (errorText) {
+               //до выполнения задачи https://online.sbis.ru/opendoc.html?guid=2b75077c-2bd9-45c4-94e6-d257e6ce31e4
+               //этим ошибкам верить нельзя, добавляем только если нет упавших юнитов
+               if (errorText && xmlObject.testsuite.$.errors === '0') {
                   result.testsuite.testcase.push(_private.getErrorTestCase(name, errorText));
                }
 
