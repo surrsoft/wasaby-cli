@@ -106,6 +106,7 @@ class Test extends Base {
                   });
                } else {
                   result = {
+                     $: { errors: '0' },
                      testsuite: {
                         testcase: []
                      }
