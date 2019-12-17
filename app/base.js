@@ -1,5 +1,11 @@
 const Shell = require('./util/shell');
 
+/**
+ * Базовый класс
+ * @class Base
+ * @author Ганшин Я.О
+ */
+
 class Base {
    constructor() {
       this._shell = new Shell();

@@ -6,6 +6,8 @@ const path = require('path');
  * @param {String} rootDir - Директория которую надо обойти
  * @param {Function} callback - Коллбек, вызывается для файлов
  * @param {Array} exclude - Пути которые надо исключить
+ * @function walkDir
+ * @author Ганшин Я.О
  */
 function walkDir(rootDir, callback, exclude, currentDir) {
    const defCurrentDir = currentDir || rootDir;
