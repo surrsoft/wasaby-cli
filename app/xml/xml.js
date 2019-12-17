@@ -14,7 +14,7 @@ function readXmlFile(filePath) {
          if (error === null) {
             resolve(result);
          } else {
-            logger.log(error, 'readXmlFile');
+            logger.log(`Ошибка при чтении xml файла ${filePath}: ${error}`, 'readXmlFile');
             reject(error);
          }
       });
