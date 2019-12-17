@@ -4,6 +4,12 @@ const fs = require('fs-extra');
 const CONFIG = '../../config.json';
 
 /**
+ * Модуль для работы с конфигом test-cli
+ * @author Ганшин Я.О
+ */
+
+
+/**
  * Возвращает конфиг
  * return Object
  */

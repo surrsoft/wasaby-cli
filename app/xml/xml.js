@@ -1,6 +1,13 @@
 const fs = require('fs-extra');
 const xml2js = require('xml2js');
 const logger = require('../util/logger');
+
+/**
+ * Чтение/запись в xml файл
+ * @author Ганшин Я.О
+ */
+
+
 /**
  * Читает xml файл
  * @param {String} filePath Путь до файла

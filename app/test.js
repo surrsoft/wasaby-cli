@@ -7,11 +7,11 @@ const fs = require('fs-extra');
 const path = require('path');
 const pMap = require('p-map');
 const Base = require('./base');
+const getPort = require('./net/getPort');
 
 const BROWSER_SUFFIX = '_browser';
 const NODE_SUFFIX = '_node';
 const PARALLEL_TEST_COUNT = 2;
-const DEFAULT_PORT = 10026;
 const TEST_TIMEOUT = 60*5*1000;
 const _private = {
 
@@ -62,12 +62,16 @@ const _private = {
    }
 };
 
+/**
+ * Кслас запускающий юнит тестирование
+ * @class Test
+ * @author Ганшин Я.О
+ */
 class Test extends Base {
    constructor(cfg) {
       super(cfg);
       this._testReports = new Map();
       this._resources = cfg.resources;
-      this._ports = cfg.ports;
       this._reposConfig = cfg.reposConfig;
       this._workspace = cfg.workspace || cfg.workDir;
       this._testErrors = {};
@@ -81,7 +85,6 @@ class Test extends Base {
          workDir: cfg.workDir,
          only: cfg.only
       });
-      this._portsMap = {};
       this._diff = new Map();
    }
 
@@ -151,13 +154,13 @@ class Test extends Base {
     * @param {Array} testModules - модули с юнит тестами
     * @private
     */
-   _getTestConfig(name, suffix, testModules) {
+   async _getTestConfig(name, suffix, testModules) {
       const testConfig = require('../testConfig.base.json');
       let cfg = { ...testConfig };
       const fullName = name + (suffix || '');
       const workspace = path.relative(process.cwd(), this._workspace);
       cfg.url = { ...cfg.url };
-      cfg.url.port = this._portsMap[name];
+      cfg.url.port = await getPort();
       cfg.tests = testModules;
       cfg.root = path.relative(process.cwd(), this._resources);
       cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('{module}', fullName).replace('{workspace}', workspace);
@@ -201,7 +204,7 @@ class Test extends Base {
     * @private
     */
    async _makeTestConfig(params) {
-      const cfg = this._getTestConfig(
+      const cfg = await this._getTestConfig(
          params.name,
          params.isBrowser ? BROWSER_SUFFIX : NODE_SUFFIX,
          params.testModules
@@ -322,7 +325,6 @@ class Test extends Base {
          logger.log('Запуск тестов');
          await this._modulesMap.build();
          await this._setDiff();
-         this._setPorts();
          await this._startTest();
          await this.checkReport();
          await this.prepareReport();
@@ -364,17 +366,6 @@ class Test extends Base {
       }
    }
 
-   /**
-    * Распределяет порты по тестам
-    * @private
-    */
-   _setPorts() {
-      const ports = this._ports ? this._ports.split(',') : [];
-      let defaultPort = DEFAULT_PORT;
-      this._modulesMap.getTestList().forEach((name) => {
-         this._portsMap[name] = ports.shift() || defaultPort++;
-      });
-   }
 }
 
 module.exports = Test;

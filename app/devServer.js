@@ -19,6 +19,7 @@ const DB_CONNECTION = {
    password: 'postgres',
    dbName: 'InTest'
 };
+
 /**
  * Класс для управления локальным сервером
  * @class DevServer

@@ -4,6 +4,12 @@ const logger = require('./util/logger');
 const Base = require('./base');
 const Git = require('./util/git');
 
+/**
+ * Класс отвечающий за подготовку репозиториев для тестирования
+ * @class Store
+ * @author Ганшин Я.О
+ */
+
 class Store extends Base {
    constructor(cfg) {
       super(cfg);

@@ -1,6 +1,10 @@
 const Shell = require('./shell');
 const ERROR_MERGE_CODE = 101;
-
+/**
+ * Ксласс содержащий методы работы с гитом
+ * @class Git
+ * @author Ганшин Я.О
+ */
 class Git {
    /**
     * Конструктор
