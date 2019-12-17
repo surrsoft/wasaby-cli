@@ -3,6 +3,11 @@ const pMap = require('p-map');
 const xml = require('../xml/xml');
 const walkDir = require('./walkDir');
 
+/**
+ * Карта модулей s3mod, из всех репозиториев
+ * @class ModulesMap
+ * @author Ганшин Я.О
+ */
 class ModulesMap {
    constructor(cfg) {
       this._reposConfig = cfg.reposConfig;

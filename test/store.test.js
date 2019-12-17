@@ -8,6 +8,8 @@ const path = require('path');
 const Store = require('../app/store');
 const Git = require('../app/util/git');
 const shell = require('../app/util/shell');
+const net  = require('net');
+
 let store;
 let stubExecute;
 describe('Store', () => {

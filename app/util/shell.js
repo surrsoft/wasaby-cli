@@ -2,6 +2,11 @@ const shell = require('shelljs');
 const logger = require('./logger');
 const cdn_path = 'intest-ps/ui';
 
+/**
+ * Класс для вызова shell команд
+ * @class Shell
+ * @author Ганшин Я.О
+ */
 class Shell {
    constructor() {
       this._childProcessMap = [];

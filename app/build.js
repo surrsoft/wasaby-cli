@@ -10,6 +10,11 @@ const Project = require('./xml/project');
 const builderConfigName = 'builderConfig.json';
 const builderBaseConfig = '../builderConfig.base.json';
 
+/**
+ * Класс отвечающий за сборку ресурсов для тестов
+ * @author Ганшин Я.О
+ */
+
 class Build extends Base {
    constructor(cfg) {
       super(cfg);
