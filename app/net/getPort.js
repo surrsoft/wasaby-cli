@@ -1,6 +1,6 @@
 const net = require('net');
 
-const MIN_PORT = 11000;
+const MIN_PORT = 21000;
 const MAX_PORT = 65536;
 
 /**
