@@ -64,9 +64,6 @@
       },
       "saby-devtool": {
          "url": "https://platform-git.sbis.ru/saby/devtools.git"
-      },
-      "saby-inferno": {
-         "url": "https://github.com/saby/inferno"
       }
    }
 }
