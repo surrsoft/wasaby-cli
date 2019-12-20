@@ -10,8 +10,7 @@
          "url": "https://platform-git.sbis.ru/saby/Types.git"
       },
       "saby-i18n": {
-         "url": "https://platform-git.sbis.ru/saby/I18n.git",
-         "unitInBrowser": true
+         "url": "https://platform-git.sbis.ru/saby/I18n.git"
       },
       "sbis3-ws": {
          "url": "https://git.sbis.ru/sbis/ws.git",
@@ -65,6 +64,9 @@
       },
       "saby-devtool": {
          "url": "https://platform-git.sbis.ru/saby/devtools.git"
+      },
+      "saby-inferno": {
+         "url": "https://github.com/saby/inferno"
       }
    }
 }
