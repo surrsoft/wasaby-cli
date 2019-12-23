@@ -6,7 +6,9 @@ const Test = require('./app/test');
 const DevServer = require('./app/devServer');
 const config = require('./app/util/config');
 const logger = require('./app/util/logger');
+
 const ERROR_CODE = 2;
+const LOG_FILE = 'test-cli.log';
 
 /**
  * Модуль для запуска юнит тестов
@@ -20,7 +22,6 @@ class Cli {
       this._reposConfig = cfg.repositories;
       this._argvOptions = Cli._getArgvOptions();
       this._store = this._argvOptions.store || path.join(__dirname, cfg.store);
-
       // на _repos остались завязаны srv и скрипт сборки пока это не убрать
       this._store = path.join(this._store, '_repos');
       this._testRep = this._argvOptions.rep ? this._argvOptions.rep.split(',').map(name => name.trim()) : cfg.testRep;
@@ -28,6 +29,7 @@ class Cli {
       this._workDir = this._argvOptions.workDir || path.join(process.cwd(), cfg.workDir);
       this._workspace = this._argvOptions.workspace || './application';
       this.tasks = this._argvOptions.tasks ? this._argvOptions.tasks.split(',') : ['initStore', 'build', 'startTest'];
+      logger.logFile = path.join(this._workspace, 'artifacts', LOG_FILE);
       if (this._argvOptions.projectDir || this._argvOptions.project) {
          this._buildTools = 'jinnee';
 
