@@ -10,12 +10,14 @@ let devServer;
 let stubExecute;
 let stubxml;
 let fsRead;
+let fsOutput;
 let fsWrite;
+let fsAppend;
 describe('DevServer', () => {
    beforeEach(() => {
       stubExecute = sinon.stub(shell.prototype, 'execute').callsFake(() => Promise.resolve());
       fsRead = sinon.stub(fs, 'readFile').callsFake(() => Promise.resolve(''));
-      fsWrite = sinon.stub(fs, 'outputFile').callsFake(() => Promise.resolve());
+      fsOutput = sinon.stub(fs, 'outputFile').callsFake(() => Promise.resolve());
       devServer = new DevServer({
          workDir: 'application',
          store: 'store',
@@ -28,13 +30,17 @@ describe('DevServer', () => {
             items: [{service: [{$:{url:'./srv1.s3srv'}},{$:{url:'./srv2.s3srv'}}]}]
          }
       }));
+      fsAppend = sinon.stub(fs, 'appendFileSync').callsFake(() => undefined);
+      fsWrite = sinon.stub(fs, 'writeFileSync').callsFake(() => undefined);
    });
 
    afterEach(() => {
       stubExecute.restore();
       stubxml.restore();
       fsWrite.restore();
+      fsOutput.restore();
       fsRead.restore();
+      fsAppend.restore();
    });
 
    describe('.start()', () => {
@@ -68,7 +74,7 @@ describe('DevServer', () => {
          stubExecute.callsFake((cmd) => {
             chai.expect(cmd).includes('stop');
             done();
-            stubExecute.restore();
+            stubExecute.callsFake(() => undefined);
          });
          devServer.stop();
       });
@@ -86,7 +92,7 @@ describe('DevServer', () => {
          stubExecute.callsFake((cmd) => {
             chai.expect(cmd).includes('libjinnee-db-converter');
             done();
-            stubExecute.restore();
+            stubExecute.callsFake(() => undefined);
          });
          devServer.convertDB();
       });

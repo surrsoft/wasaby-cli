@@ -47,7 +47,7 @@ class Logger {
     * Выводит ошибку в лог
     * @param message
     */
-   error(message){
+   error(message) {
       // eslint-disable-next-line no-console
       console.error(message);
       if (this.logFile) {

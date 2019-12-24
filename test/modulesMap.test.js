@@ -4,6 +4,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const ModulesMap = require('../app/util/modulesMap');
 let modulesMap;
+let stubfsAppend;
 describe('modulesMap', () => {
    beforeEach(() => {
       modulesMap = new ModulesMap({
@@ -13,6 +14,10 @@ describe('modulesMap', () => {
          },
          store: ''
       });
+      stubfsAppend = sinon.stub(fs, 'appendFileSync').callsFake(() => undefined);
+   });
+   afterEach(() => {
+      stubfsAppend.restore();
    });
    describe('._findModulesInStore()', () => {
       let stubfs, stubStat;
