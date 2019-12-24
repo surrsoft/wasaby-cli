@@ -7,6 +7,8 @@ let xml = require('../app/xml/xml');
 const shell = require('../app/util/shell');
 
 let test;
+let stubfsAppend;
+let stubExecute;
 describe('Test', () => {
    beforeEach(() => {
       test = new Test({
@@ -21,13 +23,12 @@ describe('Test', () => {
          resources: '',
          testRep: ['test1']
       });
-   });
-   let stubExecute;
-   beforeEach(() => {
-      stubExecute = sinon.stub(shell.prototype, 'execute').callsFake(() => {});
+      stubfsAppend = sinon.stub(fs, 'appendFileSync').callsFake(() => undefined);
+      stubExecute = sinon.stub(shell.prototype, 'execute').callsFake(() => undefined);
    });
    afterEach(() => {
       stubExecute.restore();
+      stubfsAppend.restore();
    });
 
    describe('._makeTestConfig()', () => {

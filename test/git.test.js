@@ -5,13 +5,16 @@ const chai = require('chai');
 const sinon = require('sinon');
 const Git = require('../app/util/git');
 const shell = require('../app/util/shell');
+const fs = require('fs-extra');
 
 let git;
 let stubExecute;
+let stubfsAppend;
 
 describe('Git', () => {
     beforeEach(() => {
         stubExecute = sinon.stub(shell.prototype, 'execute').callsFake(() => {});
+        stubfsAppend = sinon.stub(fs, 'appendFileSync').callsFake(() => undefined);
         git = new Git({
             rc: 'path/to',
             name: 'name',
@@ -19,6 +22,7 @@ describe('Git', () => {
     });
     afterEach(() => {
         stubExecute.restore();
+        stubfsAppend.restore();
     });
     describe('merge', () => {
         it('should call git merge', (done) => {
