@@ -15,7 +15,7 @@ class Logger {
     */
    set logFile(file) {
       this._logFile = file;
-      fs.writeFileSync(file, '');
+      fs.outputFileSync(file, '');
    }
 
    /**

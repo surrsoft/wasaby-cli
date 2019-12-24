@@ -11,7 +11,7 @@ let stubExecute;
 let stubxml;
 let fsRead;
 let fsOutput;
-let fsWrite;
+let fsOutputSync;
 let fsAppend;
 describe('DevServer', () => {
    beforeEach(() => {
@@ -31,13 +31,13 @@ describe('DevServer', () => {
          }
       }));
       fsAppend = sinon.stub(fs, 'appendFileSync').callsFake(() => undefined);
-      fsWrite = sinon.stub(fs, 'writeFileSync').callsFake(() => undefined);
+      fsOutputSync = sinon.stub(fs, 'outputFileSync').callsFake(() => undefined);
    });
 
    afterEach(() => {
       stubExecute.restore();
       stubxml.restore();
-      fsWrite.restore();
+      fsOutputSync.restore();
       fsOutput.restore();
       fsRead.restore();
       fsAppend.restore();
