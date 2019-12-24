@@ -12,6 +12,7 @@ const net  = require('net');
 
 let store;
 let stubExecute;
+let stubfsAppend;
 describe('Store', () => {
    beforeEach(() => {
       stubExecute = sinon.stub(shell.prototype, 'execute').callsFake(() => {});
@@ -25,9 +26,11 @@ describe('Store', () => {
          },
          testRep:['name']
       });
+      stubfsAppend = sinon.stub(fs, 'appendFileSync').callsFake(() => undefined);
    });
    afterEach(() => {
       stubExecute.restore();
+      stubfsAppend.restore();
    });
    describe('initRep', () => {
       let stubCheckout, stubClone, stubMkDir, stubRepConf;

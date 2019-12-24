@@ -160,7 +160,8 @@ class Test extends Base {
       const testConfig = require('../testConfig.base.json');
       let cfg = { ...testConfig };
       const fullName = name + (suffix || '');
-      const workspace = path.relative(process.cwd(), this._workspace);
+      let workspace = path.relative(process.cwd(), this._workspace);
+      workspace = workspace ? workspace : '.';
       cfg.url = { ...cfg.url };
       cfg.url.port = await getPort();
       cfg.tests = testModules;
