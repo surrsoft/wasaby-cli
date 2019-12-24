@@ -8,7 +8,7 @@ const config = require('./app/util/config');
 const logger = require('./app/util/logger');
 
 const ERROR_CODE = 2;
-const LOG_FILE = 'test-cli.log';
+const LOG_FILE = path.join('test-cli', 'test-cli.log');
 
 /**
  * Модуль для запуска юнит тестов
