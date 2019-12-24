@@ -8,7 +8,7 @@ const config = require('./app/util/config');
 const logger = require('./app/util/logger');
 
 const ERROR_CODE = 2;
-const LOG_FILE = path.join('test-cli', 'test-cli.log');
+const LOG_FOLDER = 'log';
 
 /**
  * Модуль для запуска юнит тестов
@@ -27,9 +27,9 @@ class Cli {
       this._testRep = this._argvOptions.rep ? this._argvOptions.rep.split(',').map(name => name.trim()) : cfg.testRep;
       this._rc = this._argvOptions.rc || cfg.rc;
       this._workDir = this._argvOptions.workDir || path.join(process.cwd(), cfg.workDir);
-      this._workspace = this._argvOptions.workspace || './application';
+      this._workspace = this._argvOptions.workspace || process.cwd();
       this.tasks = this._argvOptions.tasks ? this._argvOptions.tasks.split(',') : ['initStore', 'build', 'startTest'];
-      logger.logFile = path.join(this._workspace, 'artifacts', LOG_FILE);
+      logger.logFile = path.join(this._workspace, LOG_FOLDER, `test-cli-${this.tasks.join('_')}.log`);
       if (this._argvOptions.projectDir || this._argvOptions.project) {
          this._buildTools = 'jinnee';
 
