@@ -103,24 +103,21 @@ class ModulesMap {
       if (this._testList) {
          return this._testList;
       }
-      let tests = new Set();
+      let testList = [];
       if (this._only) {
-         tests = new Set(this._testRep);
+         this._testRep.forEach((name) => {
+            testList = testList.concat(this.getTestModules(name));
+         });
       } else if (!this._testRep.includes('all')) {
          this._testRep.forEach((testRep) => {
-            const modules = this.getParentModules(this.getTestModulesWithDepends(testRep));
-            tests.add(testRep);
-            modules.forEach((name) => {
-               const cfg = this._modulesMap.get(name);
-               tests.add(cfg.rep);
-            });
+            testList = this.getParentModules(this.getTestModulesWithDepends(testRep));
          });
       } else {
-         this._testModulesMap.forEach((modules, rep) => {
-            tests.add(rep);
+         this._testModulesMap.forEach((modules) => {
+            testList = testList.concat(modules);
          });
       }
-      this._testList = tests;
+      this._testList = testList;
       return this._testList;
    }
 
@@ -142,16 +139,16 @@ class ModulesMap {
 
    /**
     * Возвращает список модулей содержащих юнит тесты
-    * @param name
+    * @param {String} repName название репозитория
     * @return {Array}
     */
-   getTestModules(name) {
-      return this._testModulesMap.get(name) || [];
+   getTestModules(repName) {
+      return this._testModulesMap.get(repName) || [];
    }
 
    /**
     * Возвращает список модулей по репозиторию
-    * @param repName
+    * @param {String} repName название репозитория
     * @return {Array}
     */
    getModulesByRep(repName) {
@@ -268,11 +265,11 @@ class ModulesMap {
 
    /**
     * Возвращает путь до репозитория
-    * @param name
+    * @param {String} repName название репозитория
     * @return {string}
     */
-   getRepositoryPath(name) {
-      return this._reposConfig[name].path || path.join(this._store, name);
+   getRepositoryPath(repName) {
+      return this._reposConfig[repName].path || path.join(this._store, repName);
    }
 }
 
