@@ -238,6 +238,8 @@ class ModulesMap {
                   const repCfg = this._reposConfig[cfg.rep];
                   const onlyNode = xmlObj.ui_module.unit_test[0].$ && xmlObj.ui_module.unit_test[0].$.onlyNode;
 
+                  testModules.push(cfg.name);
+
                   this._testModulesMap.set(cfg.rep, testModules);
                   cfg.testInBrowser = repCfg.unitInBrowser && !(onlyNode);
                }
