@@ -272,7 +272,7 @@ describe('Test', () => {
       });
       it('should test module if it existed in diff', () => {
          stubDiff.value(new Map([['test1', ['test11/test1.js']]]));
-         chai.expect(test._shouldTestModule('test11')).to.be.truek;
+         chai.expect(test._shouldTestModule('test11')).to.be.true;
       });
       it('should test module if diff was empty', () => {
          chai.expect(test._shouldTestModule('test11')).to.be.true;
