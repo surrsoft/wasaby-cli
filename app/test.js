@@ -179,13 +179,13 @@ class Test extends Base {
     * @returns {Array}
     * @private
     */
-   _checkDiffModule(moduleName) {
+   _shouldTestModule(moduleName) {
       const modulesCfg = this._modulesMap.get(moduleName);
 
       if (this._diff.has(modulesCfg.rep)) {
          const diff = this._diff.get(modulesCfg.rep);
 
-         return diff.some(filePath => filePath.includes(dependModuleName + path.sep))
+         return diff.some(filePath => filePath.includes(moduleName + path.sep))
       }
 
       return true;
@@ -217,7 +217,7 @@ class Test extends Base {
    _startTest() {
       // eslint-disable-next-line consistent-return
       return pMap(this._modulesMap.getTestList(), (moduleName) => {
-         if (this._checkDiffModule(moduleName)) {
+         if (this._shouldTestModule(moduleName)) {
             logger.log('Запуск тестов', moduleName);
             return Promise.all([
                this._startNodeTest(moduleName, moduleName),
