@@ -271,8 +271,7 @@ class Test extends Base {
     */
    async _startBrowserTest(moduleName) {
       const moduleCfg = this._modulesMap.get(moduleName);
-      const repCfg = this._reposConfig[moduleCfg.rep];
-      if (repCfg.unitInBrowser && moduleCfg.testInBrowser) {
+      if (moduleCfg.testInBrowser) {
          const configPath = _private.getPathToTestConfig(moduleCfg.rep, true);
 
          await this._makeTestConfig({

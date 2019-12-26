@@ -90,7 +90,7 @@ describe('Test', () => {
 
       it('should filter module with testInBrowser flag', (done) => {
          stubModuleMapGet.callsFake((name) => {
-            return name == 'test1' ? {name: 'test1', testInBrowser: true} : {name: 'test2', testInBrowser: false};
+            return name === 'test1' ? { name: 'test1', testInBrowser: true } : { name: 'test2', testInBrowser: false };
          });
          stubOutputFile = sinon.stub(fs, 'outputFile').callsFake((path, config) => {
             config = JSON.parse(config);
@@ -124,9 +124,9 @@ describe('Test', () => {
             resources: '',
             server: true
          });
-         sinon.stub(test._modulesMap, 'get').callsFake((name) => {
+         sinon.stub(test._modulesMap, 'get').callsFake(() => {
             return {name: 'test1', testInBrowser: true};
-         })
+         });
          stubOutputFile = sinon.stub(fs, 'outputFileSync').callsFake(() => undefined);
          stubExecute.callsFake((cmd) => {
             chai.expect(cmd).to.includes('server.js');

@@ -96,8 +96,8 @@ class ModulesMap {
    }
 
    /**
-    * Возвращает список репозиториев для тестирования
-    * @return {Set}
+    * Возвращает список модулей для тестирования
+    * @return {Array}
     */
    getTestList() {
       if (this._testList) {
@@ -226,9 +226,11 @@ class ModulesMap {
 
                if (xmlObj.ui_module.unit_test) {
                   const testModules = this._testModulesMap.get(cfg.rep) || [];
-                  testModules.push(cfg.name);
+                  const repCfg = this._reposConfig[cfg.rep];
+                  const onlyNode = xmlObj.ui_module.unit_test[0].$ && xmlObj.ui_module.unit_test[0].$.onlyNode;
+
                   this._testModulesMap.set(cfg.rep, testModules);
-                  cfg.testInBrowser = !(xmlObj.ui_module.unit_test[0].$ && xmlObj.ui_module.unit_test[0].$.onlyNode);
+                  cfg.testInBrowser = repCfg.unitInBrowser && !(onlyNode);
                }
 
                this._modulesMap.set(cfg.name, cfg);
