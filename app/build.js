@@ -206,7 +206,11 @@ class Build extends Base {
     */
    _makeBuilderConfig(output) {
       const builderConfig = require(this._builderBaseConfig);
-      const testList = this._modulesMap.getTestList();
+      const testList = new Set();
+
+      this._modulesMap.getTestList().forEach((name) => {
+         testList.add(this._modulesMap.get(name).rep);
+      });
 
       testList.forEach((name) => {
          const modules = this._modulesMap.getChildModules(this._modulesMap.getModulesByRep(name));

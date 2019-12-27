@@ -53,7 +53,7 @@ describe('DevServer', () => {
       });
       it('should start dev server', (done) => {
          stubExecute.callsFake((cmd) => {
-            chai.expect(cmd).includes('sbis-daemon --http');
+            chai.expect(cmd).includes('sbis-daemon').and.includes('--http');
             done();
             stubExecute.restore();
             return Promise.resolve();
@@ -62,21 +62,10 @@ describe('DevServer', () => {
       });
       it('should link cdn', (done) => {
          stublinkFs.callsFake((path) => {
-            chai.expect(path).includes('/cdn');
+            chai.expect(path).includes('cdn');
             done();
          });
          devServer.start();
-      });
-   });
-
-   describe('.stop()', () => {
-      it('should stop dev server', (done) => {
-         stubExecute.callsFake((cmd) => {
-            chai.expect(cmd).includes('stop');
-            done();
-            stubExecute.callsFake(() => undefined);
-         });
-         devServer.stop();
       });
    });
 
