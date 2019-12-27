@@ -206,19 +206,26 @@ class Build extends Base {
     */
    _makeBuilderConfig(output) {
       const builderConfig = require(this._builderBaseConfig);
-      const testList = this._modulesMap.getTestList();
+      const testList = new Set();
 
-      this._modulesMap.getChildModules(testList).forEach((moduleName) => {
-         const cfg = this._modulesMap.get(moduleName);
-         if (moduleName !== 'unit' && !cfg.srv) {
-            const isNameInConfig = builderConfig.modules.find(item => (item.name === moduleName));
-            if (!isNameInConfig) {
-               builderConfig.modules.push({
-                  name: moduleName,
-                  path: cfg.path
-               });
+      this._modulesMap.getTestList().forEach((name) => {
+         testList.set(this._modulesMap.get(name).rep);
+      });
+
+      testList.forEach((name) => {
+         const modules = this._modulesMap.getChildModules(this._modulesMap.getModulesByRep(name));
+         modules.forEach((moduleName) => {
+            const cfg = this._modulesMap.get(moduleName);
+            if (moduleName !== 'unit' && !cfg.srv) {
+               const isNameInConfig = builderConfig.modules.find(item => (item.name === moduleName));
+               if (!isNameInConfig) {
+                  builderConfig.modules.push({
+                     name: moduleName,
+                     path: cfg.path
+                  });
+               }
             }
-         }
+         });
       });
 
       builderConfig.output = output || this._resources;
