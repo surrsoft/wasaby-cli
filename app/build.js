@@ -209,7 +209,7 @@ class Build extends Base {
       const testList = new Set();
 
       this._modulesMap.getTestList().forEach((name) => {
-         testList.set(this._modulesMap.get(name).rep);
+         testList.add(this._modulesMap.get(name).rep);
       });
 
       testList.forEach((name) => {
