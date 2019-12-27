@@ -96,31 +96,37 @@ class ModulesMap {
    }
 
    /**
-    * Возвращает список репозиториев для тестирования
-    * @return {Set}
+    * Возвращает список модулей для тестирования
+    * @return {Array}
     */
    getTestList() {
       if (this._testList) {
          return this._testList;
       }
-      let tests = new Set();
+      let testList = [];
       if (this._only) {
-         tests = new Set(this._testRep);
+         this._testRep.forEach((name) => {
+            testList = testList.concat(this.getTestModules(name));
+         });
       } else if (!this._testRep.includes('all')) {
          this._testRep.forEach((testRep) => {
             const modules = this.getParentModules(this.getTestModulesWithDepends(testRep));
-            tests.add(testRep);
+            testList = testList.concat(this.getTestModules(testRep));
             modules.forEach((name) => {
                const cfg = this._modulesMap.get(name);
-               tests.add(cfg.rep);
+               this.getTestModules(cfg.rep).forEach((testModule) => {
+                  if (!testList.includes(testModule)) {
+                     testList.push(testModule);
+                  }
+               });
             });
          });
       } else {
-         this._testModulesMap.forEach((modules, rep) => {
-            tests.add(rep);
+         this._testModulesMap.forEach((modules) => {
+            testList = testList.concat(modules);
          });
       }
-      this._testList = tests;
+      this._testList = testList;
       return this._testList;
    }
 
@@ -128,7 +134,7 @@ class ModulesMap {
     * Возвращает список модулей содержащих юнит тесты и его зависимости
     * @return {Array}
     */
-   getTestModulesWithDepends(name) {
+    getTestModulesWithDepends(name) {
       let result = [];
       this._testModulesMap.get(name).forEach((moduleName) => {
          const cfg = this._modulesMap.get(moduleName);
@@ -142,16 +148,16 @@ class ModulesMap {
 
    /**
     * Возвращает список модулей содержащих юнит тесты
-    * @param name
+    * @param {String} repName название репозитория
     * @return {Array}
     */
-   getTestModules(name) {
-      return this._testModulesMap.get(name) || [];
+   getTestModules(repName) {
+      return this._testModulesMap.get(repName) || [];
    }
 
    /**
     * Возвращает список модулей по репозиторию
-    * @param repName
+    * @param {String} repName название репозитория
     * @return {Array}
     */
    getModulesByRep(repName) {
@@ -229,9 +235,13 @@ class ModulesMap {
 
                if (xmlObj.ui_module.unit_test) {
                   const testModules = this._testModulesMap.get(cfg.rep) || [];
+                  const repCfg = this._reposConfig[cfg.rep];
+                  const onlyNode = xmlObj.ui_module.unit_test[0].$ && xmlObj.ui_module.unit_test[0].$.onlyNode;
+
                   testModules.push(cfg.name);
+
                   this._testModulesMap.set(cfg.rep, testModules);
-                  cfg.testInBrowser = !(xmlObj.ui_module.unit_test[0].$ && xmlObj.ui_module.unit_test[0].$.onlyNode);
+                  cfg.testInBrowser = repCfg.unitInBrowser && !(onlyNode);
                }
 
                this._modulesMap.set(cfg.name, cfg);
@@ -268,11 +278,11 @@ class ModulesMap {
 
    /**
     * Возвращает путь до репозитория
-    * @param name
+    * @param {String} repName название репозитория
     * @return {string}
     */
-   getRepositoryPath(name) {
-      return this._reposConfig[name].path || path.join(this._store, name);
+   getRepositoryPath(repName) {
+      return this._reposConfig[repName].path || path.join(this._store, repName);
    }
 }
 

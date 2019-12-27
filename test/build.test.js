@@ -74,6 +74,9 @@ describe('Build', () => {
             },
             getChildModules: () => {
                return [];
+            },
+            get: (name) => {
+               return name === 'test1' ? {rep: 'test1'} : {rep: 'test2'};
             }
          });
       });
