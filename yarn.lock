@@ -138,11 +138,6 @@
   resolved "https://registry.npmjs.org/@types/node/-/node-12.12.6.tgz#a47240c10d86a9a57bb0c633f0b2e0aea9ce9253"
   integrity sha512-FjsYUPzEJdGXjwKqSpE0/9QEh6kzhTAeObA54rn6j3rR4C/mzpI9L0KNfoeASSPMMdxIsoJuCLDWcM/rVjIsSA==
 
-"@types/requirejs@2.1.31":
-  version "2.1.31"
-  resolved "https://registry.yarnpkg.com/@types/requirejs/-/requirejs-2.1.31.tgz#a24eaa0ee4f6b84feb8f521ca6550d48490b2bc6"
-  integrity sha512-b2soeyuU76rMbcRJ4e0hEl0tbMhFwZeTC0VZnfuWlfGlk6BwWNsev6kFu/twKABPX29wkX84wU2o+cEJoXsiTw==
-
 "@types/sinon@7.0.13":
   version "7.0.13"
   resolved "https://registry.npmjs.org/@types/sinon/-/sinon-7.0.13.tgz#ca039c23a9e27ebea53e0901ef928ea2a1a6d313"
@@ -1373,7 +1368,7 @@ domexception@^1.0.1:
   dependencies:
     webidl-conversions "^4.0.2"
 
-duplexify@^3.6.0:
+duplexify@^3.5.0, duplexify@^3.6.0:
   version "3.7.1"
   resolved "https://registry.npmjs.org/duplexify/-/duplexify-3.7.1.tgz#2a4df5317f6ccfd91f86d6fd25d8d8a103b88309"
   integrity sha512-07z8uv2wMyS51kKhD1KsdXJg5WQ6t93RneqRxUHnskXVtlYYkLqM0gqStQZ3pj073g687jPCHrqNfCzawLYh5g==
@@ -1381,16 +1376,6 @@ duplexify@^3.6.0:
     end-of-stream "^1.0.0"
     inherits "^2.0.1"
     readable-stream "^2.0.0"
-    stream-shift "^1.0.0"
-
-duplexify@^4.1.1:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/duplexify/-/duplexify-4.1.1.tgz#7027dc374f157b122a8ae08c2d3ea4d2d953aa61"
-  integrity sha512-DY3xVEmVHTv1wSzKNbwoU6nVjzI369Y6sPoqfYr0/xlx3IdX2n94xIszTcjPO8W8ZIv0Wb0PXNcjuZyT4wiICA==
-  dependencies:
-    end-of-stream "^1.4.1"
-    inherits "^2.0.3"
-    readable-stream "^3.1.1"
     stream-shift "^1.0.0"
 
 each-props@^1.3.0:
@@ -1896,12 +1881,12 @@ fs-constants@^1.0.0:
   resolved "https://registry.npmjs.org/fs-constants/-/fs-constants-1.0.0.tgz#6be0de9be998ce16af8afc24497b9ee9b7ccd9ad"
   integrity sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==
 
-fs-extra@8.1.0:
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-8.1.0.tgz#49d43c45a88cd9677668cb7be1b46efdb8d2e1c0"
-  integrity sha512-yhlQgA6mnOJUKOsRUFsgJdQCvkKhcz8tlZG5HBQfReYZy46OwLcY+Zia0mtdHsOo9y/hP+CxMN0TU9QxoOtG4g==
+fs-extra@7.0.0:
+  version "7.0.0"
+  resolved "https://registry.npmjs.org/fs-extra/-/fs-extra-7.0.0.tgz#8cc3f47ce07ef7b3593a11b9fb245f7e34c041d6"
+  integrity sha512-EglNDLRpmaTWiD/qraZn6HREAEAHJcJOmxNEYwq6xeMKnVMAy3GUcFB+wXt2C6k4CNvB/mP1y/U3dzvKKj5OtQ==
   dependencies:
-    graceful-fs "^4.2.0"
+    graceful-fs "^4.1.2"
     jsonfile "^4.0.0"
     universalify "^0.1.0"
 
@@ -2024,9 +2009,9 @@ glob-stream@^6.1.0:
     to-absolute-glob "^2.0.0"
     unique-stream "^2.0.2"
 
-glob-watcher@^5.0.3:
+glob-watcher@^5.0.0:
   version "5.0.3"
-  resolved "https://registry.yarnpkg.com/glob-watcher/-/glob-watcher-5.0.3.tgz#88a8abf1c4d131eb93928994bc4a593c2e5dd626"
+  resolved "https://registry.npmjs.org/glob-watcher/-/glob-watcher-5.0.3.tgz#88a8abf1c4d131eb93928994bc4a593c2e5dd626"
   integrity sha512-8tWsULNEPHKQ2MR4zXuzSmqbdyV5PtwwCaWSGQ1WwHsJ07ilNeN1JB8ntxhckbnpSHaf9dXFUHzIWvm1I13dsg==
   dependencies:
     anymatch "^2.0.0"
@@ -2107,18 +2092,18 @@ growl@1.10.5:
   resolved "https://registry.npmjs.org/growl/-/growl-1.10.5.tgz#f2735dc2283674fa67478b10181059355c369e5e"
   integrity sha512-qBr4OuELkhPenW6goKVXiv47US3clb3/IbuWF9KNKEijAy9oeHxU9IgzjvJhHkUzhaj7rOUD7+YGWqUjLp5oSA==
 
-gulp-chmod@3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/gulp-chmod/-/gulp-chmod-3.0.0.tgz#05d629451486ea1838c4bb681547e610fcfc127b"
-  integrity sha512-fDKj+yuLsUD3ayaHuvD0OzeUNOPeHmIC4wlwVQf3d3WYaB233zgq4sDBncIH5GRBmhtFc32LWFF04IdnrQFxig==
+gulp-chmod@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.npmjs.org/gulp-chmod/-/gulp-chmod-2.0.0.tgz#00c390b928a0799b251accf631aa09e01cc6299c"
+  integrity sha1-AMOQuSigeZslGsz2MaoJ4BzGKZw=
   dependencies:
     deep-assign "^1.0.0"
-    stat-mode "^0.3.0"
-    through2 "^3.0.1"
+    stat-mode "^0.2.0"
+    through2 "^2.0.0"
 
-gulp-cli@^2.2.0:
+gulp-cli@^2.0.0:
   version "2.2.0"
-  resolved "https://registry.yarnpkg.com/gulp-cli/-/gulp-cli-2.2.0.tgz#5533126eeb7fe415a7e3e84a297d334d5cf70ebc"
+  resolved "https://registry.npmjs.org/gulp-cli/-/gulp-cli-2.2.0.tgz#5533126eeb7fe415a7e3e84a297d334d5cf70ebc"
   integrity sha512-rGs3bVYHdyJpLqR0TUBnlcZ1O5O++Zs4bA0ajm+zr3WFCfiSLjGwoCBqFs18wzN+ZxahT9DkOK5nDf26iDsWjA==
   dependencies:
     ansi-colors "^1.0.1"
@@ -2140,26 +2125,26 @@ gulp-cli@^2.2.0:
     v8flags "^3.0.1"
     yargs "^7.1.0"
 
-gulp-if@3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/gulp-if/-/gulp-if-3.0.0.tgz#6c3e7edc8bafadc34f2ebecb314bf43324ba1e40"
-  integrity sha512-fCUEngzNiEZEK2YuPm+sdMpO6ukb8+/qzbGfJBXyNOXz85bCG7yBI+pPSl+N90d7gnLvMsarthsAImx0qy7BAw==
+gulp-if@2.0.2:
+  version "2.0.2"
+  resolved "https://registry.npmjs.org/gulp-if/-/gulp-if-2.0.2.tgz#a497b7e7573005041caa2bc8b7dda3c80444d629"
+  integrity sha1-pJe351cwBQQcqivIt92jyARE1ik=
   dependencies:
-    gulp-match "^1.1.0"
-    ternary-stream "^3.0.0"
-    through2 "^3.0.1"
+    gulp-match "^1.0.3"
+    ternary-stream "^2.0.1"
+    through2 "^2.0.1"
 
-gulp-match@^1.1.0:
+gulp-match@^1.0.3:
   version "1.1.0"
-  resolved "https://registry.yarnpkg.com/gulp-match/-/gulp-match-1.1.0.tgz#552b7080fc006ee752c90563f9fec9d61aafdf4f"
+  resolved "https://registry.npmjs.org/gulp-match/-/gulp-match-1.1.0.tgz#552b7080fc006ee752c90563f9fec9d61aafdf4f"
   integrity sha512-DlyVxa1Gj24DitY2OjEsS+X6tDpretuxD6wTfhXE/Rw2hweqc1f6D/XtsJmoiCwLWfXgR87W9ozEityPCVzGtQ==
   dependencies:
     minimatch "^3.0.3"
 
-gulp-plumber@1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/gulp-plumber/-/gulp-plumber-1.2.1.tgz#d38700755a300b9d372318e4ffb5ff7ced0b2c84"
-  integrity sha512-mctAi9msEAG7XzW5ytDVZ9PxWMzzi1pS2rBH7lA095DhMa6KEXjm+St0GOCc567pJKJ/oCvosVAZEpAey0q2eQ==
+gulp-plumber@1.2.0:
+  version "1.2.0"
+  resolved "https://registry.npmjs.org/gulp-plumber/-/gulp-plumber-1.2.0.tgz#18ea03912c9ee483f8a5499973b5954cd90f6ad8"
+  integrity sha512-L/LJftsbKoHbVj6dN5pvMsyJn9jYI0wT0nMg3G6VZhDac4NesezecYTi8/48rHi+yEic3sUpw6jlSc7qNWh32A==
   dependencies:
     chalk "^1.1.3"
     fancy-log "^1.3.2"
@@ -2171,14 +2156,14 @@ gulp-rename@1.3.0:
   resolved "https://registry.npmjs.org/gulp-rename/-/gulp-rename-1.3.0.tgz#2e789d8f563ab0c924eeb62967576f37ff4cb826"
   integrity sha512-nEuZB7/9i0IZ8AXORTizl2QLP9tcC9uWc/s329zElBLJw1CfOhmMXBxwVlCRKjDyrWuhVP0uBKl61KeQ32TiCg==
 
-gulp@4.0.2:
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/gulp/-/gulp-4.0.2.tgz#543651070fd0f6ab0a0650c6a3e6ff5a7cb09caa"
-  integrity sha512-dvEs27SCZt2ibF29xYgmnwwCYZxdxhQ/+LFWlbAW8y7jt68L/65402Lz3+CKy0Ov4rOs+NERmDq7YlZaDqUIfA==
+gulp@4.0.0:
+  version "4.0.0"
+  resolved "https://registry.npmjs.org/gulp/-/gulp-4.0.0.tgz#95766c601dade4a77ed3e7b2b6dc03881b596366"
+  integrity sha1-lXZsYB2t5Kd+0+eyttwDiBtZY2Y=
   dependencies:
-    glob-watcher "^5.0.3"
-    gulp-cli "^2.2.0"
-    undertaker "^1.2.1"
+    glob-watcher "^5.0.0"
+    gulp-cli "^2.0.0"
+    undertaker "^1.0.0"
     vinyl-fs "^3.0.0"
 
 gulplog@^1.0.0:
@@ -3159,10 +3144,12 @@ merge-source-map@^1.1.0:
   dependencies:
     source-map "^0.6.1"
 
-merge-stream@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/merge-stream/-/merge-stream-2.0.0.tgz#52823629a14dd00c9770fb6ad47dc6310f2c1f60"
-  integrity sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==
+merge-stream@^1.0.0:
+  version "1.0.1"
+  resolved "https://registry.npmjs.org/merge-stream/-/merge-stream-1.0.1.tgz#4041202d508a342ba00174008df0c251b8c135e1"
+  integrity sha1-QEEgLVCKNCugAXQAjfDCUbjBNeE=
+  dependencies:
+    readable-stream "^2.0.1"
 
 methods@~1.1.2:
   version "1.1.2"
@@ -4215,15 +4202,6 @@ read-pkg@^3.0.0:
     normalize-package-data "^2.3.2"
     path-type "^3.0.0"
 
-"readable-stream@2 || 3", readable-stream@^3.0.1, readable-stream@^3.1.1, readable-stream@^3.4.0:
-  version "3.4.0"
-  resolved "https://registry.npmjs.org/readable-stream/-/readable-stream-3.4.0.tgz#a51c26754658e0a3c21dbf59163bd45ba6f447fc"
-  integrity sha512-jItXPLmrSR8jmTRmRWJXCnGJsfy85mB3Wd/uINMXA65yrnFo0cPClFIUWzo2najVNSl+mx7/4W8ttlLWJe99pQ==
-  dependencies:
-    inherits "^2.0.3"
-    string_decoder "^1.1.1"
-    util-deprecate "^1.0.1"
-
 readable-stream@^2.0.0, readable-stream@^2.0.1, readable-stream@^2.0.2, readable-stream@^2.0.5, readable-stream@^2.0.6, readable-stream@^2.1.5, readable-stream@^2.2.2, readable-stream@^2.3.3, readable-stream@^2.3.5, readable-stream@^2.3.6, readable-stream@~2.3.6:
   version "2.3.6"
   resolved "https://registry.npmjs.org/readable-stream/-/readable-stream-2.3.6.tgz#b11c27d88b8ff1fbe070643cf94b0c79ae1b0aaf"
@@ -4236,6 +4214,15 @@ readable-stream@^2.0.0, readable-stream@^2.0.1, readable-stream@^2.0.2, readable
     safe-buffer "~5.1.1"
     string_decoder "~1.1.1"
     util-deprecate "~1.0.1"
+
+readable-stream@^3.0.1, readable-stream@^3.1.1, readable-stream@^3.4.0:
+  version "3.4.0"
+  resolved "https://registry.npmjs.org/readable-stream/-/readable-stream-3.4.0.tgz#a51c26754658e0a3c21dbf59163bd45ba6f447fc"
+  integrity sha512-jItXPLmrSR8jmTRmRWJXCnGJsfy85mB3Wd/uINMXA65yrnFo0cPClFIUWzo2najVNSl+mx7/4W8ttlLWJe99pQ==
+  dependencies:
+    inherits "^2.0.3"
+    string_decoder "^1.1.1"
+    util-deprecate "^1.0.1"
 
 readdirp@^2.2.1:
   version "2.2.1"
@@ -4432,72 +4419,6 @@ rimraf@^2.6.1, rimraf@^2.6.2, rimraf@^2.6.3:
   dependencies:
     glob "^7.1.3"
 
-"saby-typescript@git+https://github.com/saby/TypeScript.git#rc-20.1000":
-  version "20.1000.0"
-  uid "55f8d09d2733fe98306f7a2ec844eb28e489f29b"
-  resolved "git+https://github.com/saby/TypeScript.git#55f8d09d2733fe98306f7a2ec844eb28e489f29b"
-  dependencies:
-    "@types/node" "12.12.6"
-    "@types/requirejs" "2.1.31"
-    tslib "1.10.0"
-    tslint "5.20.1"
-    typescript "3.7.2"
-
-"saby-typescript@git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-20.1000":
-  version "20.1000.0"
-  resolved "git+https://platform-git.sbis.ru/saby/TypeScript.git#55f8d09d2733fe98306f7a2ec844eb28e489f29b"
-  dependencies:
-    "@types/node" "12.12.6"
-    "@types/requirejs" "2.1.31"
-    tslib "1.10.0"
-    tslint "5.20.1"
-    typescript "3.7.2"
-
-"saby-units@git+https://github.com/saby/Units.git#rc-20.1000":
-  version "20.1000.0"
-  uid d45835bc0f20ec1d864d50e1f6dc2d9e04e403ef
-  resolved "git+https://github.com/saby/Units.git#d45835bc0f20ec1d864d50e1f6dc2d9e04e403ef"
-  dependencies:
-    "@types/chai" "4.2.0"
-    "@types/mocha" "5.2.7"
-    "@types/sinon" "7.0.13"
-    chai "4.2.0"
-    chrome-launcher "0.11.2"
-    chrome-remote-interface "0.28.0"
-    connect "3.7.0"
-    jsdom "15.1.1"
-    jsdom-global "3.0.2"
-    mime "2.4.4"
-    mocha "6.2.0"
-    requirejs "2.3.6"
-    serve-static "1.14.1"
-    sinon "7.4.2"
-    url "0.11.0"
-    webdriver "5.16.6"
-    webdriverio "5.16.6"
-
-"saby-units@git+https://platform-git.sbis.ru/saby/Units.git#rc-20.1000":
-  version "20.1000.0"
-  resolved "git+https://platform-git.sbis.ru/saby/Units.git#d45835bc0f20ec1d864d50e1f6dc2d9e04e403ef"
-  dependencies:
-    "@types/chai" "4.2.0"
-    "@types/mocha" "5.2.7"
-    "@types/sinon" "7.0.13"
-    chai "4.2.0"
-    chrome-launcher "0.11.2"
-    chrome-remote-interface "0.28.0"
-    connect "3.7.0"
-    jsdom "15.1.1"
-    jsdom-global "3.0.2"
-    mime "2.4.4"
-    mocha "6.2.0"
-    requirejs "2.3.6"
-    serve-static "1.14.1"
-    sinon "7.4.2"
-    url "0.11.0"
-    webdriver "5.16.6"
-    webdriverio "5.16.6"
-
 safe-buffer@5.1.2, safe-buffer@~5.1.0, safe-buffer@~5.1.1:
   version "5.1.2"
   resolved "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.1.2.tgz#991ec69d296e0313747d59bdfd2b745c35f8828d"
@@ -4531,42 +4452,6 @@ saxes@^3.1.9:
   integrity sha512-Ydydq3zC+WYDJK1+gRxRapLIED9PWeSuuS41wqyoRmzvhhh9nc+QQrVMKJYzJFULazeGhzSV0QleN2wD3boh2g==
   dependencies:
     xmlchars "^2.1.1"
-
-"sbis3-builder@git+https://platform-git.sbis.ru/saby/Builder.git#rc-20.1000":
-  version "20.1000.0-BUILD"
-  resolved "git+https://platform-git.sbis.ru/saby/Builder.git#50cb8a30cebfb07157dec4f38f45a17230132a5e"
-  dependencies:
-    async "2.6.1"
-    autoprefixer "9.5.0"
-    clean-css "4.1.11"
-    escodegen "1.11.0"
-    esprima "4.0.1"
-    estraverse "4.2.0"
-    fs-extra "8.1.0"
-    gulp "4.0.2"
-    gulp-chmod "3.0.0"
-    gulp-if "3.0.0"
-    gulp-plumber "1.2.1"
-    gulp-rename "1.3.0"
-    humanize "0.0.9"
-    iltorb "2.4.3"
-    is-glob "4.0.0"
-    less "3.7.1"
-    map-stream "0.0.7"
-    minimatch "3.0.4"
-    p-map "1.2.0"
-    postcss "7.0.1"
-    postcss-safe-parser "4.0.1"
-    postcss-url "7.3.2"
-    saby-typescript "git+https://github.com/saby/TypeScript.git#rc-20.1000"
-    saby-units "git+https://github.com/saby/Units.git#rc-20.1000"
-    semver "6.3.0"
-    strip-bom "3.0.0"
-    tensor-xmldom "0.2.0-b9"
-    through2 "2.0.3"
-    uglify-js "3.3.23"
-    vinyl "2.2.0"
-    workerpool "2.3.0"
 
 semver-greatest-satisfied-range@^1.1.0:
   version "1.1.0"
@@ -4838,10 +4723,10 @@ stack-trace@0.0.10:
   resolved "https://registry.npmjs.org/stack-trace/-/stack-trace-0.0.10.tgz#547c70b347e8d32b4e108ea1a2a159e5fdde19c0"
   integrity sha1-VHxws0fo0ytOEI6hoqFZ5f3eGcA=
 
-stat-mode@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/stat-mode/-/stat-mode-0.3.0.tgz#69283b081f851582b328d2a4ace5f591ce52f54b"
-  integrity sha512-QjMLR0A3WwFY2aZdV0okfFEJB5TRjkggXZjxP3A1RsWsNHNu3YPv8btmtc6iCFZ0Rul3FE93OYogvhOUClU+ng==
+stat-mode@^0.2.0:
+  version "0.2.2"
+  resolved "https://registry.npmjs.org/stat-mode/-/stat-mode-0.2.2.tgz#e6c80b623123d7d80cf132ce538f346289072502"
+  integrity sha1-5sgLYjEj19gM8TLOU480YokHJQI=
 
 static-extend@^0.1.1:
   version "0.1.2"
@@ -5062,15 +4947,15 @@ tensor-xmldom@0.2.0-b9:
   resolved "https://registry.npmjs.org/tensor-xmldom/-/tensor-xmldom-0.2.0-b9.tgz#94b6f0ead60a6119c835a7d8b1dd6cb7c0aabebd"
   integrity sha1-lLbw6tYKYRnINafYsd1st8Cqvr0=
 
-ternary-stream@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/ternary-stream/-/ternary-stream-3.0.0.tgz#7951930ea9e823924d956f03d516151a2d516253"
-  integrity sha512-oIzdi+UL/JdktkT+7KU5tSIQjj8pbShj3OASuvDEhm0NT5lppsm7aXWAmAq4/QMaBIyfuEcNLbAQA+HpaISobQ==
+ternary-stream@^2.0.1:
+  version "2.1.1"
+  resolved "https://registry.npmjs.org/ternary-stream/-/ternary-stream-2.1.1.tgz#4ad64b98668d796a085af2c493885a435a8a8bfc"
+  integrity sha512-j6ei9hxSoyGlqTmoMjOm+QNvUKDOIY6bNl4Uh1lhBvl6yjPW2iLqxDUYyfDPZknQ4KdRziFl+ec99iT4l7g0cw==
   dependencies:
-    duplexify "^4.1.1"
+    duplexify "^3.5.0"
     fork-stream "^0.0.4"
-    merge-stream "^2.0.0"
-    through2 "^3.0.1"
+    merge-stream "^1.0.0"
+    through2 "^2.0.1"
 
 test-exclude@^5.2.3:
   version "5.2.3"
@@ -5098,20 +4983,13 @@ through2@2.0.3:
     readable-stream "^2.1.5"
     xtend "~4.0.1"
 
-through2@^2.0.0, through2@^2.0.3, through2@~2.0.0:
+through2@^2.0.0, through2@^2.0.1, through2@^2.0.3, through2@~2.0.0:
   version "2.0.5"
   resolved "https://registry.npmjs.org/through2/-/through2-2.0.5.tgz#01c1e39eb31d07cb7d03a96a70823260b23132cd"
   integrity sha512-/mrRod8xqpA+IHSLyGCQ2s8SPHiCDEeQJSep1jqLYeEUClOFG2Qsh+4FU6G9VeqpZnGW/Su8LQGc4YKni5rYSQ==
   dependencies:
     readable-stream "~2.3.6"
     xtend "~4.0.1"
-
-through2@^3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/through2/-/through2-3.0.1.tgz#39276e713c3302edf9e388dd9c812dd3b825bd5a"
-  integrity sha512-M96dvTalPT3YbYLaKaCuwu+j06D/8Jfib0o/PxbVt6Amhv3dUAtW6rTV1jPgJSBG83I/e04Y6xkVdVhSRhi0ww==
-  dependencies:
-    readable-stream "2 || 3"
 
 time-stamp@^1.0.0:
   version "1.1.0"
@@ -5314,9 +5192,9 @@ undertaker-registry@^1.0.0:
   resolved "https://registry.npmjs.org/undertaker-registry/-/undertaker-registry-1.0.1.tgz#5e4bda308e4a8a2ae584f9b9a4359a499825cc50"
   integrity sha1-XkvaMI5KiirlhPm5pDWaSZglzFA=
 
-undertaker@^1.2.1:
+undertaker@^1.0.0:
   version "1.2.1"
-  resolved "https://registry.yarnpkg.com/undertaker/-/undertaker-1.2.1.tgz#701662ff8ce358715324dfd492a4f036055dfe4b"
+  resolved "https://registry.npmjs.org/undertaker/-/undertaker-1.2.1.tgz#701662ff8ce358715324dfd492a4f036055dfe4b"
   integrity sha512-71WxIzDkgYk9ZS+spIB8iZXchFhAdEo2YU8xYqBYJ39DIUIqziK78ftm26eecoIY49X0J2MLhG4hr18Yp6/CMA==
   dependencies:
     arr-flatten "^1.0.1"
