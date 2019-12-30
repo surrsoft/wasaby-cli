@@ -206,26 +206,25 @@ class Build extends Base {
     */
    _makeBuilderConfig(output) {
       const builderConfig = require(this._builderBaseConfig);
-      const testList = new Set();
+      const testList = this._modulesMap.getTestList();
 
-      this._modulesMap.getTestList().forEach((name) => {
-         testList.add(this._modulesMap.get(name).rep);
+      builderConfig.modules.forEach((item) => {
+         if (this._modulesMap.has(item.name)) {
+            const cfg = this._modulesMap.get(item.name);
+            item.path = cfg.path;
+         }
       });
-
-      testList.forEach((name) => {
-         const modules = this._modulesMap.getChildModules(this._modulesMap.getModulesByRep(name));
-         modules.forEach((moduleName) => {
-            const cfg = this._modulesMap.get(moduleName);
-            if (moduleName !== 'unit' && !cfg.srv) {
-               const isNameInConfig = builderConfig.modules.find(item => (item.name === moduleName));
-               if (!isNameInConfig) {
-                  builderConfig.modules.push({
-                     name: moduleName,
-                     path: cfg.path
-                  });
-               }
+      this._modulesMap.getChildModules(testList).forEach((moduleName) => {
+         const cfg = this._modulesMap.get(moduleName);
+         if (moduleName !== 'unit' && !cfg.srv) {
+            const isNameInConfig = builderConfig.modules.find(item => (item.name === moduleName));
+            if (!isNameInConfig) {
+               builderConfig.modules.push({
+                  name: moduleName,
+                  path: cfg.path
+               });
             }
-         });
+         }
       });
 
       builderConfig.output = output || this._resources;
