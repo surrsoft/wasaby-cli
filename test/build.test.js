@@ -77,7 +77,8 @@ describe('Build', () => {
             },
             get: (name) => {
                return name === 'test1' ? {rep: 'test1'} : {rep: 'test2'};
-            }
+            },
+            has: () => false
          });
       });
       it('should make builder config like base', (done) => {

@@ -25,9 +25,6 @@
       }, {
          "name": "Unload",
          "path": "./store/_repos/sbis3.engine/client/Name"
-      }, {
-         "name": "Elements",
-         "path": "./store/_repos/saby-devtool/src/app/Elements"
       }
    ]
 }
