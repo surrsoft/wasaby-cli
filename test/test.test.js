@@ -105,7 +105,7 @@ describe('Test', () => {
             done();
          });
 
-         test._startBrowserTest('test', ['test1']);
+         test._startBrowserTest('test');
       });
 
       it('should start test server', (done) => {
@@ -131,7 +131,16 @@ describe('Test', () => {
             done();
          });
 
-         test._startBrowserTest('test', ['test1']);
+         test._startBrowserTest('test');
+      });
+
+      it('should create test config for module', (done) => {
+         stubOutputFile = sinon.stub(fs, 'outputFile').callsFake((path) => {
+            chai.expect(path).to.includes('testModule');
+            done();
+         });
+         stubExecute.callsFake(() => undefined);
+         test._startBrowserTest('testModule');
       });
 
       afterEach(() => {
