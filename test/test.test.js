@@ -7,6 +7,8 @@ let xml = require('../app/xml/xml');
 const shell = require('../app/util/shell');
 
 let test;
+let stubfsAppend;
+let stubExecute;
 describe('Test', () => {
    beforeEach(() => {
       test = new Test({
@@ -21,13 +23,12 @@ describe('Test', () => {
          resources: '',
          testRep: ['test1']
       });
-   });
-   let stubExecute;
-   beforeEach(() => {
-      stubExecute = sinon.stub(shell.prototype, 'execute').callsFake(() => {});
+      stubfsAppend = sinon.stub(fs, 'appendFileSync').callsFake(() => undefined);
+      stubExecute = sinon.stub(shell.prototype, 'execute').callsFake(() => undefined);
    });
    afterEach(() => {
       stubExecute.restore();
+      stubfsAppend.restore();
    });
 
    describe('._makeTestConfig()', () => {
@@ -87,16 +88,14 @@ describe('Test', () => {
          chai.expect(() => test._startBrowserTest('test')).to.not.throw();
       });
 
-      it('should filter module with testInBrowser flag', (done) => {
+      it('should not run test if testinbrowser was false', () => {
          stubModuleMapGet.callsFake((name) => {
-            return name == 'test1' ? {name: 'test1', testInBrowser: true} : {name: 'test2', testInBrowser: false};
+            return { name: 'test2', testInBrowser: false };
          });
          stubOutputFile = sinon.stub(fs, 'outputFile').callsFake((path, config) => {
-            config = JSON.parse(config);
-            chai.expect(config.tests).to.deep.equal(['test1']);
-            done();
+            throw new Error();
          });
-         test._startBrowserTest('test', ['test1', 'test2']);
+         chai.expect(() => test._startBrowserTest('test2')).to.not.throw()
       });
 
       it('should run test', (done) => {
@@ -106,7 +105,7 @@ describe('Test', () => {
             done();
          });
 
-         test._startBrowserTest('test', ['test1']);
+         test._startBrowserTest('test');
       });
 
       it('should start test server', (done) => {
@@ -123,16 +122,25 @@ describe('Test', () => {
             resources: '',
             server: true
          });
-         sinon.stub(test._modulesMap, 'get').callsFake((name) => {
+         sinon.stub(test._modulesMap, 'get').callsFake(() => {
             return {name: 'test1', testInBrowser: true};
-         })
+         });
          stubOutputFile = sinon.stub(fs, 'outputFileSync').callsFake(() => undefined);
          stubExecute.callsFake((cmd) => {
             chai.expect(cmd).to.includes('server.js');
             done();
          });
 
-         test._startBrowserTest('test', ['test1']);
+         test._startBrowserTest('test');
+      });
+
+      it('should create test config for module', (done) => {
+         stubOutputFile = sinon.stub(fs, 'outputFile').callsFake((path) => {
+            chai.expect(path).to.includes('testModule');
+            done();
+         });
+         stubExecute.callsFake(() => undefined);
+         test._startBrowserTest('testModule');
       });
 
       afterEach(() => {
@@ -196,6 +204,7 @@ describe('Test', () => {
             chai.expect(commandsArray).to.includes('node node_modules/saby-units/cli.js --isolated --report --config="./testConfig_engine.json"');
             return Promise.resolve();
          });
+         sinon.stub(test, '_shouldTestModule').callsFake(() => true);
          test._startTest().then(() => {
             done();
          });
@@ -252,7 +261,7 @@ describe('Test', () => {
       });
    });
 
-   describe('._getTestModules()', () => {
+   describe('._shouldTestModule()', () => {
       let stubDiff, stubGet, stubTestModules;
       beforeEach(() => {
          stubDiff = sinon.stub(test, '_diff').value(new Map());
@@ -270,16 +279,16 @@ describe('Test', () => {
          stubGet.restore();
          stubTestModules.restore();
       });
-      it('should filter modules by diff', () => {
+      it('should test module if it existed in diff', () => {
          stubDiff.value(new Map([['test1', ['test11/test1.js']]]));
-         chai.expect(test._getTestModules('test1')).to.deep.equal(['test11']);
+         chai.expect(test._shouldTestModule('test11')).to.be.true;
       });
-      it('should return test modules', () => {
-         chai.expect(test._getTestModules('test1')).to.deep.equal(['test11', 'test12', "test13"]);
+      it('should test module if diff was empty', () => {
+         chai.expect(test._shouldTestModule('test11')).to.be.true;
       });
-      it('should filter modules by diff in depend module', () => {
+      it('should not test module if it not existed in diff', () => {
          stubDiff.value(new Map([['test1', ['test13/1.js']]]));
-         chai.expect(test._getTestModules('test1')).to.deep.equal(['test11', 'test13']);
+         chai.expect(test._shouldTestModule('test11')).to.be.false;
       });
    })
 });

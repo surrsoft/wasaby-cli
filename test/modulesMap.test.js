@@ -4,6 +4,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const ModulesMap = require('../app/util/modulesMap');
 let modulesMap;
+let stubfsAppend;
 describe('modulesMap', () => {
    beforeEach(() => {
       modulesMap = new ModulesMap({
@@ -13,6 +14,10 @@ describe('modulesMap', () => {
          },
          store: ''
       });
+      stubfsAppend = sinon.stub(fs, 'appendFileSync').callsFake(() => undefined);
+   });
+   afterEach(() => {
+      stubfsAppend.restore();
    });
    describe('._findModulesInStore()', () => {
       let stubfs, stubStat;
@@ -104,28 +109,28 @@ describe('modulesMap', () => {
       });
       it('should return all test', () => {
          stubTestRep = sinon.stub(modulesMap, '_testRep').value(['all']);
-         chai.expect(modulesMap.getTestList()).to.deep.equal(new Set(['test1', 'test2', 'test3']));
+         chai.expect(modulesMap.getTestList()).to.deep.equal(['test_test1', 'test_test2', 'test_test3']);
       });
 
       it('should return test list for test1', () => {
          stubTestRep = sinon.stub(modulesMap, '_testRep').value(['test1']);
-         chai.expect(modulesMap.getTestList()).to.deep.equal(new Set(['test1']));
+         chai.expect(modulesMap.getTestList()).to.deep.equal(['test_test1']);
       });
 
       it('should return test list for test with depends', () => {
          stubTestRep = sinon.stub(modulesMap, '_testRep').value(['test2']);
-         chai.expect(modulesMap.getTestList()).to.deep.equal(new Set(['test2', 'test1']));
+         chai.expect(modulesMap.getTestList()).to.deep.equal(['test_test2', 'test_test1']);
       });
 
       it('should return test2 only', () => {
          sinon.stub(modulesMap, '_only').value(true);
          stubTestRep = sinon.stub(modulesMap, '_testRep').value(['test2']);
-         chai.expect(modulesMap.getTestList()).to.deep.equal(new Set(['test2']));
+         chai.expect(modulesMap.getTestList()).to.deep.equal(['test_test2']);
       });
 
       it('should return test list if check two unliked tests', () => {
          stubTestRep = sinon.stub(modulesMap, '_testRep').value(['test1', 'test3']);
-         chai.expect(modulesMap.getTestList()).to.deep.equal(new Set(['test1', 'test3']));
+         chai.expect(modulesMap.getTestList()).to.deep.equal(['test_test1', 'test_test3']);
       });
 
       afterEach(() => {

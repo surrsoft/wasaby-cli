@@ -160,7 +160,8 @@ class Test extends Base {
       const testConfig = require('../testConfig.base.json');
       let cfg = { ...testConfig };
       const fullName = name + (suffix || '');
-      const workspace = path.relative(process.cwd(), this._workspace);
+      let workspace = path.relative(process.cwd(), this._workspace);
+      workspace = workspace ? workspace : '.';
       cfg.url = { ...cfg.url };
       cfg.url.port = await getPort();
       cfg.tests = testModules;
@@ -178,25 +179,16 @@ class Test extends Base {
     * @returns {Array}
     * @private
     */
-   _getTestModules(repName) {
-      const modules = this._modulesMap.getTestModules(repName);
+   _shouldTestModule(moduleName) {
+      const modulesCfg = this._modulesMap.get(moduleName);
 
-      if (this._diff.has(repName)) {
-         const diff = this._diff.get(repName);
+      if (this._diff.has(modulesCfg.rep)) {
+         const diff = this._diff.get(modulesCfg.rep);
 
-         const filteredModules = modules.filter((moduleName) => {
-            const cfg = this._modulesMap.get(moduleName);
-            const checkModules = [moduleName].concat(cfg.depends);
-
-            return checkModules.some(dependModuleName => (
-               diff.some(filePath => filePath.includes(dependModuleName + path.sep))
-            ));
-         });
-
-         return filteredModules.length > 0 ? filteredModules : modules;
+         return diff.some(filePath => filePath.includes(moduleName + path.sep))
       }
 
-      return modules;
+      return true;
    }
 
    /**
@@ -224,16 +216,15 @@ class Test extends Base {
     */
    _startTest() {
       // eslint-disable-next-line consistent-return
-      return pMap(this._modulesMap.getTestList(), (name) => {
-         const testModules = this._getTestModules(name);
-         if (testModules.length > 0) {
-            logger.log('Запуск тестов', name);
+      return pMap(this._modulesMap.getTestList(), (moduleName) => {
+         if (this._shouldTestModule(moduleName)) {
+            logger.log('Запуск тестов', moduleName);
             return Promise.all([
-               this._startNodeTest(name, testModules),
-               this._startBrowserTest(name, testModules)
+               this._startNodeTest(moduleName, moduleName),
+               this._startBrowserTest(moduleName, moduleName)
             ]);
          }
-         logger.log('Тесты не были запущены т.к. изменения не в модулях', name);
+         logger.log('Тесты не были запущены т.к. нет изменений в модуле', moduleName);
       }, {
          concurrency: PARALLEL_TEST_COUNT
       });
@@ -274,47 +265,43 @@ class Test extends Base {
 
    /**
     * Запускает тесты в браузере
-    * @param {String} repName - Название репозитория в конфиге
-    * @param {Array} testModules - Список модулей с тестами
+    * @param {String} moduleName - Название модуля
     * @return {Promise<void>}
     * @private
     */
-   async _startBrowserTest(repName, testModules) {
-      let cfg = this._reposConfig[repName];
-      if (cfg.unitInBrowser) {
-         const configPath = _private.getPathToTestConfig(repName, true);
-         const browserTestModules = testModules.filter(module => !!this._modulesMap.get(module).testInBrowser);
+   async _startBrowserTest(moduleName) {
+      const moduleCfg = this._modulesMap.get(moduleName);
+      if (moduleCfg.testInBrowser) {
+         const configPath = _private.getPathToTestConfig(moduleName, true);
+
+         await this._makeTestConfig({
+            name: moduleName,
+            testModules: moduleName,
+            path: configPath,
+            isBrowser: true
+         });
+
          let cmd = '';
-
-         if (browserTestModules.length > 0) {
-            await this._makeTestConfig({
-               name: repName,
-               testModules: browserTestModules,
-               path: configPath,
-               isBrowser: true
-            });
-
-            if (this._server) {
-               cmd = `node node_modules/saby-units/cli/server.js --config=${configPath}`;
-            } else {
-               cmd = `node node_modules/saby-units/cli.js --browser --report --config=${configPath}`;
-            }
-
-            try {
-               logger.log('Запуск тестов в браузере', repName);
-               await this._shell.execute(
-                  cmd,
-                  process.cwd(),
-                  {
-                     processName: `test browser ${repName}`,
-                     timeout: TEST_TIMEOUT
-                  }
-               );
-            } catch (e) {
-               this._testErrors[repName + BROWSER_SUFFIX] = e;
-            }
-            logger.log('тесты в браузере завершены', repName);
+         if (this._server) {
+            cmd = `node node_modules/saby-units/cli/server.js --config=${configPath}`;
+         } else {
+            cmd = `node node_modules/saby-units/cli.js --browser --report --config=${configPath}`;
          }
+
+         try {
+            logger.log('Запуск тестов в браузере', moduleName);
+            await this._shell.execute(
+               cmd,
+               process.cwd(),
+               {
+                  processName: `test browser ${moduleName}`,
+                  timeout: TEST_TIMEOUT
+               }
+            );
+         } catch (e) {
+            this._testErrors[moduleName + BROWSER_SUFFIX] = e;
+         }
+         logger.log('тесты в браузере завершены', moduleName);
       }
    }
 
