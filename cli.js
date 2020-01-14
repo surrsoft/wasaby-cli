@@ -105,7 +105,8 @@ class Cli {
          workspace: this._workspace,
          only: !!this._argvOptions.only,
          server: !!this._argvOptions.server,
-         rc: this._rc
+         rc: this._rc,
+         diff: this._argvOptions.diff
       });
 
       await test.run();
