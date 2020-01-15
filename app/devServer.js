@@ -40,11 +40,11 @@ class DevServer {
       this._workspace = cfg.workspace;
       this._dbSchema = cfg.dbSchema;
       this._dbConnection = {
-         host: DB_CONNECTION.host || cfg.dbHost,
-         dbName: DB_CONNECTION.dbName || cfg.dbName,
-         login: DB_CONNECTION.login || cfg.dbLogin,
-         password: DB_CONNECTION.password || cfg.dbPassword,
-         port: DB_CONNECTION.port || cfg.dbPort
+         host: cfg.dbHost || DB_CONNECTION.host,
+         dbName:  cfg.dbName || DB_CONNECTION.dbName,
+         login: cfg.dbLogin || DB_CONNECTION.login,
+         password: cfg.dbPassword || DB_CONNECTION.password ,
+         port: cfg.dbPort || DB_CONNECTION.port
       };
    }
 
