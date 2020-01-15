@@ -49,27 +49,36 @@ class DevServer {
    }
 
    /**
-    * Запускает сервер
+    * Создает ini файлы в сервисах
     * @returns {Promise<void>}
     */
-   async start() {
-      await this._linkCDN();
+   async createIni() {
       const pathService = path.join(this._workDir, await this._getServicePath());
       const pathServicePS = path.join(this._workDir, await this._getServicePathPS());
 
       await this._copyServiceIni(pathService);
       await this._copyServicePSIni(pathServicePS);
+   }
+
+   /**
+    * Запускает сервер
+    * @returns {Promise<void>}
+    */
+   async start() {
+      await this._linkCDN();
+      await this.createIni();
 
       process.on('SIGINT', async () => {
          await this.stop();
       });
 
+      const pathService = path.join(this._workDir, await this._getServicePath());
+      const pathServicePS = path.join(this._workDir, await this._getServicePathPS());
+
       await Promise.all([
          this._start(await this._getServicePath(), pathService),
          this._start(await this._getServicePathPS(), pathServicePS)
       ]);
-
-
    }
 
    /**
