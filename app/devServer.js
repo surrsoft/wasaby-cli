@@ -43,7 +43,7 @@ class DevServer {
          host: cfg.dbHost || DB_CONNECTION.host,
          dbName:  cfg.dbName || DB_CONNECTION.dbName,
          login: cfg.dbLogin || DB_CONNECTION.login,
-         password: cfg.dbPassword || DB_CONNECTION.password ,
+         password: cfg.dbPassword || DB_CONNECTION.password,
          port: cfg.dbPort || DB_CONNECTION.port
       };
    }
