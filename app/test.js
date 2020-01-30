@@ -190,9 +190,11 @@ class Test extends Base {
       let nycPath = path.relative(process.cwd(), this._realResources || this._resources);
       testModules.forEach((name) => {
          const moduleCfg = this._modulesMap.get(name);
-         moduleCfg.depends.forEach((dependModuleName) => {
-            cfg.nyc.include.push(path.join(nycPath, dependModuleName, '**', '*.js'))
-         });
+         if (moduleCfg && moduleCfg.depends) {
+             moduleCfg.depends.forEach((dependModuleName) => {
+                 cfg.nyc.include.push(path.join(nycPath, dependModuleName, '**', '*.js'))
+             });
+         }
       });
       this._testReports.set(fullName, cfg.report);
       return cfg;
