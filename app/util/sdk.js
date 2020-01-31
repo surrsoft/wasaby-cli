@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs-extra');
 const Shell = require('./shell');
+const logger = require('./logger');
 
 const _private = {
    /**
@@ -101,8 +102,9 @@ class sdk {
 
       if (fs.statSync(pathToJinnee).isFile()) {
          const unpack = path.join(this._workspace, 'jinnee');
+         logger.log(`распаковка джина из ${pathToJinnee} в ${unpack}`);
          await this._shell.execute(
-            `7za x ${pathToJinnee} -y -o${unpack} > /dev/null`,
+            `7za x ${pathToJinnee} -y -o${unpack}`,
             process.cwd()
          );
          return unpack;
