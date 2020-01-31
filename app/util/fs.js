@@ -6,6 +6,7 @@ const path = require('path');
  * @param {String} to
  */
 function relative(from, to) {
+   //для виндовых путей вида 'c:' 'd:' невозможно построить относительный путь, возвращаем просто to
    if (path.isAbsolute(from) && path.isAbsolute(to) && from[0] !== to[0]) {
       return to;
    }
