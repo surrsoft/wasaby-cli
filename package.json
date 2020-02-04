@@ -9,7 +9,22 @@
       "install-selenium": "npm install selenium-standalone@6.14.x && node node_modules/selenium-standalone/bin/selenium-standalone install",
       "tslint": "tslint -q app/**/*.js"
    },
-   "author": "",
+   "files": [
+      "cli.js",
+      "setContents.js",
+      "startDemoStand.js",
+      "switchBuildMode.js",
+      "config.json",
+      "app/*"
+   ],
+   "repository": {
+      "type": "git",
+      "url": "git@git.sbis.ru:sbis/test-cli.git"
+   },
+   "bin": {
+      "test-cli": "./cli.js"
+   },
+
    "dependencies": {
       "body-parser": "^1.18.3",
       "cookie-parser": "^1.4.3",
