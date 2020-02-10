@@ -110,7 +110,8 @@ class Cli {
          server: !!this._argvOptions.server,
          rc: this._rc,
          diff: this._argvOptions.diff,
-         coverage: this._argvOptions.coverage
+         coverage: this._argvOptions.coverage,
+         ignoreLeaks: this._argvOptions.ignoreLeaks
       });
 
       await test.run();
