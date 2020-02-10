@@ -93,7 +93,7 @@ class Test extends Base {
       this._isUseDiff = cfg.diff;
       this._coverage = cfg.coverage;
       this._realResources = cfg.realResources;
-      this._ignoreLeaks = cfg.ignoreLeaks;
+      this._ignoreLeaks = !!cfg.ignoreLeaks;
       this._modulesMap = new ModulesMap({
          reposConfig: cfg.reposConfig,
          store: cfg.store,
@@ -185,7 +185,7 @@ class Test extends Base {
       cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('{module}', fullName).replace('{workspace}', workspace);
       cfg.jsonCoverageReport = cfg.jsonCoverageReport.replace('{module}', fullName).replace('{workspace}', workspace);
       cfg.report = this.getReportPath(fullName);
-      cfg.checkLeaks = this._ignoreLeaks ? 'ignore' : 'check';
+      cfg.ignoreLeaks = this._ignoreLeaks;
       cfg.nyc = {
          "include": [],
          "reportDir": path.dirname(cfg.jsonCoverageReport)

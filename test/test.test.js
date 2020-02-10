@@ -304,7 +304,7 @@ describe('Test', () => {
       it('should set checkLeaks in config' , async () => {
          sinon.stub(test, '_ignoreLeaks').value(true);
          let cfg = await test._getTestConfig();
-         chai.expect(cfg.checkLeaks).is.equal('ignore');
+         chai.expect(cfg.ignoreLeaks).is.true;
       });
    });
    describe('._setDiff()', function () {
