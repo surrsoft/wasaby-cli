@@ -111,7 +111,7 @@ class Cli {
          rc: this._rc,
          diff: this._argvOptions.diff,
          coverage: this._argvOptions.coverage,
-         ignoreLeaks: this._argvOptions.ignoreLeaks
+         checkLeaks: this._argvOptions.checkLeaks
       });
 
       await test.run();

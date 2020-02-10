@@ -93,7 +93,7 @@ class Test extends Base {
       this._isUseDiff = cfg.diff;
       this._coverage = cfg.coverage;
       this._realResources = cfg.realResources;
-      this._ignoreLeaks = !!cfg.ignoreLeaks;
+      this._ignoreLeaks = !cfg.checkLeaks;
       this._modulesMap = new ModulesMap({
          reposConfig: cfg.reposConfig,
          store: cfg.store,
