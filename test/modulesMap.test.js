@@ -84,26 +84,15 @@ describe('modulesMap', () => {
             },
             test3: {}
          });
-         stubModulesMap = sinon.stub(modulesMap, '_testModulesMap').value(new Map([
-            ['test1', ['test11']],
-            ['test2', ['test22']],
-            ['test3', ['test33']]
-         ]));
+
          stubModulesMap = sinon.stub(modulesMap, '_modulesMap').value(
             new Map([
-               ['test11', {name: 'test11', rep: 'test1', depends: ['test22'], forTests: true}],
-               ['test22', {name: 'test22', rep: 'test2', depends: [], forTests: true}],
-               ['test33', {name: 'test33', rep: 'test3', depends: [], forTests: true}],
-               ['test_test1', {name: 'test_test1', rep: 'test1', depends: ['test11']}],
-               ['test_test2', {name: 'test_test2', rep: 'test2', depends: ['test22']}],
-               ['test_test3', {name: 'test_test3', rep: 'test3', depends: ['test33']}]
-            ])
-         );
-         sinon.stub(modulesMap, '_testModulesMap').value(
-            new Map([
-               ['test1', ['test_test1']],
-               ['test2', ['test_test2']],
-               ['test3', ['test_test3']]
+               ['test11', {name: 'test11', rep: 'test1', depends: ['test22']}],
+               ['test22', {name: 'test22', rep: 'test2', depends: []}],
+               ['test33', {name: 'test33', rep: 'test3', depends: []}],
+               ['test_test1', {name: 'test_test1', rep: 'test1', depends: ['test11'], unitTest: true}],
+               ['test_test2', {name: 'test_test2', rep: 'test2', depends: ['test22'], unitTest: true}],
+               ['test_test3', {name: 'test_test3', rep: 'test3', depends: ['test33'], unitTest: true}]
             ])
          );
       });
@@ -201,44 +190,6 @@ describe('modulesMap', () => {
 
       afterEach(() => {
          stubModulesMap.restore();
-      });
-   });
-
-   describe('_markModulesForTest()',() => {
-      let stubModulesMap;
-      let stubTestModulesMap;
-      beforeEach(() => {
-         stubModulesMap = sinon.stub(modulesMap, '_modulesMap').value(
-             new Map([
-                ['testModule', {name: 'testModule', rep: 'test1', depends: ['justModule']}],
-                ['justModule', {name: 'justModule', rep: 'test1', depends: []}],
-                ['independedModule', {name: 'independedModule', rep: 'test1', depends: []}]
-             ])
-         );
-         stubTestModulesMap = sinon.stub(modulesMap, '_testModulesMap').value(new Map([
-            ['test1', ['testModule']]
-         ]));
-      });
-
-      it('should mark module as for test', () => {
-         modulesMap._markModulesForTest();
-         chai.expect(modulesMap.get('justModule').forTests).to.be.true;
-      });
-
-
-      it('should not mark module as for test when module has not been depended on test module', () => {
-         modulesMap._markModulesForTest();
-         chai.expect(modulesMap.get('independedModule').forTests).to.be.undefined;
-      });
-
-      it('should mark module test module', () => {
-         modulesMap._markModulesForTest();
-         chai.expect(modulesMap.get('testModule').forTests).to.be.true;
-      });
-
-      afterEach(() => {
-         stubModulesMap.restore();
-         stubTestModulesMap.restore();
       });
    });
 });

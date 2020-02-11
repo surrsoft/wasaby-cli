@@ -34,7 +34,8 @@ class Build extends Base {
          store: cfg.store,
          testRep: cfg.testRep,
          workDir: this._workDir,
-         only: cfg.only
+         only: cfg.only,
+         reBuildMap: true
       });
       if (cfg.builderBaseConfig) {
          this._builderBaseConfig = path.normalize(path.join(process.cwd(), cfg.builderBaseConfig));
