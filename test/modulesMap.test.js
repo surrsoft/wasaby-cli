@@ -58,20 +58,6 @@ describe('modulesMap', () => {
       });
    });
 
-   describe('.getModulesByRep()', () => {
-      let stubFind;
-      beforeEach(() => {
-         stubFind = sinon.stub(modulesMap, '_modulesMap').value(new Map([['test11', {name: 'test11', rep: 'test1'}]]));
-
-      });
-      it('should concat modules from config and repository', () => {
-         return chai.expect(modulesMap.getModulesByRep('test1')).to.deep.equal(['test11']);
-      });
-      afterEach(() => {
-         stubFind.restore();
-      });
-   });
-
    describe('._getTestList()', () => {
       let stubrepos, stubTestRep, stubModulesMap;
       beforeEach(() => {

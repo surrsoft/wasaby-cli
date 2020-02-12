@@ -4,13 +4,12 @@ const xml = require('../xml/xml');
 const walkDir = require('./walkDir');
 const MAP_FILE_NAME = path.join('resources', 'modulesMap.json');
 const fs = require('fs-extra');
+
 /**
  * Карта модулей s3mod, из всех репозиториев
  * @class ModulesMap
  * @author Ганшин Я.О
  */
-
-
 
 class ModulesMap {
    constructor(cfg) {
@@ -166,21 +165,6 @@ class ModulesMap {
    }
 
    /**
-    * Возвращает список модулей по репозиторию
-    * @param {String} repName название репозитория
-    * @return {Array}
-    */
-   getModulesByRep(repName) {
-      const moduels = [];
-      this._modulesMap.forEach((cfg) => {
-         if (cfg.rep === repName) {
-            moduels.push(cfg.name);
-         }
-      });
-      return moduels;
-   }
-
-   /**
     * Запускает инициализацию modulesMap
     * @return {Promise<void>}
     */
@@ -271,6 +255,24 @@ class ModulesMap {
       return this._reposConfig[repName].path || path.join(this._store, repName);
    }
 
+   /**
+    * Возвращает список репозиториев
+    * @returns {Set<String>}
+    */
+   getTestRepos() {
+      const modules = this.getChildModules(this.getTestModules());
+      const repos = new Set();
+      modules.forEach((module) => {
+         const moduleCfg = this._modulesMap.get(module);
+         repos.add(moduleCfg.rep);
+      });
+      return repos;
+   }
+   /**
+    * Загружает карту модулей из файла
+    * @returns {Promise<void>}
+    * @private
+    */
    async _loadMap() {
       let mapObject = await fs.readJSON(path.join(process.cwd(), MAP_FILE_NAME));
       for (let key of Object.keys(mapObject)) {

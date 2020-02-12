@@ -3,7 +3,7 @@ const path = require('path');
 const logger = require('./util/logger');
 const Base = require('./base');
 const Git = require('./util/git');
-
+const ModulesMap = require('./util/modulesMap');
 /**
  * Класс отвечающий за подготовку репозиториев для тестирования
  * @class Store
@@ -18,16 +18,26 @@ class Store extends Base {
       this._reposConfig = cfg.reposConfig;
       this._rc = cfg.rc;
       this._testRep = cfg.testRep;
+      this._modulesMap = new ModulesMap({
+         reposConfig: this._reposConfig,
+         store: cfg.store,
+         testRep: cfg.testRep,
+         workDir: this._workDir,
+         only: cfg.only
+      });
    }
 
    /**
-    *
+    * Запускает инициализацию хранилища
     * @return {Promise<void>}
     */
    async _run() {
       logger.log('Инициализация хранилища');
       try {
+         await this._modulesMap.build();
          await fs.mkdirs(this._store);
+         let testList = this.getTestRepos();
+
          await Promise.all(Object.keys(this._reposConfig).map(name => (
             this.initRep(name).catch((error) => {
                if (error.code === Git.ERROR_MERGE_CODE) {
