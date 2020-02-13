@@ -61,7 +61,8 @@ class Build extends Base {
          await this._linkFolder();
          logger.log('Подготовка тестов завершена успешно');
       } catch (e) {
-         throw new Error(`Сборка ресурсов завершена с ошибкой: ${e}`);
+         e.message = `Сборка ресурсов завершена с ошибкой: ${e.message}`;
+         throw e;
       }
    }
 

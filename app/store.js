@@ -4,6 +4,7 @@ const logger = require('./util/logger');
 const Base = require('./base');
 const Git = require('./util/git');
 const ModulesMap = require('./util/modulesMap');
+
 /**
  * Класс отвечающий за подготовку репозиториев для тестирования
  * @class Store
@@ -36,22 +37,15 @@ class Store extends Base {
       try {
          await this._modulesMap.build();
          await fs.mkdirs(this._store);
-         let testList = this.getTestRepos();
-
-         await Promise.all(Object.keys(this._reposConfig).map(name => (
-            this.initRep(name).catch((error) => {
-               if (error.code === Git.ERROR_MERGE_CODE) {
-                  logger.log(`Удаление репозитория ${name}`);
-                  fs.removeSync(path.join(this._store, name));
-                  logger.log(`Повторное клонирование ${name}`);
-                  return this.initRep(name);
-               }
-               throw error;
-            })
-         )));
+         const promises = [];
+         for (const rep of this._modulesMap.getTestRepos()) {
+            promises.push(this.initRep(rep));
+         }
+         await Promise.all(promises);
          logger.log('Инициализация хранилища завершена успешно');
       } catch (e) {
-         throw new Error(`Инициализация хранилища завершена с ошибкой ${e}`);
+         e.message = `Инициализация хранилища завершена с ошибкой ${e.message}`;
+         throw e;
       }
    }
 
@@ -97,14 +91,7 @@ class Store extends Base {
          try {
             await git.checkout(commit);
          } catch (err) {
-            if (/rc-.*00/.test(commit)) {
-               // для некоторых репозиториев нет ветки yy.v00 только yy.v10 (19.610) в случае
-               // ошибки переключаемся на 10 версию
-               let replacedCommit = commit.replace('00', '10');
-               await git.checkout(replacedCommit.replace('00', '10'));
-            } else {
-               throw new Error(`Ошибка при переключение на ветку ${commit} в репозитории ${this._name}: ${err}`);
-            }
+            throw new Error(`Ошибка при переключение на ветку ${commit} в репозитории ${this._name}: ${err}`);
          }
       }
       await git.reset(isBranch ? `remotes/origin/${commit}` : commit);

@@ -20,7 +20,7 @@ describe('modulesMap', () => {
       stubfsAppend.restore();
    });
    describe('._findModulesInStore()', () => {
-      let stubfs, stubStat;
+      let stubfs, stubStat, stubExists;
       beforeEach(() => {
          stubfs = sinon.stub(fs, 'readdirSync').callsFake((path) => {
             if (path.includes('tttModule')) {
@@ -28,7 +28,7 @@ describe('modulesMap', () => {
             }
             return ['tttModule'];
          });
-
+         stubExists = sinon.stub(fs, 'existsSync').callsFake(() => true);
          stubStat = sinon.stub(fs, 'lstatSync').callsFake((path) => {
             return {
                isDirectory: () => /.*tttModule$/.test(path),
@@ -55,6 +55,7 @@ describe('modulesMap', () => {
       afterEach(() => {
          stubfs.restore();
          stubStat.restore();
+         stubExists.restore();
       });
    });
 

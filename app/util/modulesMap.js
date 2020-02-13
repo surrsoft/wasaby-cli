@@ -4,7 +4,7 @@ const xml = require('../xml/xml');
 const walkDir = require('./walkDir');
 const MAP_FILE_NAME = path.join('resources', 'modulesMap.json');
 const fs = require('fs-extra');
-
+const CDN_REP_NAME = 'cdn';
 /**
  * Карта модулей s3mod, из всех репозиториев
  * @class ModulesMap
@@ -109,15 +109,15 @@ class ModulesMap {
       let testList = [];
       if (this._only) {
          this._testRep.forEach((name) => {
-            testList = testList.concat(this.getTestModules(name));
+            testList = testList.concat(this.getTestModulesByRep(name));
          });
       } else if (!this._testRep.includes('all')) {
          this._testRep.forEach((testRep) => {
             const modules = this.getParentModules(this.getTestModulesWithDepends(testRep));
-            testList = testList.concat(this.getTestModules(testRep));
+            testList = testList.concat(this.getTestModulesByRep(testRep));
             modules.forEach((name) => {
                const cfg = this._modulesMap.get(name);
-               this.getTestModules(cfg.rep).forEach((testModule) => {
+               this.getTestModulesByRep(cfg.rep).forEach((testModule) => {
                   if (!testList.includes(testModule)) {
                      testList.push(testModule);
                   }
@@ -125,7 +125,7 @@ class ModulesMap {
             });
          });
       } else {
-         testList = this.getTestModules('all');
+         testList = this.getTestModulesByRep('all');
       }
       this._testList = testList;
       return this._testList;
@@ -137,7 +137,7 @@ class ModulesMap {
     */
    getTestModulesWithDepends(name) {
       let result = [];
-      const modules = this.getTestModules(name) || [];
+      const modules = this.getTestModulesByRep(name) || [];
       modules.forEach((moduleName) => {
          const cfg = this._modulesMap.get(moduleName);
          result = result.concat(cfg.depends || []);
@@ -151,7 +151,7 @@ class ModulesMap {
     * @param {String} repName название репозитория
     * @return {Array}
     */
-   getTestModules(repName) {
+   getTestModulesByRep(repName) {
       let testModules = [];
       this._modulesMap.forEach((cfg) => {
          if (
@@ -260,8 +260,8 @@ class ModulesMap {
     * @returns {Set<String>}
     */
    getTestRepos() {
-      const modules = this.getChildModules(this.getTestModules());
-      const repos = new Set();
+      const modules = this.getChildModules(this.getTestList());
+      const repos = new Set([CDN_REP_NAME]);
       modules.forEach((module) => {
          const moduleCfg = this._modulesMap.get(module);
          repos.add(moduleCfg.rep);
@@ -289,13 +289,20 @@ class ModulesMap {
     */
    async _saveMap() {
       let mapObject = {};
+      const mapPath = path.join(process.cwd(), MAP_FILE_NAME);
+
+      if (fs.existsSync(mapPath)) {
+         mapObject = await fs.readJSON(mapPath);
+      }
+
       this._modulesMap.forEach((value, key) => {
-         let mapObjectValue = {...value};
-         mapObjectValue.path = path.relative(this._store, mapObjectValue.path);
-         mapObjectValue.s3mod = path.relative(this._store, mapObjectValue.s3mod);
-         mapObject[key] = mapObjectValue;
+         mapObject[key] = {...value, ...{
+            path: path.relative(this._store, value.path),
+            s3mod: path.relative(this._store, value.s3mod)
+         }};
       });
-      await fs.writeJSON(path.join(process.cwd(), MAP_FILE_NAME), mapObject);
+
+      await fs.writeJSON(mapPath, mapObject);
    }
 }
 
