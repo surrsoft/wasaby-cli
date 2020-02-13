@@ -142,6 +142,68 @@ describe('modulesMap', () => {
       });
    });
 
+   describe('_loadMap()', () => {
+      let fsRead;
+      const mapObj = {
+         test11: {name: 'test11', rep: 'test1', depends: [], path: 'test1', s3mod: 'test11'}
+      };
+
+      beforeEach(() => {
+         fsRead = sinon.stub(fs, 'readJSON').callsFake(() => mapObj);
+      });
+
+      it('should load map', () => {
+         return modulesMap._loadMap().then(() => {
+            chai.expect(mapObj.test11).to.deep.equal(modulesMap.get('test11'));
+         });
+      });
+
+      afterEach(() => {
+         fsRead.restore();
+      });
+   });
+
+
+   describe('_saveMap()', () => {
+      let fsExists, fsWrite, fsRead;
+      const mapObj = {
+         test21: {name: 'test21', rep: 'test2', depends: [], path: 'test2', s3mod: 'test21'}
+      };
+      const test11 = {name: 'test11', rep: 'test1', depends: [], path: 'test1', s3mod: 'test11'};
+      beforeEach(() => {
+         sinon.stub(modulesMap, '_modulesMap').value(new Map([
+            ['test11', test11]
+         ]));
+         fsExists = sinon.stub(fs, 'existsSync').callsFake(() => false);
+         fsRead = sinon.stub(fs, 'readJSON').callsFake(() => mapObj);
+         fsWrite = sinon.stub(fs, 'writeJSON').callsFake(() => undefined);
+      });
+
+      it('should save map', (done) => {
+         fsWrite.callsFake((file, object) => {
+            chai.expect(object.test11).to.deep.equal(test11);
+            done();
+         });
+         modulesMap._saveMap();
+      });
+
+      it('should merge current map and map that have been existsted in file', (done) => {
+         fsWrite.callsFake((file, object) => {
+            chai.expect(object.test11).to.deep.equal(test11);
+            chai.expect(object.test21).to.deep.equal(mapObj.test21);
+            done();
+         });
+         fsExists.callsFake(() => true);
+         modulesMap._saveMap();
+      });
+
+      afterEach(() => {
+         fsExists.restore();
+         fsWrite.restore();
+         fsRead.restore();
+      });
+   });
+
    describe(' _getChildModules()', () => {
       let stubModulesMap;
       beforeEach(() => {
