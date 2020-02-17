@@ -2,7 +2,6 @@ const path = require('path');
 const xml = require('./xml');
 const fsUtil = require('../util/fs');
 const fs = require('fs-extra');
-
 /**
  * Класс для работы c файлом проекта .s3cld
  * @class Project
@@ -108,7 +107,7 @@ class Project {
             const parentModules = await Promise.all(srv.service.parent.map(item => (
                this._getModulesFromSrv(path.normalize(path.join(dirName, item.$.path)))
             )));
-            modules = modules.concat(parentModules.flat());
+            modules = modules.concat(parentModules.reduce((acc, val) => acc.concat(val)));
          }
       }
       return modules;
@@ -121,7 +120,7 @@ class Project {
    async getProjectModules() {
       const srvPaths = await this.getServices();
       const servicesModules = await Promise.all(srvPaths.map((srv) => this._getModulesFromSrv(srv)));
-      return new Set(servicesModules.flat());
+      return new Set(servicesModules.reduce((acc, val) => acc.concat(val)));
    }
 
    /**
