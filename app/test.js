@@ -13,7 +13,7 @@ const fsUtil = require('./util/fs');
 const BROWSER_SUFFIX = '_browser';
 const NODE_SUFFIX = '_node';
 const PARALLEL_TEST_COUNT = 2;
-const TEST_TIMEOUT = 60*5*1000;
+const TEST_TIMEOUT = 60 * 5 * 1000;
 const REPORT_PATH = '{workspace}/artifacts/{module}/xunit-report.xml';
 const _private = {
 
@@ -47,17 +47,19 @@ const _private = {
       },
       failure: details
    }),
+
    /**
     * Возвращает шаблон тескейса для xml
     * @param {String} testName Название теста
     * @returns {{$: {classname: string, name: string}}}
     */
-   getSuccessTestCase: (testName) => ({
+   getSuccessTestCase: testName => ({
       $: {
          classname: `[${testName}]: Tests has not been run`,
          name: 'Tests has not been run, because can\'t found any changes in modules'
       }
    }),
+
    /**
     * Возвращает путь до конфига юнит тестов
     * @param {String} repName Название репозитрия
@@ -131,7 +133,8 @@ class Test extends Base {
                      }
                   };
                }
-               //этим ошибкам верить нельзя, добавляем только если нет упавших юнитов
+
+               // этим ошибкам верить нельзя, добавляем только если нет упавших юнитов
                if (errorText && xmlObject.testsuite.$.tests === '1') {
                   result.testsuite.testcase.push(_private.getErrorTestCase(name, errorText));
                }
@@ -176,27 +179,27 @@ class Test extends Base {
       let cfg = { ...testConfig };
       const fullName = name + (suffix || '');
       let workspace = fsUtil.relative(process.cwd(), this._workspace);
-      testModules = typeof testModules === 'Array' ? testModules : [testModules];
-      workspace = workspace ? workspace : '.';
+      const testModulesArray = testModules instanceof Array ? testModules : [testModules];
+      workspace = workspace || '.';
       cfg.url = { ...cfg.url };
       cfg.url.port = await getPort();
-      cfg.tests = testModules;
+      cfg.tests = testModulesArray;
       cfg.root = fsUtil.relative(process.cwd(), this._resources);
       cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('{module}', fullName).replace('{workspace}', workspace);
       cfg.jsonCoverageReport = cfg.jsonCoverageReport.replace('{module}', fullName).replace('{workspace}', workspace);
       cfg.report = this.getReportPath(fullName);
       cfg.ignoreLeaks = this._ignoreLeaks;
       cfg.nyc = {
-         "include": [],
-         "reportDir": path.dirname(cfg.jsonCoverageReport)
+         'include': [],
+         'reportDir': path.dirname(cfg.jsonCoverageReport)
       };
       let nycPath = path.relative(process.cwd(), this._realResources || this._resources);
-      testModules.forEach((name) => {
-         const moduleCfg = this._modulesMap.get(name);
+      testModulesArray.forEach((testModuleName) => {
+         const moduleCfg = this._modulesMap.get(testModuleName);
          if (moduleCfg && moduleCfg.depends) {
-             moduleCfg.depends.forEach((dependModuleName) => {
-                 cfg.nyc.include.push(path.join(nycPath, dependModuleName, '**', '*.js'))
-             });
+            moduleCfg.depends.forEach((dependModuleName) => {
+               cfg.nyc.include.push(path.join(nycPath, dependModuleName, '**', '*.js'));
+            });
          }
       });
       this._testReports.set(fullName, cfg.report);
@@ -211,12 +214,12 @@ class Test extends Base {
    getReportPath(fullName) {
       const workspace = fsUtil.relative(process.cwd(), this._workspace);
       return REPORT_PATH.replace('{module}', fullName)
-         .replace('{workspace}', workspace ? workspace : '.');
+         .replace('{workspace}', workspace || '.');
    }
 
    /**
-    * Возвращает модули с юнит тестами
-    * @param {String} repName - название репозитория
+    * Проверят надо ли запускать юнит тесты по модулю
+    * @param {String} moduleName Название модуля
     * @returns {Array}
     * @private
     */
@@ -226,7 +229,7 @@ class Test extends Base {
       if (this._diff.has(modulesCfg.rep)) {
          const diff = this._diff.get(modulesCfg.rep);
 
-         return diff.some(filePath => filePath.includes(moduleName + path.sep))
+         return diff.some(filePath => filePath.includes(moduleName + path.sep));
       }
 
       return true;
@@ -269,7 +272,6 @@ class Test extends Base {
          this._createSuccessReport(moduleName);
 
          logger.log('Тесты не были запущены т.к. нет изменений в модуле', moduleName);
-
       }, {
          concurrency: PARALLEL_TEST_COUNT
       });
@@ -285,6 +287,7 @@ class Test extends Base {
       report.testsuite.testcase.push(_private.getSuccessTestCase(moduleName));
       xml.writeXmlFile(this.getReportPath(moduleName), report);
    }
+
    /**
     * Запускает юниты под нодой
     *  @param {String} moduleName - Название модуля
@@ -327,7 +330,7 @@ class Test extends Base {
       const moduleCfg = this._modulesMap.get(moduleName);
       if (moduleCfg.testInBrowser) {
          const configPath = _private.getPathToTestConfig(moduleName, true);
-         let cmd = '';
+         let cmd;
          const coverage = this._coverage ? ' --coverage' : '';
          if (this._server) {
             cmd = `node node_modules/saby-units/cli/server.js --config=${configPath}`;
@@ -366,7 +369,7 @@ class Test extends Base {
             }
          );
       } catch (errors) {
-         if (errors.some((error) => error.includes('EADDRINUSE'))) {
+         if (errors.some(error => error.includes('EADDRINUSE'))) {
             logger.log('Порт занят, повторный запуск тестов', moduleName);
             await this._executeBrowserTestCmd(cmd, moduleName, configPath);
          } else {
@@ -426,7 +429,6 @@ class Test extends Base {
          this._diff.set(repName, await git.diff(branch, this._rc));
       }
    }
-
 }
 
 module.exports = Test;

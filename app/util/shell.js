@@ -23,7 +23,7 @@ class Shell {
     * Выполняет команду shell
     * @param {String} command - текст команды
     * @param {String} path - путь по которому надо выполнить команду
-    * @param {ExecParams} params
+    * @param {{processName: string, timeout: number}} params
     * @return {Promise<any>}
     * @public
     */
