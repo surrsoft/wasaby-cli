@@ -328,7 +328,7 @@ class Test extends Base {
     */
    async _startBrowserTest(moduleName) {
       const moduleCfg = this._modulesMap.get(moduleName);
-      if (moduleCfg.testInBrowser) {
+      if (moduleCfg.testInBrowser || this._server) {
          const configPath = _private.getPathToTestConfig(moduleName, true);
          let cmd;
          const coverage = this._coverage ? ' --coverage' : '';

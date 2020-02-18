@@ -73,8 +73,8 @@ class Build extends Base {
     * @private
     */
    async _initWithBuilder(builderOutput) {
-      const gulpPath = fsUtil.getPathToPackage('saby-typescript');
-      const builderPath = fsUtil.getPathToPackage('saby-typescript');
+      const gulpPath = fsUtil.getPathToPackage('gulp');
+      const builderPath = fsUtil.getPathToPackage('sbis3-builder');
 
       await this._makeBuilderConfig(builderOutput);
       await this._shell.execute(
