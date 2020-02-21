@@ -115,7 +115,7 @@ class Cli {
          rc: this._rc,
          diff: this._argvOptions.diff,
          coverage: this._argvOptions.coverage,
-         report: this._argvOptions.report || 'xml',
+         report: this._argvOptions.report,
          browser: this._argvOptions.browser,
          node: this._argvOptions.node
       });

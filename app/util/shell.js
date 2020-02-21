@@ -1,6 +1,5 @@
 const shell = require('shelljs');
 const logger = require('./logger');
-const cdn_path = 'intest-ps/ui';
 
 /**
  * Класс для вызова shell команд
@@ -39,20 +38,21 @@ class Shell {
       return new Promise((resolve, reject) => {
          const cloneProcess = shell.exec(`cd ${path} && ${command}`, execParams);
          this._childProcessMap.push(cloneProcess);
+         if (execParams.silent) {
+            cloneProcess.stdout.on('data', (data) => {
+               logger.log(data, execParams.processName);
+               if (execParams.errorLabel && data.includes(execParams.errorLabel)) {
+                  errors.push(data);
+               } else {
+                  result.push(data.trim());
+               }
+            });
 
-         cloneProcess.stdout.on('data', (data) => {
-            logger.log(data, execParams.processName);
-            if (execParams.errorLabel && data.includes(execParams.errorLabel)) {
+            cloneProcess.stderr.on('data', (data) => {
+               logger.log(data, execParams.processName);
                errors.push(data);
-            } else {
-               result.push(data.trim());
-            }
-         });
-
-         cloneProcess.stderr.on('data', (data) => {
-            logger.log(data, execParams.processName);
-            errors.push(data);
-         });
+            });
+         }
 
          cloneProcess.on('exit', (code, signal) => {
             this._childProcessMap.splice(this._childProcessMap.indexOf(cloneProcess), 1);

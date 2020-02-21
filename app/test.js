@@ -96,7 +96,7 @@ class Test extends Base {
       this._coverage = cfg.coverage;
       this._realResources = cfg.realResources;
       this._ignoreLeaks = !cfg.checkLeaks;
-      this._report = cfg.report;
+      this._report = cfg.report || 'xml';
       this._only = cfg.only;
       this._testOnlyNode = cfg.node;
       this._testOnlyBrowser = cfg.browser || cfg.server;
@@ -109,6 +109,9 @@ class Test extends Base {
       });
       this._diff = new Map();
       this._portMap = new Map();
+      if (this._report === 'console') {
+         logger.silent();
+      }
    }
 
    /**
@@ -332,7 +335,8 @@ class Test extends Base {
                process.cwd(),
                {
                   processName: `test node ${name}`,
-                  timeout: TEST_TIMEOUT
+                  timeout: TEST_TIMEOUT,
+                  silent: this._report !== 'console'
                }
             );
          } catch (e) {
@@ -374,7 +378,8 @@ class Test extends Base {
                this._executeBrowserTestCmd(
                   `node node_modules/saby-units/cli/server.js --config=${configPath}`,
                   name,
-                  configPath
+                  configPath,
+                  0
                ),
                this._openBrowser(name)
             ]);
@@ -382,7 +387,8 @@ class Test extends Base {
             await this._executeBrowserTestCmd(
                `node node_modules/saby-units/cli.js --browser${coverage} --report --config=${configPath}`,
                name,
-               configPath
+               configPath,
+               TEST_TIMEOUT
             );
          }
 
@@ -410,14 +416,14 @@ class Test extends Base {
     * @returns {Promise<void>}
     * @private
     */
-   async _executeBrowserTestCmd(cmd, moduleName, configPath) {
+   async _executeBrowserTestCmd(cmd, moduleName, configPath, timeout) {
       try {
          await this._shell.execute(
             cmd,
             process.cwd(),
             {
                processName: `test browser ${moduleName}`,
-               timeout: TEST_TIMEOUT
+               timeout: timeout
             }
          );
       } catch (errors) {
@@ -440,7 +446,7 @@ class Test extends Base {
          await this._modulesMap.build();
          await this._setDiff();
          await this._startTest();
-         if (!this._server) {
+         if (!this._server && this._report === 'xml') {
             await this.checkReport();
             await this.prepareReport();
          }
