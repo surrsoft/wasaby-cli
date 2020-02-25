@@ -13,7 +13,7 @@ const fsUtil = require('./util/fs');
 const BROWSER_SUFFIX = '_browser';
 const NODE_SUFFIX = '_node';
 const PARALLEL_TEST_COUNT = 2;
-const TEST_TIMEOUT = 60 * 5 * 1000;
+const TEST_TIMEOUT = 60*5*1000;
 const REPORT_PATH = '{workspace}/artifacts/{module}/xunit-report.xml';
 const _private = {
 
@@ -47,19 +47,17 @@ const _private = {
       },
       failure: details
    }),
-
    /**
     * Возвращает шаблон тескейса для xml
     * @param {String} testName Название теста
     * @returns {{$: {classname: string, name: string}}}
     */
-   getSuccessTestCase: testName => ({
+   getSuccessTestCase: (testName) => ({
       $: {
          classname: `[${testName}]: Tests has not been run`,
          name: 'Tests has not been run, because can\'t found any changes in modules'
       }
    }),
-
    /**
     * Возвращает путь до конфига юнит тестов
     * @param {String} repName Название репозитрия
@@ -96,10 +94,6 @@ class Test extends Base {
       this._coverage = cfg.coverage;
       this._realResources = cfg.realResources;
       this._ignoreLeaks = !cfg.checkLeaks;
-      this._report = cfg.report || 'xml';
-      this._only = cfg.only;
-      this._testOnlyNode = cfg.node;
-      this._testOnlyBrowser = cfg.browser || cfg.server;
       this._modulesMap = new ModulesMap({
          reposConfig: cfg.reposConfig,
          store: cfg.store,
@@ -108,10 +102,6 @@ class Test extends Base {
          only: cfg.only
       });
       this._diff = new Map();
-      this._portMap = new Map();
-      if (this._report === 'console') {
-         logger.silent();
-      }
    }
 
    /**
@@ -141,8 +131,7 @@ class Test extends Base {
                      }
                   };
                }
-
-               // этим ошибкам верить нельзя, добавляем только если нет упавших юнитов
+               //этим ошибкам верить нельзя, добавляем только если нет упавших юнитов
                if (errorText && xmlObject.testsuite.$.tests === '1') {
                   result.testsuite.testcase.push(_private.getErrorTestCase(name, errorText));
                }
@@ -177,9 +166,9 @@ class Test extends Base {
 
    /**
     * Возвращает конфиг юнит тестов на основе базового testConfig.base.json
-    * @param {String} name - Название репозитория
+    * @param {String} name - название репозитория
     * @param {String} suffix - browser/node
-    * @param {Array<String>} testModules - модули с юнит тестами
+    * @param {Array} testModules - модули с юнит тестами
     * @private
     */
    async _getTestConfig(name, suffix, testModules) {
@@ -187,33 +176,29 @@ class Test extends Base {
       let cfg = { ...testConfig };
       const fullName = name + (suffix || '');
       let workspace = fsUtil.relative(process.cwd(), this._workspace);
-      const testModulesArray = testModules instanceof Array ? testModules : [testModules];
-      workspace = workspace || '.';
+      testModules = typeof testModules === 'Array' ? testModules : [testModules];
+      workspace = workspace ? workspace : '.';
       cfg.url = { ...cfg.url };
       cfg.url.port = await getPort();
-      this._portMap.set(name, cfg.url.port);
-      cfg.tests = testModulesArray;
+      cfg.tests = testModules;
       cfg.root = fsUtil.relative(process.cwd(), this._resources);
       cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('{module}', fullName).replace('{workspace}', workspace);
       cfg.jsonCoverageReport = cfg.jsonCoverageReport.replace('{module}', fullName).replace('{workspace}', workspace);
       cfg.report = this.getReportPath(fullName);
       cfg.ignoreLeaks = this._ignoreLeaks;
       cfg.nyc = {
-         'include': [],
-         'reportDir': path.dirname(cfg.jsonCoverageReport)
+         "include": [],
+         "reportDir": path.dirname(cfg.jsonCoverageReport)
       };
       let nycPath = path.relative(process.cwd(), this._realResources || this._resources);
-      testModulesArray.forEach((testModuleName) => {
-         const moduleCfg = this._modulesMap.get(testModuleName);
+      testModules.forEach((name) => {
+         const moduleCfg = this._modulesMap.get(name);
          if (moduleCfg && moduleCfg.depends) {
-            moduleCfg.depends.forEach((dependModuleName) => {
-               cfg.nyc.include.push(path.join(nycPath, dependModuleName, '**', '*.js'));
-            });
+             moduleCfg.depends.forEach((dependModuleName) => {
+                 cfg.nyc.include.push(path.join(nycPath, dependModuleName, '**', '*.js'))
+             });
          }
       });
-      if (await fs.exists(cfg.report)) {
-         await fs.remove(cfg.report);
-      }
       this._testReports.set(fullName, cfg.report);
       return cfg;
    }
@@ -226,13 +211,13 @@ class Test extends Base {
    getReportPath(fullName) {
       const workspace = fsUtil.relative(process.cwd(), this._workspace);
       return REPORT_PATH.replace('{module}', fullName)
-         .replace('{workspace}', workspace || '.');
+         .replace('{workspace}', workspace ? workspace : '.');
    }
 
    /**
-    * Проверят надо ли запускать юнит тесты по модулю
-    * @param {String} moduleName Название модуля
-    * @returns {Boolean}
+    * Возвращает модули с юнит тестами
+    * @param {String} repName - название репозитория
+    * @returns {Array}
     * @private
     */
    _shouldTestModule(moduleName) {
@@ -241,7 +226,7 @@ class Test extends Base {
       if (this._diff.has(modulesCfg.rep)) {
          const diff = this._diff.get(modulesCfg.rep);
 
-         return diff.some(filePath => filePath.includes(moduleName + path.sep));
+         return diff.some(filePath => filePath.includes(moduleName + path.sep))
       }
 
       return true;
@@ -271,15 +256,7 @@ class Test extends Base {
     * @private
     */
    _startTest() {
-      if (this._only) {
-         // если тесты запускаются только по одному репозиторию то не разделяем их по модулям
-         logger.log('Запуск тестов', this._testRep);
-         return Promise.all([
-            this._startNodeTest(this._testRep, this._modulesMap.getTestList()),
-            this._startBrowserTest(this._testRep, this._modulesMap.getTestList())
-         ]);
-      }
-
+      // eslint-disable-next-line consistent-return
       return pMap(this._modulesMap.getTestList(), (moduleName) => {
          if (this._shouldTestModule(moduleName)) {
             logger.log('Запуск тестов', moduleName);
@@ -290,9 +267,9 @@ class Test extends Base {
          }
 
          this._createSuccessReport(moduleName);
+
          logger.log('Тесты не были запущены т.к. нет изменений в модуле', moduleName);
 
-         return undefined;
       }, {
          concurrency: PARALLEL_TEST_COUNT
       });
@@ -308,105 +285,59 @@ class Test extends Base {
       report.testsuite.testcase.push(_private.getSuccessTestCase(moduleName));
       xml.writeXmlFile(this.getReportPath(moduleName), report);
    }
-
    /**
     * Запускает юниты под нодой
-    * @param {String} name - Название модуля
-    * @param {Array<String>} testModules - Модули с тестами
+    *  @param {String} moduleName - Название модуля
     * @return {Promise<void>}
     * @private
     */
-   async _startNodeTest(name, testModules) {
-      if (!this._testOnlyBrowser) {
-         try {
-            const pathToConfig = _private.getPathToTestConfig(name, false);
+   async _startNodeTest(moduleName) {
+      try {
+         if (!this._server) {
+            const pathToConfig = _private.getPathToTestConfig(moduleName, false);
 
             await this._makeTestConfig({
-               name: name,
-               testModules: testModules || name,
+               name: moduleName,
+               testModules: moduleName,
                path: pathToConfig,
                isBrowser: false
             });
-
             const coverage = this._coverage ? ' --coverage' : '';
-            const report = this._report === 'xml' ? '--report' : '';
             await this._shell.execute(
-               `node node_modules/saby-units/cli.js --isolated${coverage} ${report} --config=${pathToConfig}`,
+               `node node_modules/saby-units/cli.js --isolated${coverage} --report --config=${pathToConfig}`,
                process.cwd(),
                {
-                  processName: `test node ${name}`,
-                  timeout: TEST_TIMEOUT,
-                  silent: this._report !== 'console',
-                  stdio: this._report !== 'console' ? 'pipe' : 'inherit'
+                  processName: `test node ${moduleName}`,
+                  timeout: TEST_TIMEOUT
                }
             );
-         } catch (e) {
-            this._testErrors[name + NODE_SUFFIX] = e;
          }
+      } catch (e) {
+         this._testErrors[moduleName + NODE_SUFFIX] = e;
       }
    }
 
    /**
     * Запускает тесты в браузере
-    * @param {String} name - Название модуля с тестами либо репозиторий
-    * @param {Array<String>} testModules - Модули с тестами
+    * @param {String} moduleName - Название модуля
     * @return {Promise<void>}
     * @private
     */
-   async _startBrowserTest(name, testModules) {
-      const moduleCfg = this._modulesMap.get(name);
-      if (
-         !this._testOnlyNode &&
-            (
-               (moduleCfg && moduleCfg.testInBrowser) ||
-               !moduleCfg ||
-               this._testOnlyBrowser
-            )
-      ) {
-         const configPath = _private.getPathToTestConfig(name, true);
+   async _startBrowserTest(moduleName) {
+      const moduleCfg = this._modulesMap.get(moduleName);
+      if (moduleCfg.testInBrowser) {
+         const configPath = _private.getPathToTestConfig(moduleName, true);
+         let cmd = '';
          const coverage = this._coverage ? ' --coverage' : '';
-         logger.log('Запуск тестов в браузере', name);
-
-         await this._makeTestConfig({
-            name: name,
-            testModules: testModules || name,
-            path: configPath,
-            isBrowser: true
-         });
-
          if (this._server) {
-            await Promise.all([
-               this._executeBrowserTestCmd(
-                  `node node_modules/saby-units/cli/server.js --config=${configPath}`,
-                  name,
-                  configPath,
-                  0
-               ),
-               this._openBrowser(name)
-            ]);
+            cmd = `node node_modules/saby-units/cli/server.js --config=${configPath}`;
          } else {
-            await this._executeBrowserTestCmd(
-               `node node_modules/saby-units/cli.js --browser${coverage} --report --config=${configPath}`,
-               name,
-               configPath,
-               TEST_TIMEOUT
-            );
+            cmd = `node node_modules/saby-units/cli.js --browser${coverage} --report --config=${configPath}`;
          }
-
-         logger.log('тесты в браузере завершены', name);
+         logger.log('Запуск тестов в браузере', moduleName);
+         await this._executeBrowserTestCmd(cmd, moduleName, configPath);
+         logger.log('тесты в браузере завершены', moduleName);
       }
-   }
-
-   /**
-    * Открывает браузер
-    * @param {String} moduleName - Название модуля
-    * @returns {Promise<any>}
-    * @private
-    */
-   _openBrowser(moduleName) {
-      const url = `http://localhost:${this._portMap.get(moduleName)}`;
-      const start = process.platform === 'win32' ? 'start' : 'xdg-open';
-      return this._shell.execute(start + ' ' + url, process.cwd());
    }
 
    /**
@@ -417,18 +348,25 @@ class Test extends Base {
     * @returns {Promise<void>}
     * @private
     */
-   async _executeBrowserTestCmd(cmd, moduleName, configPath, timeout) {
+   async _executeBrowserTestCmd(cmd, moduleName, configPath) {
+      await this._makeTestConfig({
+         name: moduleName,
+         testModules: moduleName,
+         path: configPath,
+         isBrowser: true
+      });
+
       try {
          await this._shell.execute(
             cmd,
             process.cwd(),
             {
                processName: `test browser ${moduleName}`,
-               timeout: timeout
+               timeout: TEST_TIMEOUT
             }
          );
       } catch (errors) {
-         if (errors.some(error => error.includes('EADDRINUSE'))) {
+         if (errors.some((error) => error.includes('EADDRINUSE'))) {
             logger.log('Порт занят, повторный запуск тестов', moduleName);
             await this._executeBrowserTestCmd(cmd, moduleName, configPath);
          } else {
@@ -447,14 +385,11 @@ class Test extends Base {
          await this._modulesMap.build();
          await this._setDiff();
          await this._startTest();
-         if (!this._server && this._report === 'xml') {
-            await this.checkReport();
-            await this.prepareReport();
-         }
+         await this.checkReport();
+         await this.prepareReport();
          logger.log('Тестирование завершено');
       } catch (e) {
-         e.message = `Тестирование завершено с ошибкой ${e}`;
-         throw e;
+         throw new Error(`Тестирование завершено с ошибкой ${e}`);
       }
    }
 
@@ -491,6 +426,7 @@ class Test extends Base {
          this._diff.set(repName, await git.diff(branch, this._rc));
       }
    }
+
 }
 
 module.exports = Test;
