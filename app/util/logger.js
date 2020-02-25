@@ -10,7 +10,7 @@ const fs = require('fs-extra');
  */
 class Logger {
    constructor() {
-      this.enableLog = true;
+      this._enableLog = true;
    }
    /**
     * Устанавливает путь до файла с логами
@@ -18,7 +18,6 @@ class Logger {
     */
    set logFile(file) {
       this._logFile = file;
-      fs.outputFileSync(file, '');
    }
 
    /**
@@ -46,7 +45,7 @@ class Logger {
       // eslint-disable-next-line no-console
       console.log(logMessage);
       if (this.logFile) {
-         fs.appendFileSync(this.logFile, logMessage);
+         fs.outputFileSync(this.logFile, logMessage, {flag: 'a'});
       }
    }
 
@@ -58,7 +57,7 @@ class Logger {
       // eslint-disable-next-line no-console
       console.error(message);
       if (this.logFile) {
-         fs.appendFileSync(this.logFile, `[ERROR]: ${message}`);
+         fs.outputFileSync(this.logFile, `[ERROR]: ${message}`, {flag: 'a'});
       }
    }
 
