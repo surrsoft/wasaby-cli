@@ -1,5 +1,5 @@
 {
-   "name": "test-cli",
+   "name": "wasaby-cli",
    "version": "20.3000.0",
    "description": "Build and run unit tests for wasaby",
    "scripts": {
@@ -10,10 +10,10 @@
    },
    "repository": {
       "type": "git",
-      "url": "git@git.sbis.ru:sbis/test-cli.git"
+      "url": "git@github.com:saby/wasaby-cli.git"
    },
    "bin": {
-      "test-cli": "./cli.js"
+      "wasaby-cli": "./cli.js"
    },
    "dependencies": {
       "body-parser": "^1.18.3",
