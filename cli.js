@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 const path = require('path');
 
 const Store = require('./app/store');
@@ -24,18 +22,16 @@ class Cli {
       this._reposConfig = cfg.repositories;
       this._argvOptions = Cli._getArgvOptions();
       this._store = this._argvOptions.store || path.join(__dirname, cfg.store);
-
       // на _repos остались завязаны srv и скрипт сборки пока это не убрать
       this._store = path.join(this._store, '_repos');
       this._testRep = this._argvOptions.rep ? this._argvOptions.rep.split(',').map(name => name.trim()) : (cfg.testRep || ['all']);
       this._rc = this._argvOptions.rc || cfg.rc;
       this._workDir = this._argvOptions.workDir || path.join(process.cwd(), cfg.workDir);
-      this._workspace = this._argvOptions.workspace || this._workDir;
+      this._workspace = this._argvOptions.workspace || process.cwd();
       this.tasks = this._argvOptions.tasks ? this._argvOptions.tasks.split(',') : ['initStore', 'build', 'startTest'];
       logger.logFile = path.join(this._workspace, LOG_FOLDER, `test-cli-${this.tasks.join('_')}.log`);
       if (this._argvOptions.projectDir || this._argvOptions.project) {
          this._buildTools = 'jinnee';
-
          // если сборка идет джином то исходники лежат в  intest-ps/ui/resources
          this._resources = path.join(this._workDir, 'intest-ps', 'ui', 'resources');
          this._realResources = path.join(this._workDir, 'build-ui', 'resources');
@@ -64,9 +60,12 @@ class Cli {
       if (this.tasks.includes('devServer')) {
          await this.devServer();
       }
+
    }
 
    async build() {
+      //todo удалить как переведут сборки
+
       const build = new Build({
          builderCache: this._argvOptions.builderCache || path.join(this._workDir, 'builder-json-cache'),
          projectPath: this._projectPath,
@@ -114,10 +113,7 @@ class Cli {
          server: !!this._argvOptions.server,
          rc: this._rc,
          diff: this._argvOptions.diff,
-         coverage: this._argvOptions.coverage,
-         report: this._argvOptions.report,
-         browser: this._argvOptions.browser,
-         node: this._argvOptions.node
+         coverage: this._argvOptions.coverage
       });
 
       await test.run();
@@ -144,7 +140,7 @@ class Cli {
          await devServer.stop();
       } else if (this._argvOptions.convertDB) {
          await devServer.convertDB();
-      } else if (this._argvOptions.createIni) {
+      }  else if (this._argvOptions.createIni) {
          await devServer.createIni();
       }
    }
@@ -177,4 +173,5 @@ if (require.main.filename === __filename) {
       logger.error(e);
       process.exit(ERROR_CODE);
    });
+
 }

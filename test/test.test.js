@@ -162,9 +162,8 @@ describe('Test', () => {
             return true;
          });
          stubOtput = sinon.stub(fs, 'outputFileSync').callsFake((name, text) => {
-            if (name.includes('test1')) {
-               done();
-            }
+            chai.expect(name).to.includes('test1');
+            done();
          });
          test.checkReport();
       });

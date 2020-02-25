@@ -1,7 +1,7 @@
 const chai = require('chai');
 const sinon = require('sinon');
 const ShellUtil = require('../app/util/shell');
-const child_process = require('child_process');
+const shell = require('shelljs');
 const logger = require('../app/util/logger');
 
 let shellUtil;
@@ -43,12 +43,12 @@ describe('Shell', () => {
    describe('execute', () => {
       let stubExec;
       it('should execute command', (done) => {
-         stubExec = sinon.stub(child_process, 'spawn').callsFake((cmd) => {
+         stubExec = sinon.stub(shell, 'exec').callsFake((cmd) => {
             let process = getProcess();
             setTimeout(() => {
                process.kill();
             });
-            chai.expect(cmd).to.equal('help');
+            chai.expect(cmd).to.equal('cd path && help');
             done();
             return process;
          });
@@ -56,7 +56,7 @@ describe('Shell', () => {
       });
 
       it('should return resolved promise if command result is ok', (done) => {
-         stubExec = sinon.stub(child_process, 'spawn').callsFake((cmd) => {
+         stubExec = sinon.stub(shell, 'exec').callsFake((cmd) => {
             let process = getProcess();
             setTimeout(() => {
                process.kill();
@@ -69,7 +69,7 @@ describe('Shell', () => {
       });
 
       it('should return rejected promise if command result is fail', (done) => {
-         stubExec = sinon.stub(child_process, 'spawn').callsFake((cmd) => {
+         stubExec = sinon.stub(shell, 'exec').callsFake((cmd) => {
             let process = getProcess();
             setTimeout(() => {
                process.kill(2);
@@ -82,7 +82,7 @@ describe('Shell', () => {
       });
 
       it('should return resolved promise if command result is fail and it need force', (done) => {
-         stubExec = sinon.stub(child_process, 'spawn').callsFake((cmd) => {
+         stubExec = sinon.stub(shell, 'exec').callsFake((cmd) => {
             let process = getProcess();
             setTimeout(() => {
                process.kill(2);
@@ -97,7 +97,7 @@ describe('Shell', () => {
       });
 
       it('should return rejected promise if process will be killed', (done) => {
-         stubExec = sinon.stub(child_process, 'spawn').callsFake((cmd) => {
+         stubExec = sinon.stub(shell, 'exec').callsFake((cmd) => {
             let process = getProcess();
             process.withErrorKill = true;
             setTimeout(() => {
@@ -111,7 +111,7 @@ describe('Shell', () => {
       });
 
       it('should return rejected promise if command result is fail and process name is defined', (done) => {
-         stubExec = sinon.stub(child_process, 'spawn').callsFake((cmd) => {
+         stubExec = sinon.stub(shell, 'exec').callsFake((cmd) => {
             let process = getProcess();
             setTimeout(() => {
                process.kill(2);
@@ -124,7 +124,7 @@ describe('Shell', () => {
       });
 
       it('should log info', (done) => {
-         stubExec = sinon.stub(child_process, 'spawn').callsFake((cmd) => {
+         stubExec = sinon.stub(shell, 'exec').callsFake((cmd) => {
             let process = getProcess();
             process.withErrorKill = true;
             setTimeout(() => {
@@ -141,7 +141,7 @@ describe('Shell', () => {
       });
 
       it('should log error', (done) => {
-         stubExec = sinon.stub(child_process, 'spawn').callsFake(() => {
+         stubExec = sinon.stub(shell, 'exec').callsFake(() => {
             let process = getProcess();
             process.withErrorKill = true;
             setTimeout(() => {
@@ -158,7 +158,7 @@ describe('Shell', () => {
       });
 
       it('should throw error if stdout contents error label', (done) => {
-         stubExec = sinon.stub(child_process, 'spawn').callsFake(() => {
+         stubExec = sinon.stub(shell, 'exec').callsFake(() => {
             let process = getProcess();
             process.withErrorKill = true;
             setTimeout(() => {
@@ -174,22 +174,9 @@ describe('Shell', () => {
          });
       });
 
-      it('should set path to cwd for child process', (done) => {
-         stubExec = sinon.stub(child_process, 'spawn').callsFake((cmd, args, options) => {
-            let process = getProcess();
-            setTimeout(() => {
-               process.kill();
-            });
-            chai.expect(options.cwd).to.equal('path');
-            done();
-            return process;
-         });
-         shellUtil.execute('help', 'path');
-      });
-
       afterEach(()=> {
          stubExec.restore();
-      });
+      })
    });
 
    describe('._closeChildProcess()', () => {

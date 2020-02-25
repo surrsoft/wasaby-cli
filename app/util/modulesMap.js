@@ -2,16 +2,15 @@ const path = require('path');
 const pMap = require('p-map');
 const xml = require('../xml/xml');
 const walkDir = require('./walkDir');
+const MAP_FILE_NAME = path.join('resources', 'modulesMap.json');
 const fs = require('fs-extra');
-
-const MAP_FILE = path.normalize(path.join(__dirname, '..', '..', 'resources', 'modulesMap.json'));
 const CDN_REP_NAME = 'cdn';
-
 /**
  * Карта модулей s3mod, из всех репозиториев
  * @class ModulesMap
  * @author Ганшин Я.О
  */
+
 class ModulesMap {
    constructor(cfg) {
       this._reposConfig = cfg.reposConfig;
@@ -82,7 +81,7 @@ class ModulesMap {
    /**
     * Возращает все зависимости переданных модулей
     * @param {Array} modules - Массив с наваниями модулей
-    * @param {Array} traverse - Массив содеражащий текущий путь рекурсии
+    * @param {Array} traverse - массив содеражащий текущий путь рекурсии
     * @return {Array}
     */
    getChildModules(modules, traverse) {
@@ -208,7 +207,7 @@ class ModulesMap {
 
    /**
     * Добавляет модули в modulesMap
-    * @param {Array} modules - Массив с конфигами модулей
+    * @param {Array} modules - массив с конфигами модулей
     * @return {Promise<void>}
     * @private
     */
@@ -249,7 +248,7 @@ class ModulesMap {
 
    /**
     * Возвращает путь до репозитория
-    * @param {String} repName Название репозитория
+    * @param {String} repName название репозитория
     * @return {string}
     */
    getRepositoryPath(repName) {
@@ -269,14 +268,13 @@ class ModulesMap {
       });
       return repos;
    }
-
    /**
     * Загружает карту модулей из файла
     * @returns {Promise<void>}
     * @private
     */
    async _loadMap() {
-      let mapObject = await fs.readJSON(path.join(MAP_FILE));
+      let mapObject = await fs.readJSON(path.join(process.cwd(), MAP_FILE_NAME));
       for (let key of Object.keys(mapObject)) {
          let mapObjectValue = mapObject[key];
          mapObjectValue.path = path.join(this._store, mapObjectValue.path);
@@ -291,22 +289,20 @@ class ModulesMap {
     */
    async _saveMap() {
       let mapObject = {};
+      const mapPath = path.join(process.cwd(), MAP_FILE_NAME);
 
-      if (fs.existsSync(MAP_FILE)) {
-         mapObject = await fs.readJSON(MAP_FILE);
+      if (fs.existsSync(mapPath)) {
+         mapObject = await fs.readJSON(mapPath);
       }
 
       this._modulesMap.forEach((value, key) => {
-         mapObject[key] = {
-            ...value,
-            ...{
-               path: path.relative(this._store, value.path),
-               s3mod: path.relative(this._store, value.s3mod)
-            }
-         };
+         mapObject[key] = {...value, ...{
+            path: path.relative(this._store, value.path),
+            s3mod: path.relative(this._store, value.s3mod)
+         }};
       });
 
-      await fs.writeJSON(MAP_FILE, mapObject);
+      await fs.writeJSON(mapPath, mapObject);
    }
 }
 
