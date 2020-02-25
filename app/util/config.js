@@ -27,8 +27,6 @@ function get() {
       }
       config.testRep = [packageConfig.name];
       config.rc = `rc-${normalizeVersion(packageConfig.version)}`;
-      config.repositories[config.testRep].skipStore = true;
-      config.repositories[config.testRep].path = process.cwd();
    }
 
    return config;
@@ -53,7 +51,7 @@ function _getPackageConfig() {
    const configPath = path.join(process.cwd(), 'package.json');
    if (fs.existsSync(configPath)) {
       const config = require(configPath);
-      if (config.name !== 'test-cli') {
+      if (config.name !== 'wasaby-cli') {
          return config;
       }
    }

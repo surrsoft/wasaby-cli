@@ -336,7 +336,8 @@ class Test extends Base {
                {
                   processName: `test node ${name}`,
                   timeout: TEST_TIMEOUT,
-                  silent: this._report !== 'console'
+                  silent: this._report !== 'console',
+                  stdio: this._report !== 'console' ? 'pipe' : 'inherit'
                }
             );
          } catch (e) {
