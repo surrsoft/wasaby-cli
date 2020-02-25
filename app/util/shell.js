@@ -77,8 +77,8 @@ class Shell {
             }
          });
 
-         if (params.timeout) {
-            timerId = setTimeout(function(){ cloneProcess.kill('SIGTERM')}, params.timeout);
+         if (execParams.timeout) {
+            timerId = setTimeout(function(){ cloneProcess.kill('SIGTERM')}, execParams.timeout);
          }
       });
    }
