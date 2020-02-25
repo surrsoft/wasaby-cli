@@ -1,6 +1,5 @@
-const shell = require('shelljs');
+const child_process = require('child_process');
 const logger = require('./logger');
-const cdn_path = 'intest-ps/ui';
 
 /**
  * Класс для вызова shell команд
@@ -23,7 +22,7 @@ class Shell {
     * Выполняет команду shell
     * @param {String} command - текст команды
     * @param {String} path - путь по которому надо выполнить команду
-    * @param {ExecParams} params
+    * @param {{processName: string, timeout: number}} params
     * @return {Promise<any>}
     * @public
     */
@@ -31,31 +30,41 @@ class Shell {
       const errors = [];
       const result = [];
       const execParams = {
-         async: true,
-         silent: true,
+         cwd: path || process.cwd(),
          ...params
       };
 
       return new Promise((resolve, reject) => {
-         const cloneProcess = shell.exec(`cd ${path} && ${command}`, execParams);
+         const args = command.split(' ');
+         const cloneProcess = child_process.spawn(args[0], args.slice(1), execParams);
+         let timerId;
          this._childProcessMap.push(cloneProcess);
 
-         cloneProcess.stdout.on('data', (data) => {
-            logger.log(data, execParams.processName);
-            if (execParams.errorLabel && data.includes(execParams.errorLabel)) {
-               errors.push(data);
-            } else {
-               result.push(data.trim());
-            }
-         });
+         if (!execParams.silent) {
+            cloneProcess.stdout.on('data', (data) => {
+               const dataString = data.toString();
+               logger.log(dataString, execParams.processName);
+               if (execParams.errorLabel && dataString.includes(execParams.errorLabel)) {
+                  errors.push(dataString);
+               } else {
+                  result.push(dataString);
+               }
+            });
 
-         cloneProcess.stderr.on('data', (data) => {
-            logger.log(data, execParams.processName);
-            errors.push(data);
-         });
+            cloneProcess.stderr.on('data', (data) => {
+               const dataString = data.toString();
+               logger.log(dataString, execParams.processName);
+               errors.push(dataString);
+            });
+         }
 
          cloneProcess.on('exit', (code, signal) => {
+            if (timerId) {
+               clearTimeout(timerId);
+            }
+
             this._childProcessMap.splice(this._childProcessMap.indexOf(cloneProcess), 1);
+
             if (signal === 'SIGTERM') {
                const message = `Process ${execParams.processName} has been terminated`;
                errors.push(message);
@@ -67,6 +76,10 @@ class Shell {
                reject(errors);
             }
          });
+
+         if (execParams.timeout) {
+            timerId = setTimeout(function(){ cloneProcess.kill('SIGTERM')}, execParams.timeout);
+         }
       });
    }
 
