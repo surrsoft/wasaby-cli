@@ -25,8 +25,10 @@ function get() {
             }
          }
       }
-      config.testRep = [packageConfig.name];
+      config.testRep = packageConfig.name;
       config.rc = `rc-${normalizeVersion(packageConfig.version)}`;
+      config.repositories[config.testRep].skipStore = true;
+      config.repositories[config.testRep].path = process.cwd();
    }
 
    return config;
