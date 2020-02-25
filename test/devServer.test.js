@@ -55,7 +55,7 @@ describe('DevServer', () => {
          stubExecute.callsFake((cmd) => {
             chai.expect(cmd).includes('sbis-daemon').and.includes('--http');
             done();
-            stubExecute.restore();
+            stubExecute.callsFake(() => Promise.resolve())
             return Promise.resolve();
          });
          devServer.start();
