@@ -9,13 +9,15 @@ const fs = require('fs-extra');
  * @class Logger
  */
 class Logger {
+   constructor() {
+      this._enableLog = true;
+   }
    /**
     * Устанавливает путь до файла с логами
     * @param {String} file
     */
    set logFile(file) {
       this._logFile = file;
-      fs.outputFileSync(file, '');
    }
 
    /**
@@ -32,6 +34,10 @@ class Logger {
     * @param {String} label Метка сообщения в логе
     */
    log(message, label = '') {
+      if (!this._enableLog) {
+         return;
+      }
+
       const date = new Date();
       const time = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}:${date.getMilliseconds()}`;
       const logLabel = label ? ' ' + label : '';
@@ -39,7 +45,7 @@ class Logger {
       // eslint-disable-next-line no-console
       console.log(logMessage);
       if (this.logFile) {
-         fs.appendFileSync(this.logFile, logMessage);
+         fs.outputFileSync(this.logFile, logMessage, {flag: 'a'});
       }
    }
 
@@ -51,8 +57,16 @@ class Logger {
       // eslint-disable-next-line no-console
       console.error(message);
       if (this.logFile) {
-         fs.appendFileSync(this.logFile, `[ERROR]: ${message}`);
+         fs.outputFileSync(this.logFile, `[ERROR]: ${message}`, {flag: 'a'});
       }
+   }
+
+   /**
+    * Выключает логирование
+    * @param message
+    */
+   silent() {
+      this._enableLog = false;
    }
 }
 
