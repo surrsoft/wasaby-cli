@@ -60,7 +60,7 @@ class Shell {
       const result = [];
       this._childProcessMap.push(childProccess);
 
-      if (params.silent) {
+      if (!params.silent) {
          childProccess.stdout.on('data', (data) => {
             const dataString = data.toString();
             logger.log(dataString, params.processName);
