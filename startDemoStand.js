@@ -1,4 +1,4 @@
-const shell = require('shelljs');
+const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs-extra');
 const options = {};
@@ -16,9 +16,7 @@ copyApJs().then(() => {
       options.applicationRoot = path.relative(process.cwd(), options.applicationRoot);
    }
 
-   shell.exec(`node app.js --applicationRoot=${options.applicationRoot}`, {
-      async: true
-   });
+   exec(`node app.js --applicationRoot=${options.applicationRoot}`);
 }, (err) => {
    console.log(`Не смог запустить демо стенд. Error ${err}`);
 });
