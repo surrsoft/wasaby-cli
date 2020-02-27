@@ -328,7 +328,7 @@ class Test extends Base {
                isBrowser: false
             });
 
-            const coverage = this._coverage ? ' --coverage' : '';
+            const coverage = this._coverage ? '--coverage' : '';
             const report = this._report === 'xml' ? '--report' : '';
             const unitsPath = fsUtil.getPathToPackage('saby-units');
             let args = [`${unitsPath}/cli.js`, '--isolated', coverage, report, `--config=${pathToConfig}`];
