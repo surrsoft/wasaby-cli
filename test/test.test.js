@@ -308,6 +308,7 @@ describe('Test', () => {
          chai.expect(cfg.ignoreLeaks).is.true;
       });
    });
+
    describe('._setDiff()', function () {
       let spySetDiff;
       beforeEach(() => {
@@ -322,6 +323,19 @@ describe('Test', () => {
          sinon.stub(test, '_isUseDiff').value(true);
          test._setDiff();
          chai.expect(spySetDiff.calledWith('test1')).to.be.true;
+      });
+   });
+
+   describe('._executeBrowserTestCmd()', () => {
+      it('should call _executeBrowserTestCmd twice',() => {
+         let spy = sinon.spy(test, '_executeBrowserTestCmd');
+         stubExecute.callsFake(() => {
+            stubExecute.callsFake(() => Promise.resolve());
+            return Promise.reject(['ECHROMEDRIVER']);
+         });
+         test._executeBrowserTestCmd().then(() => {
+            chai.expect(spy.calledTwice).to.be.true;
+         });
       });
    });
 });
