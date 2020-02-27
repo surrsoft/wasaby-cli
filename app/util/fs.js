@@ -23,7 +23,7 @@ function relative(from, to) {
 function getPathToPackage(packageName) {
    const paths = [
       path.join(process.cwd(), 'node_modules', packageName),
-      path.join(__dirname, '..', 'node_modules', packageName),
+      path.join(__dirname, '..', '..', 'node_modules', packageName),
    ];
    for (const p of paths) {
       if (fs.existsSync(p)) {
