@@ -329,7 +329,7 @@ describe('Test', () => {
    describe('._executeBrowserTestCmd()', () => {
       it('should call _executeBrowserTestCmd twice',() => {
          let spy = sinon.spy(test, '_executeBrowserTestCmd');
-         spy.callsFake(() => {
+         stubExecute.callsFake(() => {
             stubExecute.callsFake(() => Promise.resolve());
             return Promise.reject(['ECHROMEDRIVER']);
          });
