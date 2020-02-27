@@ -366,8 +366,8 @@ class Test extends Base {
             }
          );
       } catch (errors) {
-         if (errors.some((error) => error.includes('EADDRINUSE'))) {
-            logger.log('Порт занят, повторный запуск тестов', moduleName);
+         if (errors.some(error => (error.includes('EADDRINUSE') || error.includes('ECHROMEDRIVER')))) {
+            logger.log('Ошибка окружения, повторный запуск тестов', moduleName);
             await this._executeBrowserTestCmd(cmd, moduleName, configPath);
          } else {
             this._testErrors[moduleName + BROWSER_SUFFIX] = errors;
