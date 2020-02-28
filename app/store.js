@@ -5,7 +5,9 @@ const Base = require('./base');
 const Git = require('./util/git');
 const ModulesMap = require('./util/modulesMap');
 const Project = require('./xml/project');
+const pMap = require('p-map');
 
+const PARALLEL_CHECKOUT = 2;
 /**
  * Класс отвечающий за подготовку репозиториев для тестирования
  * @class Store
@@ -40,10 +42,12 @@ class Store extends Base {
          await this._modulesMap.build();
          await fs.mkdirs(this._store);
          const promises = [];
-         for (const rep of (await this._getReposList())) {
-            promises.push(this.initRep(rep));
-         }
-         await Promise.all(promises);
+
+         await pMap(await this._getReposList(), (rep) => {
+            return this.initRep(rep);
+         }, {
+            concurrency: PARALLEL_CHECKOUT
+         });
          logger.log('Инициализация хранилища завершена успешно');
       } catch (e) {
          e.message = `Инициализация хранилища завершена с ошибкой ${e.message}`;
