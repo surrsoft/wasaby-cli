@@ -15,26 +15,6 @@ function relative(from, to) {
    return path.normalize(path.relative(from, to));
 }
 
-/**
- * Возвращает путь до npm пакета
- * @param {String} packageName Название npm пакета
- * @returns {String}
- */
-function getPathToPackage(packageName) {
-   const paths = [
-      path.join(process.cwd(), 'node_modules', packageName),
-      path.join(__dirname, '..', 'node_modules', packageName),
-   ];
-   for (const p of paths) {
-      if (fs.existsSync(p)) {
-         return path.normalize(p);
-      }
-   }
-
-   throw new Error(`Пакет ${packageName} не установлен`);
-}
-
 module.exports = {
-   relative: relative,
-   getPathToPackage: getPathToPackage
+   relative: relative
 };
