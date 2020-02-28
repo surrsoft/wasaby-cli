@@ -330,8 +330,8 @@ class Test extends Base {
 
             const coverage = this._coverage ? '--coverage' : '';
             const report = this._report === 'xml' ? '--report' : '';
-            const unitsPath = fsUtil.getPathToPackage('saby-units');
-            let args = [`${unitsPath}/cli.js`, '--isolated', coverage, report, `--config=${pathToConfig}`];
+            const unitsPath = require.resolve('saby-units/cli.js');
+            let args = [unitsPath, '--isolated', coverage, report, `--config=${pathToConfig}`];
             await this._shell.spawn(
                'node',
                args,
@@ -357,7 +357,6 @@ class Test extends Base {
     */
    async _startBrowserTest(name, testModules) {
       const moduleCfg = this._modulesMap.get(name);
-      const unitsPath = fsUtil.getPathToPackage('saby-units');
       if (
          !this._testOnlyNode &&
             (
@@ -381,7 +380,7 @@ class Test extends Base {
 
             await Promise.all([
                this._executeBrowserTestCmd(
-                  `node ${unitsPath}/cli/server.js --config=${configPath}`,
+                  `node ${require.resolve('saby-units/cli/server.js')} --config=${configPath}`,
                   name,
                   configPath,
                   0
@@ -390,7 +389,7 @@ class Test extends Base {
             ]);
          } else {
             await this._executeBrowserTestCmd(
-               `node ${unitsPath}/cli.js --browser${coverage} --report --config=${configPath}`,
+               `node ${require.resolve('saby-units//cli.js')} --browser${coverage} --report --config=${configPath}`,
                name,
                configPath,
                TEST_TIMEOUT

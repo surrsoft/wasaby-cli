@@ -73,12 +73,12 @@ class Build extends Base {
     * @private
     */
    async _initWithBuilder(builderOutput) {
-      const gulpPath = fsUtil.getPathToPackage('gulp');
-      const builderPath = fsUtil.getPathToPackage('sbis3-builder');
+      const gulpPath = require.resolve('gulp/bin/gulp.js');
+      const builderPath = require.resolve('sbis3-builder/gulpfile.js');
 
       await this._makeBuilderConfig(builderOutput);
       await this._shell.execute(
-         `node ${gulpPath}/bin/gulp.js --gulpfile=${builderPath}/gulpfile.js build --config=${this._builderCfg}`,
+         `node ${gulpPath} --gulpfile=${builderPath} build --config=${this._builderCfg}`,
          process.cwd(), {
             force: true,
             name: 'builder'
@@ -128,11 +128,11 @@ class Build extends Base {
     */
    _tslibInstall() {
       const tslib = fsUtil.relative(process.cwd(), path.join(this._modulesMap.getRepositoryPath('sbis3-ws'), '/WS.Core/ext/tslib.js'));
-      const tsPath = fsUtil.getPathToPackage('saby-typescript');
+      const tsPath = require.resolve('saby-typescript/cli/install.js');
       logger.log(tslib, 'tslib_path');
 
       return this._shell.execute(
-         `node ${tsPath}/cli/install.js --tslib=${tslib}`,
+         `node ${tsPath} --tslib=${tslib}`,
          process.cwd(), {
             force: true,
             name: 'typescriptInstall'
