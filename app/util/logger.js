@@ -44,9 +44,7 @@ class Logger {
       const logMessage = `[${time}]${logLabel}: ${message}`;
       // eslint-disable-next-line no-console
       console.log(logMessage);
-      if (this.logFile) {
-         fs.outputFileSync(this.logFile, logMessage, {flag: 'a'});
-      }
+      this._log(logMessage);
    }
 
    /**
@@ -56,17 +54,29 @@ class Logger {
    error(message) {
       // eslint-disable-next-line no-console
       console.error(message);
-      if (this.logFile) {
-         fs.outputFileSync(this.logFile, `[ERROR]: ${message}`, {flag: 'a'});
-      }
+      this._log(`[ERROR]: ${message}`, {flag: 'a'});
    }
 
    /**
     * Выключает логирование
-    * @param message
     */
    silent() {
       this._enableLog = false;
+   }
+
+   /**
+    * Логирует сообщение в файл
+    * @param {String} message
+    */
+   _log(message) {
+      if (this.logFile) {
+         try {
+            fs.outputFileSync(this.logFile, message, {flag: 'a'});
+         } catch (e) {
+            this.logFile = false;
+            console.error(`Ошибка создания лог файла: ${e}`);
+         }
+      }
    }
 }
 
