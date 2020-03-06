@@ -31,7 +31,8 @@
    "devDependencies": {
       "chai": "^4.2.0",
       "mocha": "^6.1.4",
-      "sinon": "^7.5.0"
+      "sinon": "^7.5.0",
+      "nyc": "^12.0.2"
    }
 }
 
