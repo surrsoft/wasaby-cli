@@ -99,6 +99,7 @@ class Test extends Base {
       this._report = cfg.report || 'xml';
       this._only = cfg.only;
       this._testOnlyNode = cfg.node;
+      this._workDir = cfg.workDir;
       this._testOnlyBrowser = cfg.browser || cfg.server;
       this._modulesMap = new ModulesMap({
          reposConfig: cfg.reposConfig,
@@ -200,9 +201,10 @@ class Test extends Base {
       cfg.ignoreLeaks = this._ignoreLeaks;
       cfg.nyc = {
          'include': [],
-         'reportDir': path.dirname(cfg.jsonCoverageReport)
+         'reportDir': path.dirname(cfg.jsonCoverageReport),
+         'cwd': this._workDir
       };
-      let nycPath = path.relative(process.cwd(), this._realResources || this._resources);
+      let nycPath = path.relative(this._workDir, this._realResources || 'build-ui/resources');
       testModulesArray.forEach((testModuleName) => {
          const moduleCfg = this._modulesMap.get(testModuleName);
          if (moduleCfg && moduleCfg.depends) {
