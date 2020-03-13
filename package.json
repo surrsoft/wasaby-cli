@@ -22,7 +22,7 @@
       "fs-extra": "^7.0.1",
       "p-map": "^2.1.0",
       "saby-typescript": "git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-20.3000",
-      "saby-units": "git+https://platform-git.sbis.ru/saby/Units.git#rc-20.3000",
+      "saby-units": "git+https://platform-git.sbis.ru/saby/Units.git#20.3000/issue/report-json",
       "sbis3-builder": "git+https://platform-git.sbis.ru/saby/Builder.git#rc-20.3000",
       "serve-static": "^1.14.1",
       "webdriverio": "5.16.6",
@@ -35,4 +35,3 @@
       "nyc": "^12.0.2"
    }
 }
-
