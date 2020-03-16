@@ -202,7 +202,8 @@ class Test extends Base {
       cfg.nyc = {
          'include': [],
          'reportDir': path.dirname(cfg.jsonCoverageReport),
-         'cwd': this._workDir
+         'cwd': this._workDir,
+         'report': ['json','text','html'].includes(this._coverage) ? this._coverage : 'html'
       };
       let nycPath = path.relative(this._workDir, this._realResources || 'build-ui/resources');
       testModulesArray.forEach((testModuleName) => {
