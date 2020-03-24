@@ -59,7 +59,7 @@ class Cli {
          await this.build();
       }
       if (this.tasks.includes('startTest')) {
-         throw 'startTest error';
+         throw 'start_test_error';
          await this.test();
       }
       if (this.tasks.includes('devServer')) {
