@@ -56,10 +56,10 @@ class Cli {
          await this.initStore();
       }
       if (this.tasks.includes('build')) {
-         throw 'build error';
          await this.build();
       }
       if (this.tasks.includes('startTest')) {
+         throw 'startTest error';
          await this.test();
       }
       if (this.tasks.includes('devServer')) {
