@@ -53,6 +53,7 @@ class Cli {
     */
    async run() {
       if (this.tasks.includes('initStore')) {
+         throw 'initStore error';
          await this.initStore();
       }
       if (this.tasks.includes('build')) {
