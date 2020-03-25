@@ -15,8 +15,6 @@ const NODE_SUFFIX = '_node';
 const PARALLEL_TEST_COUNT = 2;
 const TEST_TIMEOUT = 60 * 5 * 1000;
 const REPORT_PATH = '{workspace}/artifacts/{module}/xunit-report.xml';
-const ALLOWED_ERRORS_FILE = path.normalize(path.join(__dirname, '..', 'resources', 'allowedErrors.json'));
-
 const _private = {
 
    /**
@@ -110,14 +108,11 @@ class Test extends Base {
          workDir: cfg.workDir,
          only: cfg.only
       });
-      this._allowedErrorsSet = new Set();
       this._diff = new Map();
       this._portMap = new Map();
       if (this._report === 'console') {
          logger.silent();
       }
-
-      this._shouldUpdateAllowedErrors = false;
    }
 
    /**
@@ -131,9 +126,7 @@ class Test extends Base {
          if (fs.existsSync(filePath)) {
             let errorText = '';
             if (this._testErrors[name]) {
-               errorText = this._testErrors[name].filter((msg) => {
-                  return !this._allowedErrorsSet.has(this._getErrorText(msg));
-               }).join('<br/>');
+               errorText = this._testErrors[name].join('<br/>');
             }
             let readPromise = xml.readXmlFile(filePath).then((xmlObject) => {
                let result = xmlObject;
@@ -150,7 +143,8 @@ class Test extends Base {
                   };
                }
 
-               if (errorText) {
+               // этим ошибкам верить нельзя, добавляем только если нет упавших юнитов
+               if (errorText && xmlObject.testsuite.$.tests === '1') {
                   result.testsuite.testcase.push(_private.getErrorTestCase(name, errorText));
                }
 
@@ -327,7 +321,6 @@ class Test extends Base {
     */
    async _startNodeTest(name, testModules) {
       if (!this._testOnlyBrowser) {
-         const processName = name + NODE_SUFFIX;
          try {
             const pathToConfig = _private.getPathToTestConfig(name, false);
 
@@ -341,28 +334,19 @@ class Test extends Base {
             const coverage = this._coverage ? '--coverage' : '';
             const report = this._report === 'xml' ? '--report' : '';
             const unitsPath = require.resolve('saby-units/cli.js');
-
             let args = [unitsPath, '--isolated', coverage, report, `--config=${pathToConfig}`];
             await this._shell.spawn(
                'node',
                args,
                {
-                  processName: processName,
+                  processName: `test node ${name}`,
                   timeout: TEST_TIMEOUT,
                   silent: this._report === 'console',
                   stdio: this._report === 'console' ? 'inherit' : 'pipe'
                }
             );
-
          } catch (e) {
-            this._testErrors[processName] = e;
-         } finally {
-            this._testErrors[processName] = this._testErrors[processName] ||  this._shell.getErrorsByName(processName);
-            if (this._shouldUpdateAllowedErrors) {
-               this._testErrors[processName].map((msg) => {
-                  this._allowedErrorsSet.add(this._getErrorText(msg));
-               });
-            }
+            this._testErrors[name + NODE_SUFFIX] = e;
          }
       }
    }
@@ -396,6 +380,7 @@ class Test extends Base {
          });
 
          if (this._server) {
+
             await Promise.all([
                this._executeBrowserTestCmd(
                   `node ${require.resolve('saby-units/cli/server.js')} --config=${configPath}`,
@@ -407,7 +392,7 @@ class Test extends Base {
             ]);
          } else {
             await this._executeBrowserTestCmd(
-               `node ${require.resolve('saby-units/cli.js')} --browser${coverage} --report --config=${configPath}`,
+               `node ${require.resolve('saby-units//cli.js')} --browser${coverage} --report --config=${configPath}`,
                name,
                configPath,
                TEST_TIMEOUT
@@ -468,13 +453,11 @@ class Test extends Base {
          logger.log('Запуск тестов');
          await this._modulesMap.build();
          await this._setDiff();
-         await this._loadErrorsSet();
          await this._startTest();
          if (!this._server && this._report === 'xml') {
             await this.checkReport();
             await this.prepareReport();
          }
-         await this._updateAllowedErrors();
          logger.log('Тестирование завершено');
       } catch (e) {
          e.message = `Тестирование завершено с ошибкой ${e}`;
@@ -515,37 +498,6 @@ class Test extends Base {
          this._diff.set(repName, await git.diff(branch, this._rc));
       }
    }
-
-   /**
-    * Возвращает текст ошибки без цифр и пробелов
-    * @param {String} text
-    * @private
-    */
-   _getErrorText(text){
-      let firstRow = text.split("\n")[0];
-      return firstRow.replace(/[\d\[\]]/g,'').replace(/\s{2,}/g, ' ').trim();
-   }
-
-   /**
-    * Обновляет список ошибок в файле
-    * @private
-    */
-   async _updateAllowedErrors() {
-      if (this._shouldUpdateAllowedErrors) {
-         await fs.writeJSON(ALLOWED_ERRORS_FILE, Array.from(this._allowedErrorsSet));
-      }
-   }
-
-   /**
-    * Загружает список ошибок из файла
-    * @returns {Promise<void>}
-    * @private
-    */
-   async _loadErrorsSet() {
-      const errors = await fs.readJSON(ALLOWED_ERRORS_FILE, Array.from(this._allowedErrorsSet));
-      this._allowedErrorsSet = new Set(errors || []);
-   }
-
 }
 
 module.exports = Test;
