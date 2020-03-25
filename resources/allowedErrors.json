@@ -134,5 +134,6 @@
   "TEMPLATE ERROR: error text IN \"_createFakeError\"",
   "TEMPLATE ERROR: IN \"not detected\"",
   "TEMPLATE ERROR: null IN \"not detected\"",
+  "Css load:  Can't load css Controls/buttons for default theme.",
   "TEMPLATE ERROR: error text IN \"not detected\""
 ]
