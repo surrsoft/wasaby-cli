@@ -135,5 +135,6 @@
   "TEMPLATE ERROR: IN \"not detected\"",
   "TEMPLATE ERROR: null IN \"not detected\"",
   "Css load:  Can't load css Controls/buttons for default theme.",
+  "Deferred:  Callback function throwing an error: source is required for search",
   "TEMPLATE ERROR: error text IN \"not detected\""
 ]
