@@ -9,7 +9,6 @@ const logger = require('./logger');
 class Shell {
    constructor() {
       this._childProcessMap = [];
-      this._errors = new Map();
    }
 
    /**
@@ -81,7 +80,6 @@ class Shell {
 
       return new Promise((resolve, reject) => {
          childProccess.on('exit', (code, signal) => {
-            this._errors.set(params.processName, errors);
             this._childProcessMap.splice(this._childProcessMap.indexOf(childProccess), 1);
             if (signal === 'SIGTERM') {
                const message = `Process ${params.processName} has been terminated`;
@@ -114,17 +112,6 @@ class Shell {
       )));
       this._childProcessMap = [];
    }
-
-   /**
-    * Возвращает ошибки по названию процесса
-    * @param {String} name Название процесса
-    * @returns {Array}
-    */
-   getErrorsByName(name) {
-      return this._errors.get(name);
-   }
-
-
 }
 
 module.exports = Shell;
