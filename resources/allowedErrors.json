@@ -63,6 +63,7 @@
   "CONTROL WARNING: Button: Используются устаревшие стили. Используйте опции: viewMode = button, style = secondary",
   "CONTROL WARNING: Button: Используется устаревшее значение опции iconStyle. Используйте значение success виесто done",
   "CONTROL WARNING: Button: В кнопке используется viewMode = quickButton, transparentQuickButton используйте значение опции viewMode toolButton и опцию transparent",
+  "CONTROL WARNING: Button: Используются устаревшие стили. Используйте опции: viewMode = link, style = magic",
   "Deferred: Callback function throwing an error: newList.getModel is not a function",
   "CONTROL WARNING: MonthList: Используется устаревшая опция startPosition, используйте опцию position",
   "(node:) UnhandledPromiseRejectionWarning: TypeError: items.getAll is not a function",
