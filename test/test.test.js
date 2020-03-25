@@ -9,6 +9,7 @@ const shell = require('../app/util/shell');
 let test;
 let stubfsAppend;
 let stubExecute;
+let stubSpawn;
 describe('Test', () => {
    beforeEach(() => {
       test = new Test({
@@ -24,11 +25,13 @@ describe('Test', () => {
          testRep: ['test1']
       });
       stubfsAppend = sinon.stub(fs, 'appendFileSync').callsFake(() => undefined);
-      stubExecute = sinon.stub(shell.prototype, 'execute').callsFake(() => undefined);
+      stubExecute = sinon.stub(shell.prototype, 'execute').callsFake(() => Promise.resolve());
+      stubSpawn = sinon.stub(shell.prototype, 'spawn').callsFake(() => Promise.resolve());
    });
    afterEach(() => {
       stubExecute.restore();
       stubfsAppend.restore();
+      stubSpawn.restore();
    });
 
    describe('._makeTestConfig()', () => {
@@ -75,19 +78,6 @@ describe('Test', () => {
          });
       });
 
-      it('shouldnt start test if it node only', () => {
-         stubOutputFile = sinon.stub(fs, 'outputFile').callsFake(() => {
-            throw new Error();
-         });
-         stubcli = sinon.stub(test, '_reposConfig').value({
-            test: {
-               unitInBrowser: false
-            }
-         });
-
-         chai.expect(() => test._startBrowserTest('test')).to.not.throw();
-      });
-
       it('should not run test if testinbrowser was false', () => {
          stubModuleMapGet.callsFake((name) => {
             return { name: 'test2', testInBrowser: false };
@@ -129,6 +119,7 @@ describe('Test', () => {
          stubExecute.callsFake((cmd) => {
             chai.expect(cmd).to.includes('server.js');
             done();
+            stubExecute.callsFake(() => undefined);
          });
 
          test._startBrowserTest('test');
@@ -198,7 +189,7 @@ describe('Test', () => {
          stubBuild = sinon.stub(test._modulesMap, 'build').callsFake(() => {});
          stubtestList = sinon.stub(test._modulesMap, 'getTestList').callsFake(() => ['engine']);
       });
-      it('should start test', (done) => {
+      it('should start test', () => {
          let commandsArray = [];
          stubExecute.callsFake((cmd) => {
             commandsArray.push(cmd);
@@ -206,9 +197,7 @@ describe('Test', () => {
             return Promise.resolve();
          });
          sinon.stub(test, '_shouldTestModule').callsFake(() => true);
-         test._startTest().then(() => {
-            done();
-         });
+         return test._startTest();
       });
 
       afterEach(() => {
@@ -311,18 +300,18 @@ describe('Test', () => {
 
    describe('._setDiff()', function () {
       let spySetDiff;
-      beforeEach(() => {
-         spySetDiff = sinon.spy(test, '_setDiffByRep');
-      });
+
       it('shouldnt call setDiff if it disabled ', () => {
          sinon.stub(test, '_isUseDiff').value(false);
-         test._setDiff();
-         chai.expect(spySetDiff.notCalled).to.be.true;
+         spySetDiff = sinon.stub(test, '_setDiffByRep').callsFake(() => Promise.reject());
+         return test._setDiff();
       });
-      it('shouldnt call setDiff if it disabled ', () => {
+      it('should call setDiff if it enabled with argument test', (done) => {
          sinon.stub(test, '_isUseDiff').value(true);
+         spySetDiff = sinon.stub(test, '_setDiffByRep').callsFake(() => {
+            done();
+         });
          test._setDiff();
-         chai.expect(spySetDiff.calledWith('test1')).to.be.true;
       });
    });
 
@@ -337,5 +326,15 @@ describe('Test', () => {
             chai.expect(spy.calledTwice).to.be.true;
          });
       });
+   });
+
+   describe('._getErrorText()', () => {
+      it('should prepare error text',() => {
+         chai.expect('(node:) error').to.equal( test._getErrorText(' (node:123)     [error] '));
+      });
+   });
+
+   it('should _shouldUpdateAllowedErrors is false',() => {
+      chai.expect(test._shouldUpdateAllowedErrors).to.be.false;
    });
 });
