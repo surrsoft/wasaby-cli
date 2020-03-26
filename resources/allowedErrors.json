@@ -137,5 +137,7 @@
   "Css load: Can't load css Controls/buttons for default theme.",
   "CONTROL WARNING: Button: Используются устаревшие стили. Используйте опцию iconStyle в различных значениях для изменения по наведению",
   "Deferred: Callback function throwing an error: source is required for search",
+  "TEMPLATE ERROR:  fileName: ApiTest2.wml",
+  "Css load: Can't load css Controls/Classes for default theme.",
   "TEMPLATE ERROR: error text IN \"not detected\""
 ]
