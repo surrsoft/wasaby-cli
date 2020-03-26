@@ -137,7 +137,7 @@ describe('Shell', () => {
             chai.expect(log).to.equal('ttttt');
             done();
          });
-         shellUtil.execute('help', 'path').catch(() => undefined);
+         shellUtil.execute('help', 'path');
       });
 
       it('should log error', (done) => {
@@ -154,7 +154,7 @@ describe('Shell', () => {
             chai.expect(log).to.equal('ttttt');
             done();
          });
-         shellUtil.execute('help', 'path').catch(() => undefined);
+         shellUtil.execute('help', 'path');
       });
 
       it('should throw error if stdout contents error label', (done) => {
