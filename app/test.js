@@ -135,7 +135,7 @@ class Test extends Base {
                   const text = this._getErrorText(msg);
                   const isNotAllowed = !this._allowedErrorsSet.has(text);
                   if (isNotAllowed) {
-                     logger.log(`Новая ошибка: "text"`, name);
+                     logger.log(`Новая ошибка: "${text}"`, name);
                   }
                   return isNotAllowed;
                }).join('<br/>');
