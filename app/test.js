@@ -132,7 +132,12 @@ class Test extends Base {
             let errorText = '';
             if (this._testErrors[name]) {
                errorText = this._testErrors[name].filter((msg) => {
-                  return !this._allowedErrorsSet.has(this._getErrorText(msg));
+                  const text = this._getErrorText(msg);
+                  const isNotAllowed = !this._allowedErrorsSet.has(text);
+                  if (isNotAllowed) {
+                     logger.log(`Новая ошибка: "text"`, name);
+                  }
+                  return isNotAllowed;
                }).join('<br/>');
             }
             let readPromise = xml.readXmlFile(filePath).then((xmlObject) => {
