@@ -142,5 +142,6 @@
   "TEMPLATE ERROR: fileName: ApiTest.wml,",
   "(node:) UnhandledPromiseRejectionWarning: TypeError: this._headersid.inst.resetSticky is not a function",
   "(node:) UnhandledPromiseRejectionWarning: TypeError: Cannot read property 'inst' of undefined",
-  "TEMPLATE ERROR: error text IN \"not detected\""
+  "TEMPLATE ERROR: error text IN \"not detected\"",
+  "(node:) UnhandledPromiseRejectionWarning"
 ]
