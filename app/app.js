@@ -8,6 +8,9 @@ const getPort = require('./net/getPort');
 const global = (function() {
    return this || (0, eval)('this');
 })();
+
+const DEFAULT_APP_PORT = 777;
+
 /**
  * Запускает сервер приложения
  * @param {String} resources Путь до ресурсов
@@ -15,13 +18,13 @@ const global = (function() {
  */
 async function run(resources, port) {
    const app = express();
-   const port1 = await getPort(port);
+   const availablePort = await getPort(port || DEFAULT_APP_PORT);
    const relativeResources = path.isAbsolute(resources) ? path.relative(process.cwd(), resources) : resources;
 
    app.use(bodyParser.json());
    app.use(cookieParser());
    app.use('/', serveStatic(relativeResources));
-   app.listen(port1);
+   app.listen(availablePort);
 
    let require = isolated.prepareTestEnvironment(
       relativeResources,
@@ -35,7 +38,7 @@ async function run(resources, port) {
 
    console.log('start init');
    require(['Core/core-init'], function () {
-      console.log(`server started in ${port1}`);
+      console.log(`server started in ${availablePort}`);
       console.log('core init success');
    }, function (err) {
       console.error(err);

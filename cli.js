@@ -12,7 +12,6 @@ const app = require('./app/app');
 
 const ERROR_CODE = 2;
 const LOG_FOLDER = 'log';
-
 /**
  * Модуль для запуска юнит тестов
  * @class Cli
@@ -154,7 +153,9 @@ class Cli {
 
    app() {
       const cfg = config.get();
-      return app.run(this._resources, cfg.port);
+      const port =  this._argvOptions.port || cfg.port;
+
+      return app.run(this._resources, port);
    }
 
    /**
