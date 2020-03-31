@@ -1,4 +1,4 @@
-@Library('pipeline@bugfix/rev_sdk') _
+@Library('pipeline') _
 
 def version = '20.3000'
 
