@@ -8,6 +8,7 @@ const Test = require('./app/test');
 const DevServer = require('./app/devServer');
 const config = require('./app/util/config');
 const logger = require('./app/util/logger');
+const app = require('./app/app');
 
 const ERROR_CODE = 2;
 const LOG_FOLDER = 'log';
@@ -64,6 +65,9 @@ class Cli {
       if (this.tasks.includes('devServer')) {
          await this.devServer();
       }
+      if (this.tasks.includes('app')) {
+         await this.app();
+      }
    }
 
    async build() {
@@ -102,7 +106,6 @@ class Cli {
 
    async test() {
       const test = new Test({
-         ports: this._argvOptions.ports || '',
          reposConfig: this._reposConfig,
          resources: this._resources,
          realResources: this._realResources,
@@ -147,6 +150,11 @@ class Cli {
       } else if (this._argvOptions.createIni) {
          await devServer.createIni();
       }
+   }
+
+   app() {
+      const cfg = config.get();
+      return app.run(this._workDir, cfg.port);
    }
 
    /**

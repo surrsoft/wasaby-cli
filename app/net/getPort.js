@@ -1,6 +1,6 @@
 const net = require('net');
 
-const MIN_PORT = 21000;
+const MIN_PORT = 1024;
 const MAX_PORT = 65536;
 
 /**
@@ -24,8 +24,8 @@ const checkPort = (port) => new Promise((resolve, reject) => {
    });
 });
 
-const portsRange = (function* () {
-   for (let port = MIN_PORT; port <= MAX_PORT; port++) {
+const portsRange = (function* (minPort) {
+   for (let port = minPort || MIN_PORT; port <= MAX_PORT; port++) {
       yield port;
    }
 })();
@@ -34,8 +34,8 @@ const portsRange = (function* () {
  * Возвращает свободный порт
  * @returns {Promise<Number>}
  */
-module.exports = async function getPort() {
-   let item = portsRange.next().value;
+module.exports = async function getPort(minPort) {
+   let item = portsRange.next(minPort).value;
    if (item) {
       try {
          return await checkPort(item); // eslint-disable-line no-await-in-loop
