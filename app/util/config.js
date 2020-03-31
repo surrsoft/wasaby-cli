@@ -29,6 +29,7 @@ function get() {
       config.rc = `rc-${normalizeVersion(packageConfig.version)}`;
       config.repositories[packageConfig.name].skipStore = true;
       config.repositories[packageConfig.name].path = process.cwd();
+      Object.assign(config, packageConfig['wasaby-cli'] || {});
    }
 
    return config;

@@ -202,7 +202,8 @@ class Test extends Base {
       const testModulesArray = testModules instanceof Array ? testModules : [testModules];
       workspace = workspace || '.';
       cfg.url = { ...cfg.url };
-      cfg.url.port = await getPort();
+      this._port = await getPort(this._port ? this._port + 1 : undefined);
+      cfg.url.port = this._port;
       this._portMap.set(name, cfg.url.port);
       cfg.tests = testModulesArray;
       cfg.root = fsUtil.relative(process.cwd(), this._resources);
