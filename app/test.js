@@ -204,7 +204,7 @@ class Test extends Base {
       cfg.url = { ...cfg.url };
       this._port = await getPort(this._port ? this._port + 1 : undefined);
       cfg.url.port = this._port;
-      this._portMap.set(name, cfg.url.port);
+      this._portMap.set(name, this._port);
       cfg.tests = testModulesArray;
       cfg.root = fsUtil.relative(process.cwd(), this._resources);
       cfg.htmlCoverageReport = cfg.htmlCoverageReport.replace('{module}', fullName).replace('{workspace}', workspace);

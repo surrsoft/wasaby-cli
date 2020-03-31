@@ -9,16 +9,16 @@ const global = (function() {
    return this || (0, eval)('this');
 })();
 
-const DEFAULT_APP_PORT = 777;
 
 /**
  * Запускает сервер приложения
  * @param {String} resources Путь до ресурсов
  * @param {Number} port Порт на котором будет запущен сервер
+ * @param {Boolean} start Запустить браузер
  */
-async function run(resources, port) {
+async function run(resources, port, start) {
    const app = express();
-   const availablePort = await getPort(port || DEFAULT_APP_PORT);
+   const availablePort = await getPort(port);
    const relativeResources = path.isAbsolute(resources) ? path.relative(process.cwd(), resources) : resources;
 
    app.use(bodyParser.json());
@@ -38,8 +38,7 @@ async function run(resources, port) {
 
    console.log('start init');
    require(['Core/core-init'], function () {
-      console.log(`server started in ${availablePort}`);
-      console.log('core init success');
+      console.log(`server started http://localhost:${availablePort}`);
    }, function (err) {
       console.error(err);
       console.error('core init failed');
@@ -53,6 +52,9 @@ async function run(resources, port) {
 
    app.get('/loadDictionary', loadDictionary);
 
+   if (start) {
+      openBrowser(availablePort);
+   }
 }
 
 

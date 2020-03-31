@@ -12,5 +12,5 @@ process.argv.forEach(arg => {
 
 const shell = new Shell();
 
-shell.execute(`node cli.js --tasks=app --workDir=${options.applicationRoot}`);
+shell.execute(`node cli.js --tasks=app --workDir=${options.applicationRoot} --port=777`);
 
