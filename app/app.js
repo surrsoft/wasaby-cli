@@ -18,7 +18,7 @@ const DEFAULT_APP_PORT = 777;
  */
 async function run(resources, port) {
    const app = express();
-   const availablePort = port || DEFAULT_APP_PORT;
+   const availablePort = await getPort(port || DEFAULT_APP_PORT);
    const relativeResources = path.isAbsolute(resources) ? path.relative(process.cwd(), resources) : resources;
 
    app.use(bodyParser.json());

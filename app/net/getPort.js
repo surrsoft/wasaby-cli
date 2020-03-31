@@ -24,26 +24,19 @@ const checkPort = (port) => new Promise((resolve, reject) => {
    });
 });
 
-const portsRange = (function* (minPort) {
-   for (let port = minPort || MIN_PORT; port <= MAX_PORT; port++) {
-      yield port;
-   }
-})();
-
 /**
  * Возвращает свободный порт
+ * @param {Number} minPort - Порт начиная от которого надо искать свободный
  * @returns {Promise<Number>}
  */
 module.exports = async function getPort(minPort) {
-   let item = portsRange.next(minPort).value;
-   if (item) {
+   for (let port = minPort || MIN_PORT; port <= MAX_PORT; port++) {
       try {
-         return await checkPort(item); // eslint-disable-line no-await-in-loop
+         return await checkPort(port); // eslint-disable-line no-await-in-loop
       } catch (error) {
-         if (error.code === 'EADDRINUSE') {
-            return getPort();
+         if (!['EADDRINUSE', 'EACCES'].includes(error.code)) {
+            throw error;
          }
-         throw error;
       }
    }
    throw new Error('Нет свободных портов');
