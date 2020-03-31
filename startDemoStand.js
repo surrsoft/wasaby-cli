@@ -10,9 +10,5 @@ process.argv.forEach(arg => {
    }
 });
 
-if (path.isAbsolute(options.applicationRoot)) {
-   options.applicationRoot = path.relative(process.cwd(), options.applicationRoot);
-}
-
 exec(`node cli.js --tasks=app --workDir=${options.applicationRoot}`);
 

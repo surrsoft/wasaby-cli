@@ -15,13 +15,21 @@ const global = (function() {
 async function run(resources, port) {
    const app = express();
    const port1 = await getPort(port);
+   const relativeResources = path.isAbsolute(resources) ? path.relative(process.cwd(), resources) : resources;
 
    app.use(bodyParser.json());
    app.use(cookieParser());
-   app.use('/', serveStatic(resources));
+   app.use('/', serveStatic(relativeResources));
    app.listen(port1);
 
-   let require = isolated.prepareTestEnvironment(resources, undefined, false, undefined, false);
+   let require = isolated.prepareTestEnvironment(
+      relativeResources,
+      undefined,
+      false,
+      undefined,
+      false
+   );
+
    global.require = require;
 
    console.log('start init');

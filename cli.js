@@ -154,7 +154,7 @@ class Cli {
 
    app() {
       const cfg = config.get();
-      return app.run(this._workDir, cfg.port);
+      return app.run(this._resources, cfg.port);
    }
 
    /**
