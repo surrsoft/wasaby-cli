@@ -2,6 +2,7 @@ const isolated = require('saby-units/lib/isolated.js');
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+const path = require('path');
 const serveStatic = require('serve-static');
 const getPort = require('./net/getPort');
 const global = (function() {

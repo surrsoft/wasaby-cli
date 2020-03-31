@@ -1,5 +1,5 @@
-const { exec } = require('child_process');
-const path = require('path');
+const Shell = require('./app/util/shell.js');
+
 const options = {};
 
 process.argv.forEach(arg => {
@@ -10,5 +10,7 @@ process.argv.forEach(arg => {
    }
 });
 
-exec(`node cli.js --tasks=app --workDir=${options.applicationRoot}`);
+const shell = new Shell();
+
+shell.execute(`node cli.js --tasks=app --workDir=${options.applicationRoot}`);
 
