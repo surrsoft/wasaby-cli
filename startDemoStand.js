@@ -1,6 +1,5 @@
-const { exec } = require('child_process');
-const path = require('path');
-const fs = require('fs-extra');
+const Shell = require('./app/util/shell.js');
+
 const options = {};
 
 process.argv.forEach(arg => {
@@ -11,33 +10,7 @@ process.argv.forEach(arg => {
    }
 });
 
-copyApJs().then(() => {
-   if (path.isAbsolute(options.applicationRoot)) {
-      options.applicationRoot = path.relative(process.cwd(), options.applicationRoot);
-   }
+const shell = new Shell();
 
-   exec(`node app.js --applicationRoot=${options.applicationRoot}`);
-}, (err) => {
-   console.log(`Не смог запустить демо стенд. Error ${err}`);
-});
+shell.execute(`node cli.js --tasks=app --workDir=${options.applicationRoot} --port=777`);
 
-
-function copyApJs() {
-   return new Promise((resolve, reject) => {
-      try {
-         if (!path.isAbsolute(options.controls)) {
-            options.controls = path.join(process.cwd(), options.controls);
-         }
-
-         fs.copyFile(path.join(options.controls, 'app.js'), path.join(process.cwd(), 'app.js'), (err) => {
-            if (err) {
-               throw err;
-            }
-
-            resolve();
-         });
-      } catch (err) {
-         reject(err);
-      }
-   });
-}
