@@ -27,12 +27,23 @@ class Cli {
 
       // на _repos остались завязаны srv и скрипт сборки пока это не убрать
       this._store = path.join(this._store, '_repos');
-      this._testRep = this._argvOptions.rep ? this._argvOptions.rep.split(',').map(name => name.trim()) : (cfg.testRep || ['all']);
       this._rc = this._argvOptions.rc || cfg.rc;
       this._workDir = this._argvOptions.workDir || path.join(process.cwd(), cfg.workDir);
       this._workspace = this._argvOptions.workspace || this._workDir;
       this.tasks = this._argvOptions.tasks ? this._argvOptions.tasks.split(',') : ['initStore', 'build', 'startTest'];
+      this._only = !!this._argvOptions.only;
+
       logger.logFile = path.join(this._argvOptions.workspace || __dirname, LOG_FOLDER, `test-cli-${this.tasks.join('_')}.log`);
+
+      if (this._argvOptions.rep) {
+         this._testRep = this._argvOptions.rep.split(',').map(name => name.trim())
+      } else if (cfg.testRep) {
+         this._testRep = cfg.testRep;
+         this._only = true;
+      } else {
+         this._testRep = 'all';
+      }
+
       if (this._argvOptions.projectDir || this._argvOptions.project) {
          this._buildTools = 'jinnee';
 
@@ -79,7 +90,7 @@ class Cli {
          workDir: this._workDir,
          workspace: this._workspace,
          builderBaseConfig: this._argvOptions.builderConfig,
-         only: !!this._argvOptions.only,
+         only: this._only,
          pathToJinnee: this._argvOptions.pathToJinnee
       });
 
@@ -93,7 +104,7 @@ class Cli {
          reposConfig: this._reposConfig,
          store: this._store,
          testRep: this._testRep,
-         only: !!this._argvOptions.only,
+         only: this._only,
          projectPath: this._projectPath
       });
 
@@ -110,7 +121,7 @@ class Cli {
          testRep: this._testRep,
          workDir: this._workDir,
          workspace: this._workspace,
-         only: !!this._argvOptions.only,
+         only: this._only,
          server: !!this._argvOptions.server,
          rc: this._rc,
          diff: this._argvOptions.diff,
