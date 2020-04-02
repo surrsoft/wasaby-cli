@@ -1,70 +1,89 @@
 # test-cli
 Приложение для запуска юнит тестов платформы. 
-Результат тестов находится в папке application/artifacts
 
+## Установка wasaby-cli
+    
+    npm install git+https://github.com/saby/wasaby-cli.git#rc-[version] --save-dev
+
+## Установка необходимых репозиториев зависимостей
+    Репозитории для клонирования определяются по зависимостям модулей, описанных в s3mod файлах, начниная от модулей
+    юнит тестов, это модули в файле описания которых (s3mod) есть есть тег <unit_test/>. 
+    
+        npx wasaby-cli --tasks=initStore
+        
+    РЦ ветка на которую переключатся все склонированные репозитории возьмется из параметра version, вашего pakage.json
+    если нужно обновить, какой либо репозитоий на специфическую ветку, то передаем параметр --[name]=my/branch, где [name]
+    надо заменить на название, нужного репозитория, его можно посмотреть в package.json файле, параметр [name](https://docs.npmjs.com/files/package.json#name). 
+        
+        npx wasaby-cli --tasks=initStore --rmi=my/branch     
+    
+## Cборка приложения
+    Приложение собирается через [wasaby-builder](https://github.com/saby/builder), в сборку попадают все зависимости 
+    модулей юнит тестов, это модули в файлах описания которых (*.s3mod) есть тег <unit_test/>. Поэтому важно следить и 
+    актуализировать зависимости ваших модулей.     
+       
+        npx wasaby-cli --tasks=build
+    
+    По умолчанию проект собирается в папку application, это можно изменить, создав секцию wasaby-cli в package.json
+    
+        {
+            "wasaby-cli": {
+                "workDir": "path/to/application"    
+            }
+        }
+          
+    
+## Запуск юнит тестов
+    Юнит тесты ищутся в модулях у которых в файле описания(*.s3mod) есть тег <unit_test/>. Файлы содержащие 
+    юниты должны называться *.test.js 
+    
+    Запуск тестов под нодой
+        
+        Отчет в консоли
+        
+            npx wasaby-cli --tasks=startTest --node --report=console
+            
+        Отчет в файле, по умолчанию в папке application/artifacts    
+     
+            npx wasaby-cli --tasks=startTest --node
+               
+    Запуск тестов в браузере
+        
+        Запустить сервер 
+            
+            npx wasaby-cli --tasks=startTest --server
+
+        Отчет в файле, по умолчанию в папке application/artifacts    
+                   
+            npx wasaby-cli --tasks=startTest --browser
+            
+## Запуск демо стенда 
+    По умолчанию стенд запускается на 1024 порту, если он занят то запустится на другом свободном, в консоли 
+    будет ссылка http://localhost:[port]
+        
+        npx wasaby-cli --tasks=app
+    
+    Порт, можно задать в package.json, но если он занят сервер запустится на другом свободном. 
+         
+        {
+            "wasaby-cli": {
+                "port": 777    
+            }
+        } 
+        
 ## Параметры
-    branch - Ветка которую надо протестировать
-    rc - Рц ветка 
+    Все параметры можно передавать как в командной строке через --, так и в секции wasaby-cli вашего package.json файла
+
+    rc - рц ветка, по умолчанию берется из параметра version в package.json     
     rep - Название репозитория по которому надо запустить тесты, параметр name в package.json  
     store - Папка в которую будут клонироваться хранилища
     workDir - Папка в которой соберется сбоорка билдером по умолчанию application
-    ports - Порты на которых запускать тест сервер  
-    tasks - Задачи которые нужно выполнить, по умолчанию запускаются все три:    
+    tasks - Задачи которые нужно выполнить:    
         initStore - Клонирование и чекаут на нужные ветки хранилищ
-        build - Сборка 
+        build - Сборка приложения
         startTest - Запуск тестов
-    withBuilder - Разворот с помощью билдера, по умолчанию используется genie
-    builderConfig - Путь к конфигу билдера, по умолчанию используется builderConfig.base.json из test-cli
-    server - Запускает  сервер для юнитов, сами юниты не выполняются   
+        app - Запуск демо стенда
+    server - Запускает сервер для юнитов, сами юниты не выполняются   
     only - Запускает тесты только для переданного репозитория, без зависимостей
-    projectDir - Папка в которой лежит проект jinnee   
+    project - Папка в которой лежит проект jinnee   
     builderCache - Папка с кешем для билдера
-          
-    Пример:
-        node cli --branch=20.1000/bugfix/mergeable-options --rc=rc-20.1000 --rep=Types --withBuilder --only
-
-## Запуск локально
-    Установка test-cli 
-        npm install git+https://git.sbis.ru/sbis/test-cli.git#rc-20.1000 --save-dev
-        
-    Соборка проекта
-        Когда test-cli утанавливается как npm зависимость, при инициализации хранилища анализируется package.json 
-        родительского проекта, репозитории, которые есть в package.json скачиваться не будут.      
-        
-            node node_modules/test-cli/cli.js --tasks=initStore,build --builderConfig=./buildTemplate.json
-        
-        По умолчанию, репозиторий для которого разворачивается стенд берется из package.json, если надо запустить разворот 
-        для другого репозитория, то передаем парамет --rep с названием (параметр name в package.json нужного репозитория, 
-        например для котролов это sbis3-control) 
-        
-            node node_modules/test-cli/cli.js --tasks=initStore,build  --rep=saby-types,sbis3-controls  --builderConfig=./buildTemplate.json --only
-        
-    Запуск тестов
-        Для запуска всех тестов по текущему репозиторию, результаты, можно найти в папке application/artefacts
-                
-            node node_modules/test-cli/cli.js --tasks=startTest
-    
-        Для запуска по конкретному репозиторию 
-        
-             node node_modules/test-cli/cli.js --tasks=startTest --rep=sbis3.engine --only
-         
-         
-        
-    Отладка тестов
-        Для отладки тестов в браузере, можно запустить тест сервер: 
-        
-            node node_modules/test-cli/cli.js --tasks=startTest --server --only 
-        
-        Если надо отлаживать тесты из другого репозитория передаем параметр rep:
-        
-            node node_modules/test-cli/cli.js --tasks=startTest  --rep=saby-types --only
-        
-        Под нодой отлаживать тесты через test-cli можно только через remote debugger, потому что тесты запускаются как под задача,
-        но можно запустить на выполнение один раз что бы сгенерировался конфиг и потом запускать напрямую и отлаживать как обычно
-            Запуск для создания конфига (конфиги создаются в папке node_modules/test-cli):    
-        
-                node node_modules/test-cli/cli.js --tasks=startTest  --rep=saby-types  --only
-        
-            Запуск тестов для дебага:
-        
-                node node_modules/saby-units/cli.js --isolated --config=node_modules/test-cli/testConfig_saby-types.json
