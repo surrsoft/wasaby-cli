@@ -72,7 +72,7 @@
          "url": "https://platform-git.sbis.ru/saby/inferno.git"
       },
       "wasaby-polyfills": {
-         "url": "https://github.com/saby/wasaby-polyfills.git"
+         "url": "https://platform-git.sbis.ru/saby/wasaby-polyfills.git"
       }
    }
 }
