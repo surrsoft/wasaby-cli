@@ -133,6 +133,9 @@ class Store extends Base {
     * @private
     */
    async _getReposList() {
+      if (this._testRep.includes('all')) {
+         return new Set(Object.keys(this._reposConfig));
+      }
       const reposFromMap = this._modulesMap.getTestRepos();
       const reposFromArgv = this._getReposFromArgv();
       const reposFromProject = await this._getProjectRepos();
