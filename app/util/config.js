@@ -26,7 +26,10 @@ function get() {
          }
       }
       config.testRep = [packageConfig.name];
-      config.rc = `rc-${normalizeVersion(packageConfig.version)}`;
+      config.rc = getVersion();
+      if (!config.repositories.hasOwnProperty(packageConfig.name)) {
+         config.repositories[packageConfig.name] = {};
+      }
       config.repositories[packageConfig.name].skipStore = true;
       config.repositories[packageConfig.name].path = process.cwd();
       Object.assign(config, packageConfig['wasaby-cli'] || {});
@@ -45,7 +48,14 @@ function normalizeVersion(version) {
    res.splice(-1, 1);
    return res.join('.');
 }
-
+/**
+ * Возыращает версию rc ветки
+ * @return {String}
+ */
+function getVersion() {
+   const packageConfig = require('../../package.json');
+   return `rc-${normalizeVersion(packageConfig.version)}`;
+}
 /**
  * Возвращает package.json, если cli запущено как зависимость
  * return Object|undefined

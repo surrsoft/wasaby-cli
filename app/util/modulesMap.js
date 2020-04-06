@@ -170,12 +170,13 @@ class ModulesMap {
     * @return {Promise<void>}
     */
    async build() {
+      const modules = this._findModulesInStore();
       if (this._reBuildMap) {
-         const modules = this._findModulesInStore();
          await this._addToModulesMap(modules);
          await this._saveMap();
       } else {
          await this._loadMap();
+         await this._addToModulesMap(modules);
       }
    }
 
