@@ -217,12 +217,11 @@ class Test extends Base {
          'cwd': this._workDir,
          'report': ['json','text','html'].includes(this._coverage) ? this._coverage : 'html'
       };
-      let nycPath = path.relative(this._workDir, this._realResources || 'build-ui/resources');
       testModulesArray.forEach((testModuleName) => {
          const moduleCfg = this._modulesMap.get(testModuleName);
          if (moduleCfg && moduleCfg.depends) {
             moduleCfg.depends.forEach((dependModuleName) => {
-               cfg.nyc.include.push(path.join(nycPath, dependModuleName, '**', '*.js'));
+               cfg.nyc.include.push([dependModuleName, '**', '*.js'].join('/'));
             });
          }
       });
