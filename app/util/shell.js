@@ -75,7 +75,10 @@ class Shell {
          childProccess.stderr.on('data', (data) => {
             const dataString = data.toString();
             logger.log(dataString, params.processName);
-            errors.push(dataString);
+            //TODO надо подумать как фильтровать warning
+            if (!(/warning/i.test(dataString))) {
+               errors.push(dataString);
+            }
          });
       }
 
