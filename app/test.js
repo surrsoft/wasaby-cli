@@ -364,6 +364,9 @@ class Test extends Base {
             this._testErrors[processName] = e;
          } finally {
             this._testErrors[processName] = this._testErrors[processName] ||  this._shell.getErrorsByName(processName);
+            //todo разобраться почему ошибки без стека, пока такие не учитываем
+            this._testErrors[processName] = this._testErrors[processName].filter(msg => msg.includes('Stack:'));
+
             if (this._shouldUpdateAllowedErrors) {
                this._testErrors[processName].map((msg) => {
                   this._allowedErrorsSet.add(this._getErrorText(msg));
