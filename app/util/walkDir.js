@@ -15,7 +15,7 @@ function walkDir(rootDir, callback, exclude, currentDir) {
    const relativePath = path.relative(rootDir, defCurrentDir);
    if (fs.existsSync(defCurrentDir)) {
       fs.readdirSync(defCurrentDir).forEach((file) => {
-         if (file.indexOf('.') === 0 ) { // пропускаем скрытые файлы
+         if (file[0] === '.' ) { // пропускаем скрытые файлы
             return;
          }
 
