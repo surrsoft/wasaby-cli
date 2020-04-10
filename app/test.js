@@ -198,7 +198,7 @@ class Test extends Base {
       const testConfig = require('../testConfig.base.json');
       let cfg = { ...testConfig };
       const fullName = name + (suffix || '');
-      let workspace = fsUtil.relative(process.cwd(), this._workspace);
+      let workspace = fsUtil.relative(this._workDir, this._workspace);
       const testModulesArray = testModules instanceof Array ? testModules : [testModules];
       workspace = workspace || '.';
       cfg.url = { ...cfg.url };
@@ -217,11 +217,21 @@ class Test extends Base {
          'cwd': this._workDir,
          'report': ['json','text','html'].includes(this._coverage) ? this._coverage : 'html'
       };
+
+      let nycPath;
+      if (this._realResources) {
+         nycPath = path.relative(this._workDir, this._realResources);
+      }
+
       testModulesArray.forEach((testModuleName) => {
          const moduleCfg = this._modulesMap.get(testModuleName);
          if (moduleCfg && moduleCfg.depends) {
             moduleCfg.depends.forEach((dependModuleName) => {
-               cfg.nyc.include.push([dependModuleName, '**', '*.js'].join('/'));
+               let nycModulePath = [dependModuleName, '**', '*.js'];
+               if (nycPath) {
+                  nycModulePath.unshift(nycPath);
+               }
+               cfg.nyc.include.push(nycModulePath.join('/'));
             });
          }
       });
@@ -364,7 +374,9 @@ class Test extends Base {
          } finally {
             this._testErrors[processName] = this._testErrors[processName] ||  this._shell.getErrorsByName(processName);
             //todo разобраться почему ошибки без стека, пока такие не учитываем
-            this._testErrors[processName] = this._testErrors[processName].filter(msg => msg.includes('Stack:'));
+            if (this._testErrors[processName]) {
+               this._testErrors[processName] = this._testErrors[processName].filter(msg => msg.includes('Stack:'));
+            }
 
             if (this._shouldUpdateAllowedErrors) {
                this._testErrors[processName].map((msg) => {
