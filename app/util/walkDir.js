@@ -1,6 +1,6 @@
 const fs = require('fs-extra');
 const path = require('path');
-
+const ENOENT = 'ENOENT';
 /**
  * Рекурсивно обходит дректории исключая симлинки
  * @param {String} rootDir - Директория которую надо обойти
@@ -15,12 +15,23 @@ function walkDir(rootDir, callback, exclude, currentDir) {
    const relativePath = path.relative(rootDir, defCurrentDir);
    if (fs.existsSync(defCurrentDir)) {
       fs.readdirSync(defCurrentDir).forEach((file) => {
+         if (file.indexOf('.') === 0 ) { // пропускаем скрытые файлы
+            return;
+         }
+
          const fullPath = path.join(defCurrentDir, file);
-         if (!defExclude.includes(fullPath) && !fs.lstatSync(fullPath).isSymbolicLink()) {
-            if (fs.lstatSync(fullPath).isDirectory()) {
-               walkDir(rootDir, callback, defExclude, fullPath);
-            } else {
-               callback(path.join(relativePath, file));
+         try {
+            const lstat = fs.lstatSync(fullPath);
+            if (!defExclude.includes(fullPath) && !lstat.isSymbolicLink()) {
+               if (lstat.isDirectory()) {
+                  walkDir(rootDir, callback, defExclude, fullPath);
+               } else {
+                  callback(path.join(relativePath, file));
+               }
+            }
+         } catch (error) {
+            if (!String(error).includes(ENOENT)) { // игнорируем ошибки существования файла
+               throw error
             }
          }
       });
