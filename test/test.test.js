@@ -283,6 +283,10 @@ describe('Test', () => {
    });
 
    describe('._getTestConfig()', function () {
+      beforeEach(() => {
+         sinon.stub(test, '_workDir').value('/application');
+         sinon.stub(test, '_workspace').value('/application');
+      });
       it('should return config' , async () => {
          let cfg = await test._getTestConfig();
          let base = require('../testConfig.base.json');
@@ -296,6 +300,13 @@ describe('Test', () => {
          let cfg = await test._getTestConfig();
          chai.expect(cfg.ignoreLeaks).is.true;
       });
+
+      it('should set relative path to nyc' , async () => {
+         let cfg = await test._getTestConfig('name');
+         chai.expect('./artifacts/name').is.equal(cfg.nyc.reportDir);
+         chai.expect(this._workDir).is.equal(cfg.nyc.root);
+      });
+
    });
 
    describe('._setDiff()', function () {
