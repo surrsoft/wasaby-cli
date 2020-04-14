@@ -144,7 +144,8 @@ class Test extends Base {
                let result = xmlObject;
                if (result.testsuite && result.testsuite.testcase) {
                   result.testsuite.testcase.forEach((item) => {
-                     item.$.classname = `${name}.${item.$.classname.replace(/\./g, ' ')}`;
+                     item.$.package = name;
+                     item.$.classname = item.$.classname.replace(/\./g, ' ') || '_';
                   });
                } else {
                   result = {
