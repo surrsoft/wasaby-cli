@@ -220,9 +220,9 @@ describe('Test', () => {
          fsExistsSync = sinon.stub(fs, 'existsSync').callsFake(() => true);
       });
 
-      it.skip('should return all test', (done) => {
+      it('should return all test', (done) => {
          stubWrite.callsFake((name, obj) => {
-            if (obj.testsuite.testcase[0].$.classname === '(root).UnitTests.test test1') {
+            if (obj.testsuite.testcase[0].$.classname === 'UnitTests.test test1') {
                done();
             }
          });
