@@ -222,8 +222,9 @@ describe('Test', () => {
 
       it('should return all test', (done) => {
          stubWrite.callsFake((name, obj) => {
-            if (obj.testsuite.testcase[0].$.classname === '[test]: test1') {
+            if (obj.testsuite.testcase[0].$.classname === 'test.test1') {
                done();
+               stubWrite.restore();
             }
          });
          test.prepareReport();
