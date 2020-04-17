@@ -8,7 +8,7 @@ const getPort = require('./net/getPort');
 const global = (function() {
    return this || (0, eval)('this');
 })();
-
+const resourceRoot = '/';
 
 /**
  * Запускает сервер приложения
@@ -37,7 +37,9 @@ async function run(resources, port, start) {
    global.require = require;
 
    console.log('start init');
-   require(['Core/core-init'], function () {
+   require(['Env/Env', 'Core/core-init'], function (Env) {
+      Env.constants.resourceRoot = resourceRoot;
+      Env.constants.modules = require('json!/contents').modules;
       console.log(`server started http://localhost:${availablePort}`);
    }, function (err) {
       console.error(err);
@@ -104,7 +106,7 @@ function serverSideRender(req, res) {
    const html = tpl({
       lite: true,
       wsRoot: '/WS.Core/',
-      resourceRoot: '/',
+      resourceRoot,
       application: cmp,
       appRoot: '/',
       _options: {
