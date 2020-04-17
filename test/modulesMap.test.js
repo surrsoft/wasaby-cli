@@ -158,6 +158,14 @@ describe('modulesMap', () => {
          });
       });
 
+      it('should not replace existed values', () => {
+         const cfg = {'path': 'test1'};
+         modulesMap.set('test11', {...cfg});
+         return modulesMap._loadMap().then(() => {
+            chai.expect(cfg).to.deep.equal(modulesMap.get('test11'));
+         });
+      });
+
       afterEach(() => {
          fsRead.restore();
       });
