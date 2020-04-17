@@ -175,8 +175,8 @@ class ModulesMap {
          await this._addToModulesMap(modules);
          await this._saveMap();
       } else {
-         await this._loadMap();
          await this._addToModulesMap(modules);
+         await this._loadMap();
       }
    }
 
@@ -279,10 +279,12 @@ class ModulesMap {
    async _loadMap() {
       let mapObject = await fs.readJSON(path.join(MAP_FILE));
       for (let key of Object.keys(mapObject)) {
-         let mapObjectValue = mapObject[key];
-         mapObjectValue.path = path.join(this._store, mapObjectValue.path);
-         mapObjectValue.s3mod = path.join(this._store, mapObjectValue.s3mod);
-         this._modulesMap.set(key, mapObjectValue);
+         if (!this._modulesMap.has(key)) {
+            let mapObjectValue = mapObject[key];
+            mapObjectValue.path = path.join(this._store, mapObjectValue.path);
+            mapObjectValue.s3mod = path.join(this._store, mapObjectValue.s3mod);
+            this._modulesMap.set(key, mapObjectValue);
+         }
       }
    }
 
