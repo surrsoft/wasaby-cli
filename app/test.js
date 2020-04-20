@@ -138,7 +138,7 @@ class Test extends Base {
                      logger.log(`Новая ошибка: "${text}"`, name);
                   }
                   return isNotAllowed;
-               }).join('<br/>');
+               }).join('\n');
             }
             let readPromise = xml.readXmlFile(filePath).then((xmlObject) => {
                let result = xmlObject;
@@ -369,15 +369,14 @@ class Test extends Base {
                }
             );
 
-         } catch (e) {
-            this._testErrors[processName] = e;
-         } finally {
-            this._testErrors[processName] = this._testErrors[processName] ||  this._shell.getErrorsByName(processName);
             //todo разобраться почему ошибки без стека, пока такие не учитываем
+            this._testErrors[processName] = this._shell.getErrorsByName(processName);
             if (this._testErrors[processName]) {
                this._testErrors[processName] = this._testErrors[processName].filter(msg => msg.includes('Stack:'));
             }
-
+         } catch (e) {
+            this._testErrors[processName] = e;
+         } finally {
             if (this._shouldUpdateAllowedErrors) {
                this._testErrors[processName].map((msg) => {
                   this._allowedErrorsSet.add(this._getErrorText(msg));
