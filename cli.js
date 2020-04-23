@@ -20,9 +20,10 @@ const LOG_FOLDER = 'log';
 
 class Cli {
    constructor() {
-      const cfg = config.get();
-      this._reposConfig = cfg.repositories;
       this._argvOptions = Cli._getArgvOptions();
+      const cfg = config.get(this._argvOptions);
+      this._reposConfig = cfg.repositories;
+
       this._store = this._argvOptions.store || path.join(__dirname, cfg.store);
 
       // на _repos остались завязаны srv и скрипт сборки пока это не убрать
@@ -94,7 +95,8 @@ class Cli {
          workspace: this._workspace,
          builderBaseConfig: this._argvOptions.builderConfig,
          only: this._only,
-         pathToJinnee: this._argvOptions.pathToJinnee
+         pathToJinnee: this._argvOptions.pathToJinnee,
+         argvOptions: this._argvOptions
       });
 
       await build.run();
