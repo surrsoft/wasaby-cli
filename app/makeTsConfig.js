@@ -1,21 +1,9 @@
 const fs = require('fs-extra');
 const path = require('path');
-const logger = require('./util/logger');
-const ModulesMap = require('./util/modulesMap');
 const Base = require('./base');
-const Sdk = require('./util/sdk');
-const Project = require('./xml/project');
-const fsUtil = require('./util/fs');
 
-const BASE_CONFIG = 'saby-typescript/configs/es5.json';
-const WS_PATHS = {
-   "Core/*": ["/core/*"],
-   "Lib/*": ["/lib/*"],
-   "Transport/*": ["/transport/*"],
-   "json!*": ["/global"],
-   "tmpl!*": ["/global"],
-   "wml!*": ["/global"]
-};
+const BASE_CONFIG = 'saby-typescript/configs/es5.dev.json';
+
 const TS_CONFIG_TEMPLATE = require('../resources/tsconfig.template.json');
 const TSCONFIG_PATH = path.join(process.cwd(), 'tsconfig.json');
 /**
@@ -34,7 +22,8 @@ class MakeTsConfig extends Base {
       const config = { ...TS_CONFIG_TEMPLATE };
       config.extends = path.relative(process.cwd(), require.resolve(BASE_CONFIG));
       config.compilerOptions.paths = this.getPaths();
-
+      config.compilerOptions.baseUrl = this.resources;
+      config.exclude = this.getExclude();
       await fs.writeJSON(TSCONFIG_PATH, config, {spaces: 4, EOL: '\n'});
    }
 
@@ -56,12 +45,13 @@ class MakeTsConfig extends Base {
       return paths;
    }
 
-
    getRelativePath(moduleName) {
       const cfg = this._modulesMap.get(moduleName);
       return unixify(path.relative(process.cwd(), cfg.path));
-
    }
+
+   getExclude
+
 }
 
 function unixify(str) {
