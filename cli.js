@@ -6,6 +6,7 @@ const Store = require('./app/store');
 const Build = require('./app/build');
 const Test = require('./app/test');
 const DevServer = require('./app/devServer');
+const MakeTsConfig = require('./app/makeTsConfig');
 const config = require('./app/util/config');
 const logger = require('./app/util/logger');
 const app = require('./app/app');
@@ -78,6 +79,9 @@ class Cli {
       }
       if (this.tasks.includes('app')) {
          await this.app();
+      }
+      if (this.tasks.includes('makeTsConfig')) {
+         await this.makeTsConfig();
       }
    }
 
@@ -162,6 +166,17 @@ class Cli {
       } else if (this._argvOptions.createIni) {
          await devServer.createIni();
       }
+   }
+
+   async makeTsConfig() {
+      const makeTsConfig = new MakeTsConfig({
+         reposConfig: this._reposConfig,
+         store: this._store,
+         testRep: this._testRep,
+         only: this._only
+      });
+
+      await makeTsConfig.run();
    }
 
    app() {
