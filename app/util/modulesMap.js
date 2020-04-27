@@ -202,7 +202,7 @@ class ModulesMap {
                   rep: name
                });
             }
-         }, [path.join(process.cwd(), 'builder-ui'), path.join(process.cwd(), 'node_modules'), this._workDir]);
+         }, [path.join(repositoryPath, 'builder-ui'), path.join(repositoryPath, 'node_modules'), this._workDir]);
       });
       return s3mods;
    }

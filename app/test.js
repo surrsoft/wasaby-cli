@@ -1,5 +1,4 @@
 const logger = require('./util/logger');
-const ModulesMap = require('./util/modulesMap');
 const xml = require('./xml/xml');
 const Git = require('./util/git');
 
@@ -103,13 +102,6 @@ class Test extends Base {
       this._testOnlyNode = cfg.node;
       this._workDir = cfg.workDir;
       this._testOnlyBrowser = cfg.browser || cfg.server;
-      this._modulesMap = new ModulesMap({
-         reposConfig: cfg.reposConfig,
-         store: cfg.store,
-         testRep: cfg.testRep,
-         workDir: cfg.workDir,
-         only: cfg.only
-      });
       this._allowedErrorsSet = new Set();
       this._diff = new Map();
       this._portMap = new Map();
@@ -485,7 +477,6 @@ class Test extends Base {
    async _run() {
       try {
          logger.log('Запуск тестов');
-         await this._modulesMap.build();
          await this._setDiff();
          await this._loadErrorsSet();
          await this._startTest();

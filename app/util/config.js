@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const CONFIG = '../../config.json';
+const CONFIG = path.normalize(path.join(__dirname, '../../config.json'));
 
 /**
  * Модуль для работы с конфигом test-cli
@@ -11,11 +11,18 @@ const CONFIG = '../../config.json';
 
 /**
  * Возвращает конфиг
+ * @param {Object} argvOptions Параметры из командной строки
  * return Object
  */
-function get() {
+function get(argvOptions) {
    const packageConfig = _getPackageConfig();
-   const config = { ...require(CONFIG) };
+   const config = fs.readJSONSync(CONFIG);
+
+   if (argvOptions) {
+      setRepPathFromArgv(config, argvOptions);
+   }
+
+   config.rc = getVersion();
 
    if (packageConfig) {
       if (packageConfig.devDependencies) {
@@ -26,7 +33,6 @@ function get() {
          }
       }
       config.testRep = [packageConfig.name];
-      config.rc = getVersion();
       if (!config.repositories.hasOwnProperty(packageConfig.name)) {
          config.repositories[packageConfig.name] = {};
       }
@@ -53,7 +59,7 @@ function normalizeVersion(version) {
  * @return {String}
  */
 function getVersion() {
-   const packageConfig = require('../../package.json');
+   const packageConfig = fs.readJSONSync(path.join(__dirname, '../../package.json'));
    return `rc-${normalizeVersion(packageConfig.version)}`;
 }
 /**
@@ -63,12 +69,34 @@ function getVersion() {
 function _getPackageConfig() {
    const configPath = path.join(process.cwd(), 'package.json');
    if (fs.existsSync(configPath)) {
-      const config = require(configPath);
+      const config = fs.readJSONSync(configPath);
       if (config.name !== 'wasaby-cli') {
          return config;
       }
    }
    return undefined;
+}
+
+/**
+* возвращает объект с путями до репозитриев
+* @param {Object} config Конфиг приложения
+* @param {Object} argvOptions Параметры из командной строки
+* return Object
+*/
+function setRepPathFromArgv(config, argvOptions) {
+   for (const name of Object.keys(config.repositories)) {
+      if (argvOptions[name]) {
+         let repPath = argvOptions[name];
+
+         if (!path.isAbsolute(repPath)) {
+            repPath = path.normalize(path.join(process.cwd(), repPath));
+         }
+
+         if (fs.existsSync(repPath)) {
+            config.repositories[name].path = repPath;
+         }
+      }
+   }
 }
 
 module.exports = {

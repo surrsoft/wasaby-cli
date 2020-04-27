@@ -23,13 +23,6 @@ class Store extends Base {
       this._rc = cfg.rc;
       this._testRep = cfg.testRep;
       this._projectPath = cfg.projectPath;
-      this._modulesMap = new ModulesMap({
-         reposConfig: this._reposConfig,
-         store: cfg.store,
-         testRep: cfg.testRep,
-         workDir: this._workDir,
-         only: cfg.only
-      });
    }
 
    /**
@@ -39,7 +32,6 @@ class Store extends Base {
    async _run() {
       logger.log('Инициализация хранилища');
       try {
-         await this._modulesMap.build();
          await fs.mkdirs(this._store);
          const promises = [];
 

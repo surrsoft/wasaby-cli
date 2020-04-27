@@ -6,6 +6,7 @@ const Store = require('./app/store');
 const Build = require('./app/build');
 const Test = require('./app/test');
 const DevServer = require('./app/devServer');
+const MakeTsConfig = require('./app/makeTsConfig');
 const config = require('./app/util/config');
 const logger = require('./app/util/logger');
 const app = require('./app/app');
@@ -20,9 +21,10 @@ const LOG_FOLDER = 'log';
 
 class Cli {
    constructor() {
-      const cfg = config.get();
-      this._reposConfig = cfg.repositories;
       this._argvOptions = Cli._getArgvOptions();
+      const cfg = config.get(this._argvOptions);
+      this._reposConfig = cfg.repositories;
+
       this._store = this._argvOptions.store || path.join(__dirname, cfg.store);
 
       // на _repos остались завязаны srv и скрипт сборки пока это не убрать
@@ -56,6 +58,8 @@ class Cli {
          this._buildTools = 'builder';
          this._resources = this._workDir;
       }
+
+      this._builderCache = this._argvOptions.builderCache || './build-ui/builder-json-cache';
    }
 
    /**
@@ -78,11 +82,14 @@ class Cli {
       if (this.tasks.includes('app')) {
          await this.app();
       }
+      if (this.tasks.includes('makeTsConfig')) {
+         await this.makeTsConfig();
+      }
    }
 
    async build() {
       const build = new Build({
-         builderCache: this._argvOptions.builderCache || path.join(this._workDir, 'builder-json-cache'),
+         builderCache: this._builderCache,
          projectPath: this._projectPath,
          rc: this._rc,
          reposConfig: this._reposConfig,
@@ -94,7 +101,8 @@ class Cli {
          workspace: this._workspace,
          builderBaseConfig: this._argvOptions.builderConfig,
          only: this._only,
-         pathToJinnee: this._argvOptions.pathToJinnee
+         pathToJinnee: this._argvOptions.pathToJinnee,
+         argvOptions: this._argvOptions
       });
 
       await build.run();
@@ -160,6 +168,19 @@ class Cli {
       } else if (this._argvOptions.createIni) {
          await devServer.createIni();
       }
+   }
+
+   async makeTsConfig() {
+      const makeTsConfig = new MakeTsConfig({
+         reposConfig: this._reposConfig,
+         store: this._store,
+         testRep: this._testRep,
+         only: this._only,
+         resources: this._resources,
+         builderCache: this._builderCache
+      });
+
+      await makeTsConfig.run();
    }
 
    app() {

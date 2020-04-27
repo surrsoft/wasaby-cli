@@ -1,5 +1,5 @@
 const chai = require('chai');
-
+const path = require('path');
 const sinon = require('sinon');
 const fs = require('fs-extra');
 const Test = require('../app/test');
@@ -271,7 +271,7 @@ describe('Test', () => {
          stubTestModules.restore();
       });
       it('should test module if it existed in diff', () => {
-         stubDiff.value(new Map([['test1', ['test11/test1.js']]]));
+         stubDiff.value(new Map([['test1', [path.join('test11','test1.js')]]]));
          chai.expect(test._shouldTestModule('test11')).to.be.true;
       });
       it('should test module if diff was empty', () => {

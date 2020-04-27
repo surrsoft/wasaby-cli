@@ -104,16 +104,21 @@ describe('Build', () => {
    });
 
    describe('._tslibInstall()', () => {
+      let fsLink;
+      beforeEach(() => {
+         fsLink = sinon.stub(fs, 'symlink');
+         sinon.stub(build, '_modulesMap').value({get: () => ({path: 'path/to/test'})});
+      });
+      afterEach(() => {
+         fsLink.restore();
+      });
       it('should copy ts config', (done) => {
          let cmd;
-         stubExecute.callsFake((c) => {
-            cmd = c;
-            return Promise.resolve();
-         });
-         build._tslibInstall().then(() => {
-            chai.expect(cmd).to.includes('tslib.js');
+         fsLink.callsFake((c) => {
+            chai.expect(c).to.includes('tslib.js');
             done();
          });
+         build._tslibInstall();
       });
    });
 
