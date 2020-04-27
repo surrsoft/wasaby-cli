@@ -58,6 +58,8 @@ class Cli {
          this._buildTools = 'builder';
          this._resources = this._workDir;
       }
+
+      this._builderCache = this._argvOptions.builderCache || './build-ui/builder-json-cache';
    }
 
    /**
@@ -87,7 +89,7 @@ class Cli {
 
    async build() {
       const build = new Build({
-         builderCache: this._argvOptions.builderCache || path.join(this._workDir, 'builder-json-cache'),
+         builderCache: this._builderCache,
          projectPath: this._projectPath,
          rc: this._rc,
          reposConfig: this._reposConfig,
@@ -173,7 +175,9 @@ class Cli {
          reposConfig: this._reposConfig,
          store: this._store,
          testRep: this._testRep,
-         only: this._only
+         only: this._only,
+         resources: this._resources,
+         builderCache: this._builderCache
       });
 
       await makeTsConfig.run();

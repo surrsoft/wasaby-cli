@@ -6,8 +6,9 @@ const BASE_CONFIG = 'saby-typescript/configs/es5.dev.json';
 
 const TS_CONFIG_TEMPLATE = require('../resources/tsconfig.template.json');
 const TSCONFIG_PATH = path.join(process.cwd(), 'tsconfig.json');
+
 /**
- * Класс отвечающий за сборку ресурсов для тестов
+ * Класс отвечающий за генерацию tsconfig
  * @author Ганшин Я.О
  */
 
@@ -16,42 +17,96 @@ class MakeTsConfig extends Base {
       super(cfg);
       this._store = cfg.store;
       this._rc = cfg.rc;
+      this._resources = cfg.resources;
+      this._builderCache = cfg.builderCache
    }
 
    async _run() {
       const config = { ...TS_CONFIG_TEMPLATE };
       config.extends = path.relative(process.cwd(), require.resolve(BASE_CONFIG));
-      config.compilerOptions.paths = this.getPaths();
-      config.compilerOptions.baseUrl = this.resources;
-      config.exclude = this.getExclude();
-      await fs.writeJSON(TSCONFIG_PATH, config, {spaces: 4, EOL: '\n'});
+      config.compilerOptions.paths = await this._getPaths();
+      config.exclude = this._getExclude();
+
+      this._writeConfig(config);
    }
 
-   getPaths() {
+   /**
+    * Возвращает пути до модулей
+    * @returns {Promise<{}>}
+    * @private
+    */
+   async _getPaths() {
       const testList = this._modulesMap.getTestList();
       const paths = {};
       this._modulesMap.getChildModules(testList).forEach((moduleName) => {
-         const relativePath = this.getRelativePath(moduleName);
+         const relativePath = this._getRelativePath(moduleName);
          if (relativePath !== moduleName) {
             paths[moduleName + '/*'] = [relativePath + '/*'];
          }
       });
 
-      const wsCore = this.getRelativePath('WS.Core');
-      Object.keys(WS_PATHS).forEach((name) => {
-         paths[name] = wsCore + WS_PATHS[name];
+      const configPaths = await this._getPathFromConfig(require.resolve(BASE_CONFIG));
+      Object.keys(configPaths).forEach((name) => {
+         configPaths[name] = configPaths[name].map((pathFromConfig) => {
+            let splitedPath = pathFromConfig.split('/');
+            if (this._modulesMap.has(splitedPath[0])) {
+               splitedPath = [this._getRelativePath(splitedPath[0])].concat(splitedPath);
+            }
+            return splitedPath.join('/');
+         });
+         paths[name] = configPaths[name];
       });
 
       return paths;
    }
 
-   getRelativePath(moduleName) {
+   /**
+    * Возвращет относительный путь до модуля в формате unix
+    * @param moduleName
+    * @returns {string}
+    * @private
+    */
+   _getRelativePath(moduleName) {
       const cfg = this._modulesMap.get(moduleName);
       return unixify(path.relative(process.cwd(), cfg.path));
    }
 
-   getExclude
+   /**
+    * Возвращает секцию exclude
+    * @returns {string[]}
+    * @private
+    */
+   _getExclude() {
+      return [ path.relative(process.cwd(), this._resources), this._builderCache ];
+   }
 
+   /**
+    * Возвращает секцию paths из базового конфига
+    * @param pathToConfig
+    * @returns {Promise<{module: [string]}|*>}
+    * @private
+    */
+   async _getPathFromConfig(pathToConfig) {
+      const config = await fs.readJSON(pathToConfig);
+      if (config.compilerOptions && config.compilerOptions.paths) {
+         return config.compilerOptions.paths;
+      } else if(config.extends) {
+         return await this._getPathFromConfig(path.join(process.cwd(), config.extends));
+      }
+   }
+
+   /**
+    * Сохраняет конфиг
+    * @param config
+    * @returns {Promise<void>}
+    * @private
+    */
+   async _writeConfig(config) {
+      if (fs.existsSync(TSCONFIG_PATH)) {
+         await fs.remove(TSCONFIG_PATH);
+      }
+      await fs.writeJSON(TSCONFIG_PATH, config, {spaces: 4, EOL: '\n'});
+   }
 }
 
 function unixify(str) {
