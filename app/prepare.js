@@ -12,7 +12,7 @@ const TSCONFIG_PATH = path.join(process.cwd(), 'tsconfig.json');
  * @author Ганшин Я.О
  */
 
-class MakeTsConfig extends Base {
+class Prepare extends Base {
    constructor(cfg) {
       super(cfg);
       this._store = cfg.store;
@@ -22,6 +22,11 @@ class MakeTsConfig extends Base {
    }
 
    async _run() {
+      await this.makeTsConfig();
+      await this.tsInstall();
+   }
+
+   async makeTsConfig() {
       const config = { ...TS_CONFIG_TEMPLATE };
       config.extends = path.relative(process.cwd(), require.resolve(BASE_CONFIG));
       config.compilerOptions.paths = await this._getPaths();
@@ -30,6 +35,19 @@ class MakeTsConfig extends Base {
       this._writeConfig(config);
    }
 
+   async tsInstall() {
+      const wsCore = this._modulesMap.get('WS.Core');
+      const wsTslib = path.join(wsCore.path, 'ext', 'tslib.js');
+      const tsPath = require.resolve('saby-typescript/cli/install.js');
+
+      return this._shell.execute(
+         `node ${tsPath} --tslib=${wsTslib} --tsconfig=skip`,
+         process.cwd(), {
+            force: true,
+            name: 'typescriptInstall'
+         }
+      );
+   }
    /**
     * Возвращает пути до модулей
     * @returns {Promise<{}>}
@@ -113,4 +131,4 @@ function unixify(str) {
    return String(str).replace(/\\/g, '/');
 }
 
-module.exports = MakeTsConfig;
+module.exports = Prepare;
