@@ -6,7 +6,7 @@ const Store = require('./app/store');
 const Build = require('./app/build');
 const Test = require('./app/test');
 const DevServer = require('./app/devServer');
-const MakeTsConfig = require('./app/makeTsConfig');
+const Prepare = require('./app/prepare');
 const config = require('./app/util/config');
 const logger = require('./app/util/logger');
 const app = require('./app/app');
@@ -82,8 +82,8 @@ class Cli {
       if (this.tasks.includes('app')) {
          await this.app();
       }
-      if (this.tasks.includes('makeTsConfig')) {
-         await this.makeTsConfig();
+      if (this.tasks.includes('prepare')) {
+         await this.prepare();
       }
    }
 
@@ -170,8 +170,8 @@ class Cli {
       }
    }
 
-   async makeTsConfig() {
-      const makeTsConfig = new MakeTsConfig({
+   async prepare() {
+      const makeTsConfig = new Prepare({
          reposConfig: this._reposConfig,
          store: this._store,
          testRep: this._testRep,

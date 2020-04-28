@@ -2,14 +2,14 @@ const chai = require('chai');
 const sinon = require('sinon');
 const fs = require('fs-extra');
 const path = require('path');
-const MakeConfig = require('../app/makeTsConfig');
+const Prepare = require('../app/prepare');
 
 let makeConfig;
 let writeJSON;
 let existsSync;
 describe('Store', () => {
    beforeEach(() => {
-      makeConfig = new MakeConfig({
+      prepare = new Prepare({
          reposConfig: {
             test1: {},
             test2: {}
@@ -38,7 +38,7 @@ describe('Store', () => {
          writeJSON.callsFake(() => {
             done();
          });
-         makeConfig._writeConfig('path/to/config');
+         prepare._writeConfig('path/to/config');
       });
 
       it('should remove config if it exists', (done) => {
@@ -46,7 +46,7 @@ describe('Store', () => {
          stubRemove.callsFake(() => {
             done();
          });
-         makeConfig._writeConfig('path/to/config');
+         prepare._writeConfig('path/to/config');
       });
    });
 
@@ -66,7 +66,7 @@ describe('Store', () => {
       });
 
       it('should return paths', async () => {
-         let paths = await makeConfig._getPathFromConfig('path/to/config');
+         let paths = await prepare._getPathFromConfig('path/to/config');
          chai.expect({module: ['path/to/module']}).to.deep.equal(paths);
       });
    });
@@ -74,8 +74,8 @@ describe('Store', () => {
    describe('_getPaths', () => {
       let modulesMapList, modulesMapGet;
       beforeEach(() => {
-         modulesMapList = sinon.stub(makeConfig._modulesMap, 'getChildModules').callsFake(() => (['testModule']));
-         modulesMapGet = sinon.stub(makeConfig._modulesMap, 'get').callsFake(() => ({
+         modulesMapList = sinon.stub(prepare._modulesMap, 'getChildModules').callsFake(() => (['testModule']));
+         modulesMapGet = sinon.stub(prepare._modulesMap, 'get').callsFake(() => ({
             name: 'testModule',
             path: 'path/to/module'
          }));
@@ -85,7 +85,7 @@ describe('Store', () => {
       });
 
       it('should return paths', async () => {
-         let paths = await makeConfig._getPaths();
+         let paths = await prepare._getPaths();
          chai.expect(paths).to.have.property('testModule/*');
       });
    });
