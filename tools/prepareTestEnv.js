@@ -10,7 +10,7 @@ global.define = function (name, deps, callback) {
       name = 'module_' + ++counter;
    }
    requirejs.define(name, deps, callback);
-   if (name.includes('module_')) {
+   if (name.includes('module_') || name.includes('.test'))  {
       requirejs(name);
    }
 }
