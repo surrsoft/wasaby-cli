@@ -17,7 +17,7 @@ const builderBaseConfig = '../builderConfig.base.json';
 
 class Build extends Base {
    constructor(cfg) {
-      super(cfg);
+      super({...cfg, ...{reBuildMap: true}});
       this._store = cfg.store;
       this._rc = cfg.rc;
       this._reposConfig = cfg.reposConfig;
@@ -29,14 +29,6 @@ class Build extends Base {
       this._projectPath = cfg.projectPath;
       this._pathToJinnee = cfg.pathToJinnee;
       this._builderCfg = path.join(process.cwd(), 'builderConfig.json');
-      this._modulesMap = new ModulesMap({
-         reposConfig: this._reposConfig,
-         store: cfg.store,
-         testRep: cfg.testRep,
-         workDir: this._workDir,
-         only: cfg.only,
-         reBuildMap: true
-      });
       if (cfg.builderBaseConfig) {
          this._builderBaseConfig = path.normalize(path.join(process.cwd(), cfg.builderBaseConfig));
       } else {
@@ -51,7 +43,7 @@ class Build extends Base {
    async _run() {
       try {
          logger.log('Подготовка тестов');
-         await this._modulesMap.build();
+
          await this._tslibInstall();
          if (this._buildTools === 'builder') {
             await this._initWithBuilder();
@@ -130,18 +122,16 @@ class Build extends Base {
     * Копирует tslib
     * @private
     */
-   _tslibInstall() {
-      const tslib = fsUtil.relative(process.cwd(), path.join(this._modulesMap.getRepositoryPath('sbis3-ws'), '/WS.Core/ext/tslib.js'));
-      const tsPath = require.resolve('saby-typescript/cli/install.js');
-      logger.log(tslib, 'tslib_path');
-
-      return this._shell.execute(
-         `node ${tsPath} --tslib=${tslib}`,
-         process.cwd(), {
-            force: true,
-            name: 'typescriptInstall'
-         }
-      );
+   async _tslibInstall() {
+      const wsCore = this._modulesMap.get('WS.Core');
+      const wsTslib = path.join(wsCore.path, 'ext', 'tslib.js');
+      const tsLib = require.resolve('saby-typescript/tslib.js');
+      logger.log(tsLib, 'tslib_path');
+      try {
+         await fs.symlink(tsLib, wsTslib);
+      } catch (e) {
+         logger.error(`Ошбка копирования tslib: ${e}`);
+      }
    }
 
    /**
