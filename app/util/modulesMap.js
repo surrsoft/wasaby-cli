@@ -6,7 +6,7 @@ const fs = require('fs-extra');
 
 const MAP_FILE = path.normalize(path.join(__dirname, '..', '..', 'resources', 'modulesMap.json'));
 const CDN_REP_NAME = 'cdn';
-
+const WSCoreDepends = ['Types', 'Env', 'View', 'Vdom'];
 /**
  * Карта модулей s3mod, из всех репозиториев
  * @class ModulesMap
@@ -178,6 +178,7 @@ class ModulesMap {
          await this._addToModulesMap(modules);
          await this._loadMap();
       }
+      this._addWsCoreDepends()
    }
 
    /**
@@ -310,6 +311,15 @@ class ModulesMap {
       });
 
       await fs.writeJSON(MAP_FILE, mapObject);
+   }
+
+   _addWsCoreDepends() {
+      //У ws.core невозможно указать зависимости, удалить как удалят ws.core
+      if (this.has('WS.Core')) {
+         let cfg = this.get('WS.Core');
+         cfg.depends = WSCoreDepends;
+         this.set('WS.Core', cfg);
+      }
    }
 }
 
