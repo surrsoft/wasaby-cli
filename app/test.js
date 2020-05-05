@@ -215,7 +215,8 @@ class Test extends Base {
          'include': [],
          'reportDir': path.dirname(cfg.jsonCoverageReport),
          'cwd': this._workDir,
-         'report': ['json','text','html'].includes(this._coverage) ? this._coverage : 'html'
+         'report': ['json','text','html'].includes(this._coverage) ? this._coverage : 'html',
+         'all': true
       };
 
       let nycPath;
