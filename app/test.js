@@ -438,7 +438,7 @@ class Test extends Base {
    _openBrowser(moduleName) {
       const url = `http://localhost:${this._portMap.get(moduleName)}`;
       const start = process.platform === 'win32' ? 'start' : 'xdg-open';
-      return this._shell.execute(start + ' ' + url, process.cwd());
+      return this._shell.execute(start + ' ' + url, process.cwd(), { force: true });
    }
 
    /**
