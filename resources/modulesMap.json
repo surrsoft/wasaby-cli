@@ -1115,7 +1115,8 @@
     "rep": "Router",
     "depends": [
       "View",
-      "Vdom"
+      "Vdom",
+      "UI"
     ]
   },
   "RouterTest": {
