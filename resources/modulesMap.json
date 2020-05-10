@@ -1115,8 +1115,7 @@
     "rep": "Router",
     "depends": [
       "View",
-      "Vdom",
-      "UI"
+      "Vdom"
     ]
   },
   "RouterTest": {
@@ -1126,7 +1125,8 @@
     "rep": "Router",
     "depends": [
       "Router",
-      "UI"
+      "UI",
+      "i18n"
     ],
     "unitTest": true,
     "testInBrowser": true
