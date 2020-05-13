@@ -69,17 +69,13 @@ class Build extends Base {
       const builderPath = require.resolve('sbis3-builder/gulpfile.js');
 
       await this._makeBuilderConfig(builderOutput);
-      try {
-         await this._shell.execute(
-             `node ${gulpPath} --gulpfile=${builderPath} build --config=${this._builderCfg}`,
-             process.cwd(), {
-                name: 'builder',
-                errorLabel: '[ERROR]'
-             }
-         );
-      } catch (e) {
-         throw new Error(e.join('\n'));
-      }
+      await this._shell.execute(
+         `node ${gulpPath} --gulpfile=${builderPath} build --config=${this._builderCfg}`,
+         process.cwd(), {
+            force: true,
+            name: 'builder'
+         }
+      );
    }
 
    /**

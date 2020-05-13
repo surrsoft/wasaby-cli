@@ -9,9 +9,8 @@ const ENOENT = 'ENOENT';
  * @function walkDir
  * @author Ганшин Я.О
  */
-function walkDir(rootDir, callback, exclude, currentDir) {
+function walkDir(rootDir, callback, exclude = [], currentDir = '') {
    const defCurrentDir = currentDir || rootDir;
-   const defExclude = exclude || [];
    const relativePath = path.relative(rootDir, defCurrentDir);
    if (fs.existsSync(defCurrentDir)) {
       fs.readdirSync(defCurrentDir).forEach((file) => {
@@ -22,9 +21,9 @@ function walkDir(rootDir, callback, exclude, currentDir) {
          const fullPath = path.join(defCurrentDir, file);
          try {
             const lstat = fs.lstatSync(fullPath);
-            if (!defExclude.includes(fullPath) && !lstat.isSymbolicLink()) {
+            if (!exclude.includes(fullPath) && !lstat.isSymbolicLink()) {
                if (lstat.isDirectory()) {
-                  walkDir(rootDir, callback, defExclude, fullPath);
+                  walkDir(rootDir, callback, exclude, fullPath);
                } else {
                   callback(path.join(relativePath, file));
                }
