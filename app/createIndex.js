@@ -78,9 +78,8 @@ class CreateIndex extends Base {
    _getHtmlList(name, list) {
       let htmlList = '';
       for (let item of list) {
-         let stringItem = ''
          if (Array.isArray(item)) {
-            htmlList = '<li>' +
+            htmlList += '<li>' +
                `<div class="contenst-group-header">${item[0].group}</div>` +
                this._getHtmlList(name, item) +
             '</li>';
@@ -95,13 +94,15 @@ class CreateIndex extends Base {
       let list = [];
       for (let name of Object.keys(contents)) {
          const contentsLength = Object.keys(contents[name]).length;
+         const url = path.concat(name);
          if (contentsLength > 1 && path.length <= MAX_NESTING_LEVEL) {
             const newPath = path.concat(name);
-            list.push(CreateIndex.getContentsList(contents[name], newPath, newPath.length));
+            const childList = CreateIndex.getContentsList(contents[name], newPath, newPath.length);
+            childList.group = url[diff - 1];
+            list.push(childList);
          } else if (contentsLength === 1 || path.length > MAX_NESTING_LEVEL && contentsLength > 0) {
             list = list.concat(CreateIndex.getContentsList(contents[name], path.concat(name), diff));
          } else {
-            let url = path.concat(name);
             list.push({
                url: url.join('/'),
                name: url.slice(diff).join('/'),
