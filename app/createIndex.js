@@ -68,7 +68,7 @@ class CreateIndex extends Base {
       for (let i = 0; i < htmlContetns.length; i++) {
          index = index.replace('${contents' + (i + 1) + '}', htmlContetns[i]);
       }
-
+      index = index.replace('${title}', this._moduleName);
       fs.outputFileSync(path.join(this._resources, 'index.html'), index);
    }
 
