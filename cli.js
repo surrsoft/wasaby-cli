@@ -112,6 +112,7 @@ class Cli {
       const store = new Store({
          argvOptions: this._argvOptions,
          rc: this._rc,
+         resources: this._resources,
          reposConfig: this._reposConfig,
          store: this._store,
          testRep: this._testRep,
