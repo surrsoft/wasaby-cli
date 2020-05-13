@@ -9,7 +9,7 @@ const INDEX_TEMPLATE_PATH = path.normalize(path.join(__dirname, '../resources/in
 const jsFile = /^[^.]*\.js$/
 
 const DEFAULT_URL = '/:moduleName/app/:app';
-
+const MAX_NESTING_LEVEL = 2
 /**
  * Класс отвечающий за генерацию разводящей страницы
  * @author Ганшин Я.О
@@ -31,7 +31,7 @@ class CreateIndex extends Base {
          this._makeIndex();
          logger.log('index.html сгенерирован успешно');
       } catch (e) {
-         e.message = `Сборка ресурсов завершена с ошибкой: ${e.message}`;
+         e.message = `генерация index.html завершена с ошибкой: ${e.message}`;
          throw e;
       }
    }
@@ -52,15 +52,12 @@ class CreateIndex extends Base {
    }
 
    _makeIndex() {
-      let htmlContetns = ['', '', ''];
+      let htmlContetns = ['', '', '', ''];
       let count = 0;
       for (let name of Object.keys(this._contents)) {
-         let list = '';
-         for (let item of CreateIndex.getContentsList(this._contents[name])) {
-            let componentName = [name].concat(item).join('/');
-            list += `<li>${this._getLink(componentName)}</li>`;
-         }
-         htmlContetns[ count % htmlContetns.length ] += `<div class="contents-block"><h2>${name}</h2><ul>${list}</ul></div>`;
+         const list = this._getHtmlList(name, CreateIndex.getContentsList(this._contents[name], [name]));
+
+         htmlContetns[ count % htmlContetns.length ] += `<div class="contents-block"><h2>${name}</h2>${list}</div>`;
          count++;
       }
 
@@ -72,19 +69,44 @@ class CreateIndex extends Base {
       fs.outputFileSync(path.join(this._resources, 'index.html'), index);
    }
 
-   _getLink(name) {
+   _getLink(item) {
       let url = this._urlTemplate;
-      let app = [this._moduleName, name].join('/');
-      return `<a href="${url.replace(':app', encodeURIComponent(app))}">${name}</a>`
+      let app = [this._moduleName, item.url].join('/');
+      return `<a href="${url.replace(':app', encodeURIComponent(app))}">${item.name}</a>`
    }
 
-   static getContentsList(contents, path = []) {
+   _getHtmlList(name, list) {
+      let htmlList = '';
+      for (let item of list) {
+         let stringItem = ''
+         if (Array.isArray(item)) {
+            htmlList = '<li>' +
+               `<div class="contenst-group-header">${item[0].group}</div>` +
+               this._getHtmlList(name, item) +
+            '</li>';
+         } else {
+            htmlList += `<li>${this._getLink(item)}</li>`;
+         }
+      }
+      return `<ul class="contents-block-ul">${htmlList}</ul>`;
+   }
+
+   static getContentsList(contents, path = [], diff = 1) {
       let list = [];
       for (let name of Object.keys(contents)) {
-         if (Object.keys(contents[name]).length > 0) {
-            list = list.concat(CreateIndex.getContentsList(contents[name], path.concat(name)));
+         const contentsLength = Object.keys(contents[name]).length;
+         if (contentsLength > 1 && path.length <= MAX_NESTING_LEVEL) {
+            const newPath = path.concat(name);
+            list.push(CreateIndex.getContentsList(contents[name], newPath, newPath.length));
+         } else if (contentsLength === 1 || path.length > MAX_NESTING_LEVEL && contentsLength > 0) {
+            list = list.concat(CreateIndex.getContentsList(contents[name], path.concat(name), diff));
          } else {
-            list.push(path.concat(name).join('/'));
+            let url = path.concat(name);
+            list.push({
+               url: url.join('/'),
+               name: url.slice(diff).join('/'),
+               group: url[diff - 1]
+            });
          }
       }
       return list
@@ -110,7 +132,6 @@ class CreateIndex extends Base {
          CreateIndex.setContetns(path.slice(1), contents[name]);
       }
    }
-
 }
 
 module.exports = CreateIndex;
