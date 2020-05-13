@@ -67,8 +67,8 @@ class ModulesMap {
       let result = modules.slice();
       this._modulesMap.forEach((cfg) => {
          if (
-             !result.includes(cfg.name) &&
-             cfg.depends.some(dependName => result.includes(dependName))
+            !result.includes(cfg.name) &&
+            cfg.depends.some(dependName => result.includes(dependName))
          ) {
             result.push(cfg.name);
          }
@@ -156,8 +156,8 @@ class ModulesMap {
       let testModules = [];
       this._modulesMap.forEach((cfg) => {
          if (
-             (cfg.rep === repName || repName === 'all') &&
-             cfg.unitTest
+            (cfg.rep === repName || repName === 'all') &&
+            cfg.unitTest
          ) {
             testModules.push(cfg.name);
          }
@@ -216,34 +216,34 @@ class ModulesMap {
     */
    async _addToModulesMap(modules) {
       await pMap(modules, cfg => (
-          xml.readXmlFile(cfg.s3mod).then((xmlObj) => {
-             if (!this._modulesMap.has(cfg.name) && xmlObj.ui_module) {
-                cfg.depends = [];
+         xml.readXmlFile(cfg.s3mod).then((xmlObj) => {
+            if (!this._modulesMap.has(cfg.name) && xmlObj.ui_module) {
+               cfg.depends = [];
 
-                if (xmlObj.ui_module.depends && xmlObj.ui_module.depends[0]) {
-                   const depends = xmlObj.ui_module.depends[0];
-                   if (depends.ui_module) {
-                      depends.ui_module.forEach((item) => {
-                         cfg.depends.push(item.$.name);
-                      });
-                   }
-                   if (depends.module) {
-                      depends.module.forEach((item) => {
-                         cfg.depends.push(item.$.name);
-                      });
-                   }
-                }
+               if (xmlObj.ui_module.depends && xmlObj.ui_module.depends[0]) {
+                  const depends = xmlObj.ui_module.depends[0];
+                  if (depends.ui_module) {
+                     depends.ui_module.forEach((item) => {
+                        cfg.depends.push(item.$.name);
+                     });
+                  }
+                  if (depends.module) {
+                     depends.module.forEach((item) => {
+                        cfg.depends.push(item.$.name);
+                     });
+                  }
+               }
 
-                if (xmlObj.ui_module.unit_test) {
-                   const repCfg = this._reposConfig[cfg.rep];
-                   const onlyNode = xmlObj.ui_module.unit_test[0].$ && xmlObj.ui_module.unit_test[0].$.onlyNode;
-                   cfg.unitTest = true;
-                   cfg.testInBrowser = repCfg.unitInBrowser && !(onlyNode);
-                }
+               if (xmlObj.ui_module.unit_test) {
+                  const repCfg = this._reposConfig[cfg.rep];
+                  const onlyNode = xmlObj.ui_module.unit_test[0].$ && xmlObj.ui_module.unit_test[0].$.onlyNode;
+                  cfg.unitTest = true;
+                  cfg.testInBrowser = repCfg.unitInBrowser && !(onlyNode);
+               }
 
-                this._modulesMap.set(cfg.name, cfg);
-             }
-          })
+               this._modulesMap.set(cfg.name, cfg);
+            }
+         })
       ), {
          concurrency: 4
       });
