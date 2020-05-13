@@ -18,7 +18,7 @@ class ModulesMap {
       this._store = cfg.store;
       this._testRep = cfg.testRep;
       this._modulesMap = new Map();
-      this._resources = cfg.resources;
+      this._workDir = cfg.workDir;
       this._only = cfg.only;
       this._reBuildMap = cfg.reBuildMap;
    }
@@ -203,7 +203,7 @@ class ModulesMap {
                   rep: name
                });
             }
-         }, [path.join(repositoryPath, 'builder-ui'), path.join(repositoryPath, 'node_modules'), this._resources]);
+         }, [path.join(repositoryPath, 'builder-ui'), path.join(repositoryPath, 'node_modules'), this._workDir]);
       });
       return s3mods;
    }

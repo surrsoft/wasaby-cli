@@ -14,7 +14,7 @@ class Base {
          reposConfig: cfg.reposConfig,
          store: cfg.store,
          testRep: cfg.testRep,
-         resources: cfg.resources,
+         workDir: cfg.workDir,
          only: cfg.only,
          reBuildMap: cfg.reBuildMap
       });

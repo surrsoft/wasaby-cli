@@ -10,6 +10,7 @@ const Prepare = require('./app/prepare');
 const config = require('./app/util/config');
 const logger = require('./app/util/logger');
 const app = require('./app/app');
+const CreateIndex = require('./app/createIndex');
 
 const ERROR_CODE = 2;
 const LOG_FOLDER = 'log';
@@ -85,6 +86,9 @@ class Cli {
       if (this.tasks.includes('prepare')) {
          await this.prepare();
       }
+      if (this.tasks.includes('createIndex')) {
+         await this.createIndex();
+      }
    }
 
    async build() {
@@ -112,7 +116,6 @@ class Cli {
       const store = new Store({
          argvOptions: this._argvOptions,
          rc: this._rc,
-         resources: this._resources,
          reposConfig: this._reposConfig,
          store: this._store,
          testRep: this._testRep,
@@ -189,6 +192,20 @@ class Cli {
       const port =  this._argvOptions.port || cfg.port;
 
       return app.run(this._resources, port);
+   }
+
+   async createIndex() {
+      const createIndex = new CreateIndex({
+         moduleName: this._argvOptions.moduleName,
+         resources: this._resources,
+         reposConfig: this._reposConfig,
+         store: this._store,
+         testRep: this._testRep,
+         workDir: this._workDir,
+         only: this._only,
+         reBuildMap: this._reBuildMap
+      });
+      await createIndex.run();
    }
 
    /**
