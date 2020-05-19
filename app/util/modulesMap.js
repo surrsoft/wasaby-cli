@@ -133,7 +133,7 @@ class ModulesMap {
    }
 
    /**
-    * Возвращает список модулей содержащих юнит тесты и его зависимости
+    * Возвращает список модулей содержащих юнит тесты и их зависимости
     * @return {Array}
     */
    getTestModulesWithDepends(name) {
@@ -240,6 +240,9 @@ class ModulesMap {
                   cfg.unitTest = true;
                   cfg.testInBrowser = repCfg.unitInBrowser && !(onlyNode);
                }
+
+               cfg.id = xmlObj.ui_module.$.id;
+               cfg.required = !!xmlObj.ui_module.$.required
 
                this._modulesMap.set(cfg.name, cfg);
             }

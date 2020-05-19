@@ -126,7 +126,7 @@ describe('Build', () => {
    describe('._initWithJinnee()', () => {
       let stubProjectSrv, stubProjectDeploy, stubSdk, stubExists, stubstatSync;
       beforeEach(() => {
-         stubProjectSrv = sinon.stub(Project.prototype, 'updatePaths').callsFake(() => []);
+         stubProjectSrv = sinon.stub(Project.prototype, 'prepare').callsFake(() => []);
          stubProjectDeploy = sinon.stub(Project.prototype, 'getDeploy').callsFake(() => {});
          stubSdk = sinon.stub(process.env, 'SBISPlatformSDK_101000').value('path/to/sdk');
          stubExists = sinon.stub(fs, 'existsSync').callsFake(() => true);

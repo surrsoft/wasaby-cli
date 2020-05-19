@@ -2,6 +2,15 @@ const path = require('path');
 const xml = require('./xml');
 const fsUtil = require('../util/fs');
 const fs = require('fs-extra');
+
+function getUiModules(srv) {
+   return srv.service.items[0].ui_module || [];
+}
+
+function setUiModules(srv, modules) {
+   srv.service.items[0].ui_module = modules;
+}
+
 /**
  * Класс для работы c файлом проекта .s3cld
  * @class Project
@@ -67,16 +76,16 @@ class Project {
    }
 
    /**
-    * Заменяет пути в srv
+    * Заменяет пути до модулей в srv
     * @param {String} srvPath Путь до srv файла
     * @returns {Promise<void>}
     * @private
     */
-   async _prepareSrv(srvPath) {
+   async _updateSrvModules(srvPath) {
       if (fs.existsSync(srvPath)) {
          const srv = await xml.readXmlFile(srvPath);
          const dirName = path.dirname(srvPath);
-         const uiModules = srv.service.items[0].ui_module || [];
+         const uiModules = getUiModules(srv);
          uiModules.forEach((item) => {
             if (this._modulesMap.has(item.$.name)) {
                const cfg = this._modulesMap.get(item.$.name);
@@ -85,9 +94,10 @@ class Project {
                this._modulesMap.set(cfg.name, cfg);
             }
          });
+         setUiModules(srv, uiModules);
          if (srv.service.parent) {
             await Promise.all(srv.service.parent.map(item => (
-               this._prepareSrv(path.normalize(path.join(dirName, item.$.path)))
+               this._updateSrvModules(path.normalize(path.join(dirName, item.$.path)))
             )));
          }
          xml.writeXmlFile(srvPath, srv);
@@ -98,7 +108,7 @@ class Project {
       let modules = [];
       if (fs.existsSync(srvPath)) {
          const srv = await xml.readXmlFile(srvPath);
-         const uiModules = srv.service.items[0].ui_module || [];
+         const uiModules = getUiModules(srv);
          uiModules.forEach((item) => {
             modules.push(item.$.name);
          });
@@ -148,16 +158,49 @@ class Project {
    }
 
    /**
+    * Добавляет модули в srv
+    * @param {String} srvPath путь до srv файла
+    * @returns {Promise<void>}
+    * @private
+    */
+   async _addModulesToSrv(srvPath) {
+      const testList = this._modulesMap.getTestList();
+      if (testList.length > 0) {
+         const srv = await xml.readXmlFile(srvPath);
+         const modules = getUiModules(srv);
+
+         this._modulesMap.getChildModules(testList).forEach((moduleName) => {
+            const cfg = this._modulesMap.get(moduleName);
+            const dirName = path.dirname(srvPath);
+
+            if (!cfg.srv) {
+               modules.push({
+                  "$":{
+                     "id": cfg.id,
+                     "name": cfg.name,
+                     "url": fsUtil.relative(dirName, cfg.s3mod)
+                  }
+               })
+            }
+         });
+
+         xml.writeXmlFile(srvPath, srv);
+      }
+   }
+
+   /**
     * Обновляет пути в файлайх конфигурации проекта
     * @returns {Promise<void>}
     */
-   async updatePaths() {
+   async prepare() {
       const srvPaths = await this.getServices();
       const deploy = await this.getDeploy();
 
-      await Promise.all(srvPaths.map((srv) => this._prepareSrv(srv)));
+      await Promise.all(srvPaths.map((srv) => this._updateSrvModules(srv)));
+      await this._addModulesToSrv(srvPaths[0]);
       await this._prepareDeployCfg(deploy);
    }
+
 }
 
 module.exports = Project;

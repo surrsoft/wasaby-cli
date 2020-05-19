@@ -90,6 +90,7 @@ class Build extends Base {
          workspace: this._workspace,
          pathToJinnee: this._pathToJinnee
       });
+
       const project = new Project({
          file: this._projectPath,
          modulesMap: this._modulesMap,
@@ -97,21 +98,10 @@ class Build extends Base {
          builderCache: this._builderCache
       });
 
-      await project.updatePaths();
+      await project.prepare();
 
       await sdk.jinneeDeploy(await project.getDeploy(), logs, project.file);
 
-      const testList = this._modulesMap.getTestList();
-      if (testList.length > 0) {
-         const builderOutput = path.join(this._workDir, 'builder_test');
-         await this._initWithBuilder(builderOutput);
-         fs.readdirSync(builderOutput).forEach((f) => {
-            let dirPath = path.join(builderOutput, f);
-            if (fs.statSync(dirPath).isDirectory()) {
-               fs.ensureSymlink(dirPath, path.join(this._resources, f));
-            }
-         });
-      }
    }
 
    /**
@@ -160,14 +150,12 @@ class Build extends Base {
 
       this._modulesMap.getChildModules(testList).forEach((moduleName) => {
          const cfg = this._modulesMap.get(moduleName);
-         if (moduleName !== 'unit' && !cfg.srv) {
-            const isNameInConfig = builderConfig.modules.find(item => (item.name === moduleName));
-            if (!isNameInConfig) {
-               builderConfig.modules.push({
-                  name: moduleName,
-                  path: cfg.path
-               });
-            }
+         const isNameInConfig = builderConfig.modules.find(item => (item.name === moduleName));
+         if (!isNameInConfig) {
+            builderConfig.modules.push({
+               name: moduleName,
+               path: cfg.path
+            });
          }
       });
 

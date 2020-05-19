@@ -6,6 +6,7 @@ const Project = require('../../app/xml/project');
 
 let project;
 let stubxml;
+let stubxmlWrite;
 describe('Project', () => {
    beforeEach(() => {
       stubxml = sinon.stub(xml, 'readXmlFile').callsFake(() => ({
@@ -17,10 +18,40 @@ describe('Project', () => {
       project = new Project({
          file: '/path/to/project.s3cld'
       });
+      let modulesMap = new Map([
+         [
+            'test11',
+            {
+               name: 'test11',
+               rep: 'test1',
+               forTests: true,
+               s3mod: 'test11/test11.s3mod',
+               id: '123'
+            }
+         ], [
+            'test22',
+            {
+               name: 'test2',
+               rep: 'test2',
+               forTests: true,
+               s3mod: 'test11/test22.s3mod',
+               id: '321'
+            }
+         ]
+      ]);
+      modulesMap.getTestList = () => {
+         return ['test11','test22'];
+      }
+      modulesMap.getChildModules = () => {
+         return ['test11','test22'];
+      }
+      sinon.stub(project, '_modulesMap').value(modulesMap);
+      stubxmlWrite = sinon.stub(xml, 'writeXmlFile').callsFake(() => undefined);
    });
 
    afterEach(() => {
       stubxml.restore();
+      stubxmlWrite.restore();
    });
 
    describe('.getName()', () => {
@@ -42,10 +73,7 @@ describe('Project', () => {
       });
    });
    describe('.prepareSrv()', () => {
-      let stubxmlRead;
-      let stubxmlWrite;
       let stubExists;
-      let buildMap;
 
       beforeEach(() => {
          stubxml.callsFake((path) => {
@@ -92,33 +120,15 @@ describe('Project', () => {
                };
             }
          });
-         stubxmlWrite = sinon.stub(xml, 'writeXmlFile').callsFake(() => undefined);
-         buildMap = sinon.stub(project, '_modulesMap').value(new Map([
-            [
-               'test11',
-               {
-                  name: 'test11',
-                  rep: 'test1',
-                  forTests: true,
-                  s3mod: 'test11/test11.s3mod'
-               }
-            ], [
-               'test22',
-               {
-                  name: 'test2',
-                  rep: 'test2',
-                  forTests: true,
-                  s3mod: 'test11/test22.s3mod'
-               }
-            ]
-         ]));
+
+
          stubExists = sinon.stub(fs, 'existsSync').callsFake((name) => {
             return name.includes('test1.s3srv');
          });
       });
 
       it('should replace path to modules', (done) => {
-         project._prepareSrv('test1.s3srv');
+         project._updateSrvModules('test1.s3srv');
          stubxmlWrite.callsFake((filePath, srv) => {
             chai.expect(srv.service.items[0].ui_module[0].$.url).to.include('test11.s3mod');
             done();
@@ -127,7 +137,7 @@ describe('Project', () => {
 
       it('should prepare parent s3srv', (done) => {
          stubExists.callsFake(() => true);
-         project._prepareSrv('test1.s3srv');
+         project._updateSrvModules('test1.s3srv');
          stubxmlWrite.callsFake((filePath, srv) => {
             if (filePath.includes('test2.s3srv')) {
                chai.expect(srv.service.items[0].ui_module[0].$.url).to.include('test22.s3mod');
@@ -137,9 +147,34 @@ describe('Project', () => {
       });
 
       afterEach(() => {
-         stubxmlWrite.restore();
          stubExists.restore();
-         buildMap.restore();
+      });
+   });
+
+   describe('._addModulesToSrv()', () => {
+      let srv = {
+         service: {
+            items: [
+               {
+                  ui_module: [
+                     {
+                        $: {
+                           name: 'test11',
+                           url: 'url'
+                        }
+                     }
+                  ]
+               }
+            ]
+         }
+      }
+      beforeEach(() => {
+         stubxml.callsFake((path) => srv);
+      });
+
+      it('should add modules to srv', async () => {
+         await project._addModulesToSrv('path');
+         chai.expect(3).to.equal(srv.service.items[0].ui_module.length)
       });
    });
 });
