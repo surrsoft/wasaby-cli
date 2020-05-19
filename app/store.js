@@ -89,15 +89,16 @@ class Store extends Base {
          try {
             await git.checkout(commit);
          } catch (err) {
-            throw new Error(`Ошибка при переключение на ветку ${commit} в репозитории ${this._name}: ${err}`);
+            throw new Error(`Ошибка при переключение на ветку ${commit} в репозитории ${name}: ${err}`);
          }
       }
       await git.reset(isBranch ? `remotes/origin/${commit}` : commit);
       await git.clean();
 
       if (isBranch && !commit.includes('rc-')) {
-         logger.log(`Попытка смержить ветку '${commit}' с '${this._rc}'`, name);
-         await git.merge(this._rc);
+         const rc = git.getVersion();
+         logger.log(`Попытка смержить ветку '${commit}' с '${rc}'`, name);
+         await git.merge(rc);
       }
    }
 

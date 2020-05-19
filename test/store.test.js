@@ -113,7 +113,23 @@ describe('Store', () => {
    });
 
    describe('.checkout()', () => {
-      let stubModule;
+      let stubModule, stubReadJSON;
+
+      beforeEach(() => {
+         stubReadJSON = sinon.stub(fs, 'readJSONSync').callsFake((name) => {
+            if (name.includes('package.json')) {
+               return  {
+                  name: 'wasaby-cli',
+                  version: '20.4000.0'
+               }
+            }
+            return stubReadJSON.wrappedMethod();
+         });
+      });
+
+      afterEach(() => {
+         stubReadJSON.restore();
+      });
 
       it('should checkout branch', (done) => {
          stubExecute.callsFake((cmd, path, params) => {
@@ -141,7 +157,7 @@ describe('Store', () => {
          });
          stubModule = sinon.stub(store, '_testRep').value('test');
          store.checkout('test', '20.1000/branch', 'pathToRep').then(() => {
-            chai.expect(`git merge remotes/origin/${store._rc}`).to.equal(commandsArray[5]);
+            chai.expect(`git merge remotes/origin/rc-20.4000`).to.equal(commandsArray[5]);
             done();
          });
       });
@@ -154,7 +170,7 @@ describe('Store', () => {
          });
          stubModule = sinon.stub(store, '_testRep').value('test');
          store.checkout('testAdd', '20.1000/branch', 'pathToRep').then(() => {
-            chai.expect(`git merge remotes/origin/${store._rc}`).to.equal(commandsArray[5]);
+            chai.expect(`git merge remotes/origin/rc-20.4000`).to.equal(commandsArray[5]);
             done();
          });
       });
