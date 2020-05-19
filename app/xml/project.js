@@ -22,6 +22,7 @@ class Project {
       this._modulesMap = cfg.modulesMap;
       this._workDir = cfg.workDir;
       this._builderCache = cfg.builderCache;
+      this._modulesInSrv = [];
    }
 
    /**
@@ -90,8 +91,7 @@ class Project {
             if (this._modulesMap.has(item.$.name)) {
                const cfg = this._modulesMap.get(item.$.name);
                item.$.url = fsUtil.relative(dirName, cfg.s3mod);
-               cfg.srv = true;
-               this._modulesMap.set(cfg.name, cfg);
+               this._modulesInSrv.push(item.$.name);
             }
          });
          setUiModules(srv, uiModules);
@@ -170,10 +170,10 @@ class Project {
          const modules = getUiModules(srv);
 
          this._modulesMap.getChildModules(testList).forEach((moduleName) => {
-            const cfg = this._modulesMap.get(moduleName);
-            const dirName = path.dirname(srvPath);
+            if (!this._modulesInSrv.includes(moduleName)) {
+               const cfg = this._modulesMap.get(moduleName);
+               const dirName = path.dirname(srvPath);
 
-            if (!cfg.srv) {
                modules.push({
                   "$":{
                      "id": cfg.id,
