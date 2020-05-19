@@ -1,4 +1,5 @@
 const Shell = require('./shell');
+const config = require('./config')
 const ERROR_MERGE_CODE = 101;
 /**
  * Ксласс содержащий методы работы с гитом
@@ -11,7 +12,7 @@ class Git {
     * @param {*} cfg
     */
    constructor(cfg) {
-      this._pathToRep = cfg.path;
+      this._path = cfg.path;
       this._shell = new Shell();
       this._name = cfg.name;
    }
@@ -21,7 +22,7 @@ class Git {
     * @returns {Promise<any>}
     */
    fetch() {
-      return this._shell.execute('git fetch --all --prune', this._pathToRep, {
+      return this._shell.execute('git fetch --all --prune', this._path, {
          processName: `${this._name} git fetch`
       });
    }
@@ -31,7 +32,7 @@ class Git {
     * @returns {Promise<any>}
     */
    mergeAbort() {
-      return this._shell.execute('git merge --abort', this._pathToRep, {
+      return this._shell.execute('git merge --abort', this._path, {
          force: true,
          processName: `${this._name} git merge abort`
       });
@@ -43,7 +44,7 @@ class Git {
     * @returns {Promise<any>}
     */
    reset(revision) {
-      return this._shell.execute(`git reset --hard ${revision}`, this._pathToRep, {
+      return this._shell.execute(`git reset --hard ${revision}`, this._path, {
          processName: `${this._name} git reset`
       });
    }
@@ -53,7 +54,7 @@ class Git {
     * @returns {Promise<any>}
     */
    clean() {
-      return this._shell.execute('git clean -fdx', this._pathToRep, {
+      return this._shell.execute('git clean -fdx', this._path, {
          processName: `${this._name} git clean`
       });
    }
@@ -64,7 +65,7 @@ class Git {
     * @returns {Promise<any>}
     */
    checkout(branch) {
-      return this._shell.execute(`git checkout -f ${branch}`, this._pathToRep, {
+      return this._shell.execute(`git checkout -f ${branch}`, this._path, {
          processName: `${this._name} git checkout`
       });
    }
@@ -76,7 +77,7 @@ class Git {
     */
    async merge(branch) {
       try {
-         await this._shell.execute(`git merge remotes/origin/${branch}`, this._pathToRep, {
+         await this._shell.execute(`git merge remotes/origin/${branch}`, this._path, {
             processName: `${this._name} git merge`
          });
       } catch (e) {
@@ -103,7 +104,7 @@ class Git {
     * @returns {Promise<[]>}
     */
    async diff(branch, rc) {
-      let res = await this._shell.execute(`git diff --name-only ${branch}..origin/${rc}`, this._pathToRep, {
+      let res = await this._shell.execute(`git diff --name-only ${branch}..origin/${rc}`, this._path, {
          processName: `${this._name} git diff`
       });
 
@@ -115,11 +116,20 @@ class Git {
     * @returns {Promise<string>}
     */
    async getBranch() {
-      let res = await this._shell.execute('git symbolic-ref --short HEAD', this._pathToRep, {
+      let res = await this._shell.execute('git symbolic-ref --short HEAD', this._path, {
          processName: `${this._name} git branch`
       });
 
       return res.length > 0 ? res[0] : '';
+   }
+
+   /**
+    * Возвращает версию из package.json
+    * @returns {String}
+    */
+   getVersion() {
+      const packageConfig = config.getPackageConfig(this._path);
+      return config.getVersion(packageConfig);
    }
 }
 

@@ -15,16 +15,16 @@ const CONFIG = path.normalize(path.join(__dirname, '../../config.json'));
  * return Object
  */
 function get(argvOptions) {
-   const packageConfig = _getPackageConfig();
+   const packageConfig = getPackageConfig(process.cwd());
    const config = fs.readJSONSync(CONFIG);
 
    if (argvOptions) {
       setRepPathFromArgv(config, argvOptions);
    }
 
-   config.rc = getVersion();
+   config.rc = getVersion(packageConfig);
 
-   if (packageConfig) {
+   if (packageConfig.name !== 'wasaby-cli') {
       if (packageConfig.devDependencies) {
          for (const name of Object.keys(packageConfig.devDependencies)) {
             if (config.repositories[name]) {
@@ -56,25 +56,20 @@ function normalizeVersion(version) {
 }
 /**
  * Возыращает версию rc ветки
+ * @param {Object} packageConfig  Конфиг npm пакета package.json
  * @return {String}
  */
-function getVersion() {
-   const packageConfig = fs.readJSONSync(path.join(__dirname, '../../package.json'));
+function getVersion(packageConfig) {
    return `rc-${normalizeVersion(packageConfig.version)}`;
 }
 /**
- * Возвращает package.json, если cli запущено как зависимость
- * return Object|undefined
+ * Возвращает package.json
+ * @param {String} pathToRep Путь до репозитория
+ * return Object
  */
-function _getPackageConfig() {
-   const configPath = path.join(process.cwd(), 'package.json');
-   if (fs.existsSync(configPath)) {
-      const config = fs.readJSONSync(configPath);
-      if (config.name !== 'wasaby-cli') {
-         return config;
-      }
-   }
-   return undefined;
+function getPackageConfig(pathToRep) {
+   const configPath = path.join(pathToRep, 'package.json');
+   return  fs.readJSONSync(configPath);
 }
 
 /**
@@ -100,5 +95,7 @@ function setRepPathFromArgv(config, argvOptions) {
 }
 
 module.exports = {
-   get: get
+   get: get,
+   getVersion: getVersion,
+   getPackageConfig: getPackageConfig
 };
