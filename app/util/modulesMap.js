@@ -98,45 +98,45 @@ class ModulesMap {
       });
       return result;
    }
-
    /**
-    * Возвращает список модулей для тестирования
+    * Возвращает список необходимых модулей
     * @return {Array}
     */
-   getTestList() {
-      if (this._testList) {
-         return this._testList;
+   getRequiredModules() {
+      if (this._modulesList) {
+         return this._modulesList;
       }
-      let testList = [];
+      let list = [];
       if (this._only) {
          this._testRep.forEach((name) => {
-            testList = testList.concat(this.getTestModulesByRep(name));
+            list = list.concat(this.getTestModulesByRep(name));
          });
       } else if (!this._testRep.includes('all')) {
          this._testRep.forEach((testRep) => {
-            const modules = this.getParentModules(this.getTestModulesWithDepends(testRep));
-            testList = testList.concat(this.getTestModulesByRep(testRep));
+            const modules = this.getParentModules(this.getModulesByRepWithDepends(testRep));
+            const requiredModules = this.getTestModulesByRep(testRep);
+            list = list.concat(requiredModules.length > 0 ? requiredModules : this.getModulesByRep(testRep));
             modules.forEach((name) => {
                const cfg = this._modulesMap.get(name);
                this.getTestModulesByRep(cfg.rep).forEach((testModule) => {
-                  if (!testList.includes(testModule)) {
-                     testList.push(testModule);
+                  if (!list.includes(testModule)) {
+                     list.push(testModule);
                   }
                });
             });
          });
       } else {
-         testList = this.getTestModulesByRep('all');
+         list = this.getTestModulesByRep('all');
       }
-      this._testList = testList;
-      return this._testList;
+      this._modulesList = list;
+      return this._modulesList;
    }
 
    /**
-    * Возвращает список модулей содержащих юнит тесты и его зависимости
+    * Возвращает список модулей содержащих юнит тесты и их зависимости
     * @return {Array}
     */
-   getTestModulesWithDepends(name) {
+   getModulesByRepWithDepends(name) {
       let result = [];
       const modules = this.getTestModulesByRep(name) || [];
       modules.forEach((moduleName) => {
@@ -153,16 +153,22 @@ class ModulesMap {
     * @return {Array}
     */
    getTestModulesByRep(repName) {
-      let testModules = [];
+      return  this.getModulesByRep(repName).filter((name) => this.get(name).unitTest);
+   }
+
+   /**
+    * Возвращает список модулей из репозитория
+    * @param {String} repName название репозитория
+    * @return {Array}
+    */
+   getModulesByRep(repName) {
+      let modules = [];
       this._modulesMap.forEach((cfg) => {
-         if (
-            (cfg.rep === repName || repName === 'all') &&
-            cfg.unitTest
-         ) {
-            testModules.push(cfg.name);
+         if ((cfg.rep === repName || repName === 'all')) {
+            modules.push(cfg.name);
          }
       });
-      return testModules;
+      return modules;
    }
 
    /**
@@ -241,6 +247,9 @@ class ModulesMap {
                   cfg.testInBrowser = repCfg.unitInBrowser && !(onlyNode);
                }
 
+               cfg.id = xmlObj.ui_module.$.id;
+               cfg.required = !!xmlObj.ui_module.$.required
+
                this._modulesMap.set(cfg.name, cfg);
             }
          })
@@ -262,8 +271,8 @@ class ModulesMap {
     * Возвращает список репозиториев
     * @returns {Set<String>}
     */
-   getTestRepos() {
-      const modules = this.getChildModules(this.getTestList());
+   getRequiredRepositories() {
+      const modules = this.getChildModules(this.getRequiredModules());
       const repos = new Set([CDN_REP_NAME]);
       modules.forEach((module) => {
          const moduleCfg = this._modulesMap.get(module);
