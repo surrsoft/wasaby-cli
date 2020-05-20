@@ -146,7 +146,7 @@ class Build extends Base {
     */
    _makeBuilderConfig(output) {
       const builderConfig = require(this._builderBaseConfig);
-      const testList = this._modulesMap.getTestList();
+      const testList = this._modulesMap.getRequiredModules();
 
       this._modulesMap.getChildModules(testList).forEach((moduleName) => {
          const cfg = this._modulesMap.get(moduleName);

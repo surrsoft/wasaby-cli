@@ -59,7 +59,7 @@ describe('modulesMap', () => {
       });
    });
 
-   describe('._getTestList()', () => {
+   describe('.getRequiredModules()', () => {
       let stubrepos, stubTestRep, stubModulesMap;
       beforeEach(() => {
          stubrepos = sinon.stub(modulesMap, '_reposConfig').value({
@@ -85,28 +85,28 @@ describe('modulesMap', () => {
       });
       it('should return all test', () => {
          stubTestRep = sinon.stub(modulesMap, '_testRep').value(['all']);
-         chai.expect(modulesMap.getTestList()).to.deep.equal(['test_test1', 'test_test2', 'test_test3']);
+         chai.expect(modulesMap.getRequiredModules()).to.deep.equal(['test_test1', 'test_test2', 'test_test3']);
       });
 
       it('should return test list for test1', () => {
          stubTestRep = sinon.stub(modulesMap, '_testRep').value(['test1']);
-         chai.expect(modulesMap.getTestList()).to.deep.equal(['test_test1']);
+         chai.expect(modulesMap.getRequiredModules()).to.deep.equal(['test_test1']);
       });
 
       it('should return test list for test with depends', () => {
          stubTestRep = sinon.stub(modulesMap, '_testRep').value(['test2']);
-         chai.expect(modulesMap.getTestList()).to.deep.equal(['test_test2', 'test_test1']);
+         chai.expect(modulesMap.getRequiredModules()).to.deep.equal(['test_test2', 'test_test1']);
       });
 
       it('should return test2 only', () => {
          sinon.stub(modulesMap, '_only').value(true);
          stubTestRep = sinon.stub(modulesMap, '_testRep').value(['test2']);
-         chai.expect(modulesMap.getTestList()).to.deep.equal(['test_test2']);
+         chai.expect(modulesMap.getRequiredModules()).to.deep.equal(['test_test2']);
       });
 
       it('should return test list if check two unliked tests', () => {
          stubTestRep = sinon.stub(modulesMap, '_testRep').value(['test1', 'test3']);
-         chai.expect(modulesMap.getTestList()).to.deep.equal(['test_test1', 'test_test3']);
+         chai.expect(modulesMap.getRequiredModules()).to.deep.equal(['test_test1', 'test_test3']);
       });
 
       afterEach(() => {
@@ -247,6 +247,42 @@ describe('modulesMap', () => {
 
       afterEach(() => {
          stubModulesMap.restore();
+      });
+   });
+
+   describe('getModulesByRep', () => {
+      beforeEach(() => {
+         sinon.stub(modulesMap, '_modulesMap').value(
+            new Map([
+               ['test11', {name: 'test11', rep: 'test1', depends: ['test22']}],
+               ['test22', {name: 'test22', rep: 'test2', depends: ['test33']}],
+               ['test33', {name: 'test33', rep: 'test3', depends: []}]
+            ])
+         );
+      });
+
+      it('should return modules for test1 ', () => {
+         chai.expect(modulesMap.getModulesByRep('test1')).to.deep.equal(['test11']);
+      });
+   });
+
+   describe('getTestModulesByRep', () => {
+      beforeEach(() => {
+         sinon.stub(modulesMap, '_modulesMap').value(
+            new Map([
+               ['test11', {name: 'test11', rep: 'test1', depends: ['test12'], unitTest: true}],
+               ['test12', {name: 'test12', rep: 'test1', depends: []}],
+               ['test21', {name: 'test21', rep: 'test2', depends: []}]
+            ])
+         );
+      });
+
+      it('should return test modules for test1', () => {
+         chai.expect(modulesMap.getTestModulesByRep('test1')).to.deep.equal(['test11']);
+      });
+
+      it('should return empty array for test2', () => {
+         chai.expect(modulesMap.getTestModulesByRep('test2')).to.deep.equal([]);
       });
    });
 });

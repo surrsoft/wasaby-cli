@@ -37,7 +37,7 @@ describe('Test', () => {
    describe('._makeTestConfig()', () => {
       let stubfs, stubTestList;
       beforeEach(() => {
-         stubTestList = sinon.stub(test._modulesMap, 'getTestList').callsFake((name) => {
+         stubTestList = sinon.stub(test._modulesMap, 'getRequiredModules').callsFake((name) => {
             return ['test1', 'test2'];
          });
       });
@@ -187,7 +187,7 @@ describe('Test', () => {
             return Promise.resolve();
          });
          stubBuild = sinon.stub(test._modulesMap, 'build').callsFake(() => {});
-         stubtestList = sinon.stub(test._modulesMap, 'getTestList').callsFake(() => ['engine']);
+         stubtestList = sinon.stub(test._modulesMap, 'getRequiredModules').callsFake(() => ['engine']);
       });
       it('should start test', () => {
          let commandsArray = [];
@@ -263,7 +263,7 @@ describe('Test', () => {
                 'test13': {name: 'test13', rep: 'test1', depends: []}
             }[name];
          });
-         stubTestModules = sinon.stub(test._modulesMap, 'getTestModulesByRep').callsFake(() => ['test11', 'test12', 'test13']);
+         stubTestModules = sinon.stub(test._modulesMap, 'getModulesByRep').callsFake(() => ['test11', 'test12', 'test13']);
       });
       afterEach(() => {
          stubDiff.restore();

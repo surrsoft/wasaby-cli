@@ -291,12 +291,12 @@ class Test extends Base {
          // если тесты запускаются только по одному репозиторию то не разделяем их по модулям
          logger.log('Запуск тестов', this._testRep);
          return Promise.all([
-            this._startNodeTest(this._testRep, this._modulesMap.getTestList()),
-            this._startBrowserTest(this._testRep, this._modulesMap.getTestList())
+            this._startNodeTest(this._testRep, this._modulesMap.getRequiredModules()),
+            this._startBrowserTest(this._testRep, this._modulesMap.getRequiredModules())
          ]);
       }
 
-      return pMap(this._modulesMap.getTestList(), (moduleName) => {
+      return pMap(this._modulesMap.getRequiredModules(), (moduleName) => {
          if (this._shouldTestModule(moduleName)) {
             logger.log('Запуск тестов', moduleName);
             return Promise.all([

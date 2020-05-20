@@ -75,7 +75,7 @@ describe('Build', () => {
       beforeEach(() => {
          stubfs = sinon.stub(fs, 'outputFile').callsFake(() => undefined);
          sinon.stub(build, '_modulesMap').value({
-            getTestList: () => {
+            getRequiredModules: () => {
                return ['test1', 'test2'];
             },
             getChildModules: () => {

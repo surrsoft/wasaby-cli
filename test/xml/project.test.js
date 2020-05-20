@@ -39,7 +39,7 @@ describe('Project', () => {
             }
          ]
       ]);
-      modulesMap.getTestList = () => {
+      modulesMap.getRequiredModules = () => {
          return ['test11','test22'];
       }
       modulesMap.getChildModules = () => {

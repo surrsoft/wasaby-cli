@@ -164,7 +164,7 @@ class Project {
     * @private
     */
    async _addModulesToSrv(srvPath) {
-      const testList = this._modulesMap.getTestList();
+      const testList = this._modulesMap.getRequiredModules();
       if (testList.length > 0) {
          const srv = await xml.readXmlFile(srvPath);
          const modules = getUiModules(srv);
