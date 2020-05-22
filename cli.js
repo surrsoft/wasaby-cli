@@ -103,6 +103,7 @@ class Cli {
          buildTools: this._buildTools,
          workDir: this._workDir,
          workspace: this._workspace,
+         release:  this._argvOptions.release,
          builderBaseConfig: this._argvOptions.builderConfig,
          only: this._only,
          pathToJinnee: this._argvOptions.pathToJinnee,
@@ -120,7 +121,8 @@ class Cli {
          store: this._store,
          testRep: this._testRep,
          only: this._only,
-         projectPath: this._projectPath
+         projectPath: this._projectPath,
+         resources: this._resources
       });
 
       await store.run();
