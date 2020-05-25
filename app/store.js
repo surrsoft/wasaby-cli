@@ -82,23 +82,24 @@ class Store extends Base {
          name: name
       });
       const isBranch = commit.includes('/') || commit.includes('rc-');
+      let [branch, mergeWith] = commit.split(':');
 
-      logger.log(`Переключение на ветку ${commit}`, name);
+      logger.log(`Переключение на ветку ${branch}`, name);
       await git.update();
       if (isBranch) {
          try {
-            await git.checkout(commit);
+            await git.checkout(branch);
          } catch (err) {
-            throw new Error(`Ошибка при переключение на ветку ${commit} в репозитории ${name}: ${err}`);
+            throw new Error(`Ошибка при переключение на ветку ${branch} в репозитории ${name}: ${err}`);
          }
       }
-      await git.reset(isBranch ? `remotes/origin/${commit}` : commit);
+      await git.reset(isBranch ? `remotes/origin/${branch}` : branch);
       await git.clean();
 
-      if (isBranch && !commit.includes('rc-')) {
-         const rc = git.getVersion();
-         logger.log(`Попытка смержить ветку '${commit}' с '${rc}'`, name);
-         await git.merge(rc);
+      if (isBranch && !branch.includes('rc-')) {
+         mergeWith =  mergeWith || git.getVersion();
+         logger.log(`Попытка смержить ветку '${branch}' с '${mergeWith}'`, name);
+         await git.merge(mergeWith);
       }
    }
 

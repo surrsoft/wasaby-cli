@@ -140,7 +140,7 @@ describe('Store', () => {
             return Promise.resolve();
          });
 
-         store.checkout('name', '20.1000/branch', 'pathToRep');
+         store.checkout('name', '20.1000/branch');
       });
 
       it('should throw error if checkoutBranch is undefined', (done) => {
@@ -156,7 +156,7 @@ describe('Store', () => {
             return Promise.resolve();
          });
          stubModule = sinon.stub(store, '_testRep').value('test');
-         store.checkout('test', '20.1000/branch', 'pathToRep').then(() => {
+         store.checkout('test', '20.1000/branch').then(() => {
             chai.expect(`git merge remotes/origin/rc-20.4000`).to.equal(commandsArray[5]);
             done();
          });
@@ -169,7 +169,7 @@ describe('Store', () => {
             return Promise.resolve();
          });
          stubModule = sinon.stub(store, '_testRep').value('test');
-         store.checkout('testAdd', '20.1000/branch', 'pathToRep').then(() => {
+         store.checkout('testAdd', '20.1000/branch').then(() => {
             chai.expect(`git merge remotes/origin/rc-20.4000`).to.equal(commandsArray[5]);
             done();
          });
@@ -182,7 +182,7 @@ describe('Store', () => {
             }
          });
          stubModule = sinon.stub(store, '_testRep').value('test');
-         store.checkout('test', 'branch', 'pathToRep').catch(() => {
+         store.checkout('test', 'branch').catch(() => {
             done();
          });
       });
@@ -196,7 +196,7 @@ describe('Store', () => {
             }
          });
          stubModule = sinon.stub(store, '_testRep').value('test');
-         store.checkout('test', '20.1000/branch', 'pathToRep').catch(() => {
+         store.checkout('test', '20.1000/branch').catch(() => {
             done();
          });
       });
@@ -210,7 +210,31 @@ describe('Store', () => {
             return Promise.resolve();
          });
 
-         store.checkout('name', 'b2563dfa', 'pathToRep');
+         store.checkout('name', 'b2563dfa');
+      });
+
+      it('should checkout branch when gived branch whats merged with current', (done) => {
+         stubExecute.callsFake((cmd, path, params) => {
+            if (typeof params.processName === 'string' && params.processName.includes('checkout')) {
+               chai.expect(cmd).to.equal('git checkout -f my/branch');
+               done();
+            }
+            return Promise.resolve();
+         });
+
+         store.checkout('name', 'my/branch:rc-20.4000');
+      });
+
+      it('should merge with given branch', (done) => {
+         stubExecute.callsFake((cmd, path, params) => {
+            if (typeof params.processName === 'string' && params.processName === 'name git merge') {
+               chai.expect(cmd).to.equal('git merge remotes/origin/rc-20.4000');
+               done();
+            }
+            return Promise.resolve();
+         });
+
+         store.checkout('name', 'my/branch:rc-20.4000');
       });
 
       afterEach(() => {
