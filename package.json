@@ -13,10 +13,8 @@
       "url": "git@github.com:saby/wasaby-cli.git"
    },
    "bin": {
-      
    },
-   "dependencies": {      
-      "xml2js": "^0.4.19"
+   "dependencies": {
    },
    "devDependencies": {
       
