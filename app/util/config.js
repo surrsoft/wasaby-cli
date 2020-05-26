@@ -14,17 +14,13 @@ const CONFIG = path.normalize(path.join(__dirname, '../../config.json'));
  * @param {Object} argvOptions Параметры из командной строки
  * return Object
  */
-function get(argvOptions) {
+function get(argvOptions= {}) {
    const packageConfig = getPackageConfig(process.cwd());
    const config = fs.readJSONSync(CONFIG);
 
-   if (argvOptions) {
-      setRepPathFromArgv(config, argvOptions);
-   }
-
    config.rc = getVersion(packageConfig);
-
    prepareReposUrl(config, argvOptions.protocol, argvOptions.gitMirror || config.gitMirror);
+   setRepPathFromArgv(config, argvOptions);
 
    if (packageConfig.name !== 'wasaby-cli') {
       if (packageConfig.devDependencies) {
