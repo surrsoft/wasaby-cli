@@ -92,11 +92,11 @@ describe('config', () => {
                return {
                   "gitMirror": "platform-git.sbis.ru",
                   "repositories": {
-                     "tets1": {
+                     "test1": {
                         "mirror": "git.sbis.ru",
                         "url": "test/test1"
                      },
-                     "tets2": {
+                     "test2": {
                         "url": "test/test2"
                      }
                   }
@@ -108,9 +108,9 @@ describe('config', () => {
          const ssh = {
             protocol: 'ssh'
          };
-         chai.expect('https://git.sbis.ru/test/test1.git').to.deep.equal(config.get({}).repositories['test1'].url);
-         chai.expect('https://platform-git.sbis.ru/test/test2.git').to.deep.equal(config.get({}).repositories['test2'].url);
-         chai.expect('git@platform-git.sbis.ru:test1.git').to.deep.equal(config.get(ssh).repositories['test2'].url);
+         chai.expect('https://git.sbis.ru/test/test1.git').to.deep.equal(config.get({}).repositories.test1.url);
+         chai.expect('https://platform-git.sbis.ru/test/test2.git').to.deep.equal(config.get({}).repositories.test2.url);
+         chai.expect('git@platform-git.sbis.ru:test/test2.git').to.deep.equal(config.get(ssh).repositories.test2.url);
       });
    });
 });
