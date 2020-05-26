@@ -237,6 +237,18 @@ describe('Store', () => {
          store.checkout('name', 'my/branch:rc-20.4000');
       });
 
+      it('should merge with given commit hash', (done) => {
+         stubExecute.callsFake((cmd, path, params) => {
+            if (typeof params.processName === 'string' && params.processName === 'name git merge') {
+               chai.expect(cmd).to.equal('git merge 123qasdawe');
+               done();
+            }
+            return Promise.resolve();
+         });
+
+         store.checkout('name', 'my/branch:123qasdawe');
+      });
+
       afterEach(() => {
          stubModule && stubModule.restore();
       });
