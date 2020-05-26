@@ -21,7 +21,7 @@ describe('config', () => {
                return stubReadJSON.wrappedMethod(path);
             }
          });
-         chai.expect('rc-20.2000').to.equal(config.get().rc);
+         chai.expect('rc-20.2000').to.equal(config.get({}).rc);
       });
 
       it('should consists repositotires config', async () => {
@@ -39,7 +39,7 @@ describe('config', () => {
                return stubReadJSON.wrappedMethod(path);
             }
          });
-         chai.expect(expectedCfg.repositories).to.deep.equal(config.get().repositories);
+         chai.expect(expectedCfg.repositories).to.deep.equal(config.get({}).repositories);
       });
 
       it('should add new repository', async () => {
@@ -57,7 +57,7 @@ describe('config', () => {
             path: process.cwd(),
             skipStore: true
          };
-         chai.expect(expected).to.deep.equal(config.get().repositories['test']);
+         chai.expect(expected).to.deep.equal(config.get({}).repositories['test']);
       });
 
       it('should add path to existed repository', async () => {
@@ -80,9 +80,37 @@ describe('config', () => {
          const expected = {
             path: process.cwd(),
             skipStore: true,
-            url: 'test11'
+            url: 'https://platform-git.sbis.ru/test11.git'
          };
-         chai.expect(expected).to.deep.equal(config.get().repositories['test']);
+         chai.expect(expected).to.deep.equal(config.get({}).repositories['test']);
+      });
+
+
+      it('should make git url', async () => {
+         stubReadJSON.callsFake((path) => {
+            if (path.includes('config.json')) {
+               return {
+                  "gitMirror": "platform-git.sbis.ru",
+                  "repositories": {
+                     "tets1": {
+                        "mirror": "git.sbis.ru",
+                        "url": "test/test1"
+                     },
+                     "tets2": {
+                        "url": "test/test2"
+                     }
+                  }
+               };
+            } else {
+               return stubReadJSON.wrappedMethod(path);
+            }
+         });
+         const ssh = {
+            protocol: 'ssh'
+         };
+         chai.expect('https://git.sbis.ru/test/test1.git').to.deep.equal(config.get({}).repositories['test1'].url);
+         chai.expect('https://platform-git.sbis.ru/test/test2.git').to.deep.equal(config.get({}).repositories['test2'].url);
+         chai.expect('git@platform-git.sbis.ru:test1.git').to.deep.equal(config.get(ssh).repositories['test2'].url);
       });
    });
 });
