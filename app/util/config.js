@@ -14,15 +14,13 @@ const CONFIG = path.normalize(path.join(__dirname, '../../config.json'));
  * @param {Object} argvOptions Параметры из командной строки
  * return Object
  */
-function get(argvOptions) {
+function get(argvOptions= {}) {
    const packageConfig = getPackageConfig(process.cwd());
    const config = fs.readJSONSync(CONFIG);
 
-   if (argvOptions) {
-      setRepPathFromArgv(config, argvOptions);
-   }
-
    config.rc = getVersion(packageConfig);
+   prepareReposUrl(config, argvOptions.protocol, argvOptions.gitMirror || config.gitMirror);
+   setRepPathFromArgv(config, argvOptions);
 
    if (packageConfig.name !== 'wasaby-cli') {
       if (packageConfig.devDependencies) {
@@ -94,6 +92,54 @@ function setRepPathFromArgv(config, argvOptions) {
    }
 }
 
+/**
+ * Собирает ссылку на репозиторий в зависимости от протокола https или ssh
+ * @param {Object} config Конфиг приложения
+ * @param {String} protocol Протокол ssh или https
+ * @param {String} gitMirror гит сервер по умолчанию
+ */
+function prepareReposUrl(config, protocol, gitMirror) {
+   let suffix;
+   let prefix;
+
+   if (protocol === 'ssh') {
+      prefix = 'git@';
+      suffix = ':'
+   } else {
+      prefix = 'https://';
+      suffix = '/'
+   }
+
+   for(let name of Object.keys(config.repositories)) {
+      const cfg = config.repositories[name];
+      cfg.url = `${prefix}${cfg.mirror || gitMirror}${suffix}${cfg.url}.git`;
+   }
+}
+
+
+/**
+ * cdn
+ navigation-configuration
+ permission
+ rmi
+ rmi_test
+ Router
+ saby-devtool
+ saby-i18n
+ saby-inferno
+ saby-types
+ saby-ui
+ sbis-plugin-client
+ sbis3-schemeeditor
+ sbis3-ws
+ sbis3-ws1
+ sbis3.engine
+ sbis3controls
+ viewsettings
+ wasaby-app
+ wasaby-controls
+ wasaby-polyfills
+ */
 module.exports = {
    get: get,
    getVersion: getVersion,

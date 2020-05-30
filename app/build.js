@@ -9,7 +9,12 @@ const fsUtil = require('./util/fs');
 
 const builderConfigName = 'builderConfig.json';
 const builderBaseConfig = '../builderConfig.base.json';
-
+const RELEASE_FLAGS = {
+   minimize: true,
+   wml: true,
+   customPack: true,
+   dependenciesGraph: true
+}
 /**
  * Класс отвечающий за сборку ресурсов для тестов
  * @author Ганшин Я.О
@@ -22,6 +27,7 @@ class Build extends Base {
       this._rc = cfg.rc;
       this._reposConfig = cfg.reposConfig;
       this._buildTools = cfg.buildTools;
+      this._buildRelease = cfg.release;
       this._resources = cfg.resources;
       this._workDir = cfg.workDir;
       this._builderCache = cfg.builderCache;
@@ -145,7 +151,7 @@ class Build extends Base {
     * @private
     */
    _makeBuilderConfig(output) {
-      const builderConfig = require(this._builderBaseConfig);
+      let builderConfig = require(this._builderBaseConfig);
       const testList = this._modulesMap.getRequiredModules();
 
       this._modulesMap.getChildModules(testList).forEach((moduleName) => {
@@ -154,12 +160,16 @@ class Build extends Base {
          if (!isNameInConfig) {
             builderConfig.modules.push({
                name: moduleName,
-               path: cfg.path
+               path: cfg.path,
+               required: cfg.required
             });
          }
       });
 
+      builderConfig = this._buildRelease ? {...builderConfig, ...RELEASE_FLAGS} : builderConfig;
       builderConfig.output = output || this._resources;
+      builderConfig.logs = path.join(this._workDir, 'logs');
+
       return fs.outputFile(`./${builderConfigName}`, JSON.stringify(builderConfig, null, 4));
    }
 }

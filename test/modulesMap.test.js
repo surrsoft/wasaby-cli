@@ -3,6 +3,8 @@ const sinon = require('sinon');
 const fs = require('fs-extra');
 const path = require('path');
 const ModulesMap = require('../app/util/modulesMap');
+const xml = require('../app/xml/xml');
+
 let modulesMap;
 let stubfsAppend;
 describe('modulesMap', () => {
@@ -249,6 +251,46 @@ describe('modulesMap', () => {
          stubModulesMap.restore();
       });
    });
+
+   describe('._addToModulesMap()', () => {
+      let stubXml;
+      beforeEach(() => {
+         stubXml = sinon.stub(xml, 'readXmlFile').callsFake(() => Promise.resolve({
+            ui_module: {
+               $: {
+                  id: 'qweqwe123',
+                  required: true
+               },
+               depends: [{
+                  ui_module:[
+                     {
+                        $: {
+                           name: 'test11'
+                        }
+                     }
+                  ]
+               }],
+               unit_test: [{
+                  $:{}
+               }],
+               name: 'qweqwe123'
+            }
+         }));
+      });
+      afterEach(() => {
+         stubXml.restore();
+      });
+      it('should add module', async () => {
+         await modulesMap._addToModulesMap([{
+            name: 'qweqwe123',
+            rep: 'test1',
+         }]);
+         chai.expect('qweqwe123').to.equal(modulesMap.get('qweqwe123').id)
+         chai.expect(modulesMap.get('qweqwe123').required).is.true;
+         chai.expect(['test11']).to.deep.equal(modulesMap.get('qweqwe123').depends);
+      });
+   });
+
 
    describe('getModulesByRep', () => {
       beforeEach(() => {

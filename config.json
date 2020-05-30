@@ -1,78 +1,89 @@
 {
    "store": "store",
    "workDir": "application",
+   "gitMirror": "platform-git.sbis.ru",
    "repositories": {
       "sbis3.engine": {
-         "url": "https://git.sbis.ru/sbis/engine.git",
+         "mirror": "git.sbis.ru",
+         "url": "sbis/engine",
          "unitInBrowser": true
       },
       "saby-types": {
-         "url": "https://platform-git.sbis.ru/saby/Types.git"
+         "url": "saby/Types"
       },
       "saby-i18n": {
-         "url": "https://platform-git.sbis.ru/saby/I18n.git"
+         "url": "saby/I18n"
       },
       "sbis3-ws": {
-         "url": "https://git.sbis.ru/sbis/ws.git",
+         "mirror": "git.sbis.ru",
+         "url": "sbis/ws",
          "unitInBrowser": true
       },
       "sbis3controls": {
-         "url": "https://git.sbis.ru/sbis/sbis3controls.git",
+         "mirror": "git.sbis.ru",
+         "url": "sbis/sbis3controls",
          "unitInBrowser": true
       },
       "wasaby-controls": {
-         "url": "https://platform-git.sbis.ru/saby/wasaby-controls.git"
+         "url": "saby/wasaby-controls"
       },
       "rmi": {
-         "url": "https://git.sbis.ru/sbis/rmi.git",
+         "mirror": "git.sbis.ru",
+         "url": "sbis/rmi",
          "unitInBrowser": true
       },
       "wasaby-app": {
-         "url": "https://platform-git.sbis.ru/saby/wasaby-app.git",
+         "url": "saby/wasaby-app",
          "unitInBrowser": true
       },
       "Router": {
-         "url": "https://platform-git.sbis.ru/saby/router.git",
+         "url": "saby/router",
          "unitInBrowser": true
       },
       "saby-ui": {
-         "url": "https://platform-git.sbis.ru/saby/ui.git",
+         "url": "saby/ui",
          "unitInBrowser": true
       },
       "cdn": {
-         "url": "https://platform-git.sbis.ru/saby/wasaby-cdn.git",
+         "url": "saby/wasaby-cdn",
          "linkFolders": {
             "/" : "cdn"
          }
       },
       "sbis3-schemeeditor": {
-         "url": "https://git.sbis.ru/engine/schemeeditor.git",
+         "mirror": "git.sbis.ru",
+         "url": "engine/schemeeditor",
          "unitInBrowser": true
       },
       "permission": {
-         "url": "https://git.sbis.ru/sbis/permission.git",
+         "mirror": "git.sbis.ru",
+         "url": "sbis/permission",
          "onlyLoad": true
       },
       "viewsettings": {
-         "url": "https://git.sbis.ru/engine/viewsettings.git"
+         "mirror": "git.sbis.ru",
+         "url": "engine/viewsettings"
       },
       "sbis-plugin-client": {
-         "url": "https://git.sbis.ru/plugin/client.git"
+         "mirror": "git.sbis.ru",
+         "url": "plugin/client"
       },
       "navigation-configuration": {
-         "url": "https://git.sbis.ru/navigation-configuration/navigation.git"
+         "mirror": "git.sbis.ru",
+         "url": "navigation-configuration/navigation"
       },
       "rmi_test": {
-         "url": "https://git.sbis.ru/sbis/rmi_test.git"
+         "mirror": "git.sbis.ru",
+         "url": "sbis/rmi_test"
       },
       "saby-devtool": {
-         "url": "https://platform-git.sbis.ru/saby/devtools.git"
+         "url": "saby/devtools"
       },
       "saby-inferno": {
-         "url": "https://platform-git.sbis.ru/saby/inferno.git"
+         "url": "saby/inferno"
       },
       "wasaby-polyfills": {
-         "url": "https://platform-git.sbis.ru/saby/wasaby-polyfills.git"
+         "url": "saby/wasaby-polyfills"
       }
    }
 }

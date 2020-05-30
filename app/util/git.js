@@ -77,7 +77,8 @@ class Git {
     */
    async merge(branch) {
       try {
-         await this._shell.execute(`git merge remotes/origin/${branch}`, this._path, {
+         const mergeWith = Git.isBranch(branch) ? `remotes/origin/${branch}` : branch;
+         await this._shell.execute(`git merge ${mergeWith}`, this._path, {
             processName: `${this._name} git merge`
          });
       } catch (e) {
@@ -130,6 +131,10 @@ class Git {
    getVersion() {
       const packageConfig = config.getPackageConfig(this._path);
       return config.getVersion(packageConfig);
+   }
+
+   static isBranch(branch) {
+      return branch.includes('/') || branch.includes('rc-')
    }
 }
 
