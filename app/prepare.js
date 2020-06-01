@@ -54,7 +54,7 @@ class Prepare extends Base {
     * @private
     */
    async _getPaths() {
-      const testList = this._modulesMap.getTestList();
+      const testList = this._modulesMap.getRequiredModules();
       const paths = {};
       this._modulesMap.getChildModules(testList).forEach((moduleName) => {
          const relativePath = this._getRelativePath(moduleName);
