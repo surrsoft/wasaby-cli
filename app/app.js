@@ -61,73 +61,88 @@ async function run(resources, port, start) {
 
 
 function serverSideRender(req, res) {
-   req.compatible = false;
-
-   if (!process.domain) {
-      process.domain = {
-         enter: function () {
-         },
-         exit: function () {
-         }
-      };
-   }
-
-   process.domain.req = req;
-   process.domain.res = res;
-
-   const tpl = requirejs('wml!Controls/Application/Route');
-
-   let pathRoot = req.originalUrl.split('/');
-   if (!pathRoot) {
-      console.error('Incorrect url. Couldn\'t resolve path to root component');
-   }
-
-   pathRoot = pathRoot.filter(function (el) {
-      return el.length > 0;
-   });
-
-   let cmp;
-   if (~pathRoot.indexOf('app')) {
-      cmp = pathRoot[0] + '/Index';
-   } else {
-      cmp = pathRoot.join('/') + '/Index';
-   }
    try {
-      requirejs(cmp);
-   } catch (error) {
-      res.writeHead(404, {
-         'Content-Type': 'text/html'
-      });
-      res.end('');
+      req.compatible = false;
 
-      return;
-   }
-
-   const html = tpl({
-      lite: true,
-      wsRoot: '/WS.Core/',
-      resourceRoot,
-      application: cmp,
-      appRoot: '/',
-      _options: {
-         preInitScript: 'window.wsConfig.debug = true;window.wsConfig.userConfigSupport = false;'
+      if (!process.domain) {
+         process.domain = {
+            enter: function () {
+            },
+            exit: function () {
+            }
+         };
       }
-   });
 
-   if (html.addCallback) {
-      html.addCallback(function (htmlres) {
+      process.domain.req = req;
+      process.domain.res = res;
+
+      console.log('URL:' + req.originalUrl);
+      const tpl = requirejs('wml!Controls/Application/Route');
+
+      console.log(`tpl is ${typeof tpl}. ${tpl || tpl.toString()}`);
+
+      let pathRoot = req.originalUrl.split('/');
+      if (!pathRoot) {
+         console.error('Incorrect url. Couldn\'t resolve path to root component');
+      }
+
+      pathRoot = pathRoot.filter(function (el) {
+         return el.length > 0;
+      });
+
+      let cmp;
+      if (~pathRoot.indexOf('app')) {
+         cmp = pathRoot[0] + '/Index';
+      } else {
+         cmp = pathRoot.join('/') + '/Index';
+      }
+      try {
+         console.log('Require: ' + cmp);
+         requirejs(cmp);
+      } catch (error) {
+         console.error(error);
+         res.writeHead(404, {
+            'Content-Type': 'text/html'
+         });
+         res.end('');
+
+         return;
+      }
+
+      const html = tpl({
+         lite: true,
+         wsRoot: '/WS.Core/',
+         resourceRoot,
+         application: cmp,
+         appRoot: '/',
+         _options: {
+            preInitScript: 'window.wsConfig.debug = true;window.wsConfig.userConfigSupport = false;'
+         }
+      });
+
+      if (html.addCallback) {
+         html.addCallback(function (htmlres) {
+            res.writeHead(200, {
+               'Content-Type': 'text/html'
+            });
+            res.end(htmlres);
+         });
+      } else {
          res.writeHead(200, {
             'Content-Type': 'text/html'
          });
-         res.end(htmlres);
-      });
-   } else {
+         res.end(html);
+      }
+
+      setDebugCookie(req, res);
+   } catch (err) {
       res.writeHead(200, {
          'Content-Type': 'text/html'
       });
       res.end(html);
+
+      console.error(err);
    }
-   setDebugCookie(req, res);
 }
 
 function loadConfiguration(req, res) {
