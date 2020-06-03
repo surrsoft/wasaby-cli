@@ -61,6 +61,8 @@ async function run(resources, port, start) {
 
 
 function serverSideRender(req, res) {
+   let html = '<div></div>';
+
    try {
       req.compatible = false;
 
@@ -109,7 +111,7 @@ function serverSideRender(req, res) {
          return;
       }
 
-      const html = tpl({
+      html = tpl({
          lite: true,
          wsRoot: '/WS.Core/',
          resourceRoot,
