@@ -81,7 +81,7 @@ function serverSideRender(req, res) {
       console.log('URL:' + req.originalUrl);
       const tpl = requirejs('wml!Controls/Application/Route');
 
-      console.log(`tpl is ${typeof tpl}. ${tpl || tpl.toString()}`);
+      console.log(`tpl is ${typeof tpl}. ${tpl && tpl.toString()}`);
 
       let pathRoot = req.originalUrl.split('/');
       if (!pathRoot) {
