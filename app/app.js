@@ -37,10 +37,10 @@ async function run(resources, port, start) {
    global.require = require;
 
    console.log('start init');
-   require(['Env/Env', 'Application/Initializer', 'Core/core-init'], function (Env, AppInit) {
+   require(['Env/Env', 'Application/Initializer', 'UI/Base','Core/core-init'], function (Env, AppInit, UIBase) {
       Env.constants.resourceRoot = resourceRoot;
       Env.constants.modules = require('json!/contents').modules;
-      AppInit.default({ resourceRoot });
+      AppInit.default({ resourceRoot }, void 0, new UIBase.StateReceiver());
       console.log(`server started http://localhost:${availablePort}`);
    }, function (err) {
       console.error(err);
@@ -77,7 +77,8 @@ function serverSideRender(req, res) {
    process.domain.res = res;
 
    const App = requirejs('Application/Initializer');
-   App.startRequest();
+   const UIBase = requirejs('UI/Base');
+   App.startRequest({}, new UIBase.StateReceiver());
 
    const tpl = requirejs('wml!Controls/Application/Route');
 
