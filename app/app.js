@@ -37,9 +37,10 @@ async function run(resources, port, start) {
    global.require = require;
 
    console.log('start init');
-   require(['Env/Env', 'Core/core-init'], function (Env) {
+   require(['Env/Env', 'Application/Initializer', 'Core/core-init'], function (Env, AppInit) {
       Env.constants.resourceRoot = resourceRoot;
       Env.constants.modules = require('json!/contents').modules;
+      AppInit.default({ resourceRoot });
       console.log(`server started http://localhost:${availablePort}`);
    }, function (err) {
       console.error(err);
