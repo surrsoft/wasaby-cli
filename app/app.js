@@ -76,6 +76,9 @@ function serverSideRender(req, res) {
    process.domain.req = req;
    process.domain.res = res;
 
+   const App = requirejs('Application/Initializer');
+   App.startRequest();
+
    const tpl = requirejs('wml!Controls/Application/Route');
 
    let pathRoot = req.originalUrl.split('/');
