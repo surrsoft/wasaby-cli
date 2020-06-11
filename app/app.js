@@ -37,7 +37,7 @@ async function run(resources, port, start) {
    global.require = require;
 
    console.log('start init');
-   require(['Env/Env', 'Application/Initializer', 'UI/Base','Core/core-init'], function (Env, AppInit, UIBase) {
+   require(['Env/Env', 'Application/Initializer', 'UI/Base', 'Core/core-init'], function (Env, AppInit, UIBase) {
       Env.constants.resourceRoot = resourceRoot;
       Env.constants.modules = require('json!/contents').modules;
       AppInit.default({ resourceRoot }, void 0, new UIBase.StateReceiver());
@@ -108,7 +108,7 @@ function serverSideRender(req, res) {
       return;
    }
 
-   const html = tpl({
+   const rendering = tpl({
       lite: true,
       wsRoot: '/WS.Core/',
       resourceRoot,
@@ -119,19 +119,10 @@ function serverSideRender(req, res) {
       }
    });
 
-   if (html.addCallback) {
-      html.addCallback(function (htmlres) {
-         res.writeHead(200, {
-            'Content-Type': 'text/html'
-         });
-         res.end(htmlres);
-      });
-   } else {
-      res.writeHead(200, {
-         'Content-Type': 'text/html'
-      });
+   Promise.resolve(rendering).then((html) => {
+      res.writeHead(200, { 'Content-Type': 'text/html' });
       res.end(html);
-   }
+   }).catch((e) => { res.status(500).send(e); });
    setDebugCookie(req, res);
 }
 
