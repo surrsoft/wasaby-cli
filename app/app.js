@@ -99,11 +99,8 @@ function serverSideRender(req, res) {
    }
    try {
       requirejs(cmp);
-   } catch (error) {
-      res.writeHead(404, {
-         'Content-Type': 'text/html'
-      });
-      res.end('');
+   } catch (e) {
+      res.status(404).end(JSON.stringify(e, null, 2));
 
       return;
    }
@@ -122,7 +119,7 @@ function serverSideRender(req, res) {
    Promise.resolve(rendering).then((html) => {
       res.writeHead(200, { 'Content-Type': 'text/html' });
       res.end(html);
-   }).catch((e) => { res.status(500).send(e); });
+   }).catch((e) => { res.status(500).end(JSON.stringify(e, null, 2)); });
    setDebugCookie(req, res);
 }
 
