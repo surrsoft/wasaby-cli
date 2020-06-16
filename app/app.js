@@ -37,10 +37,10 @@ async function run(resources, port, start) {
    global.require = require;
 
    console.log('start init');
-   require(['Env/Env', 'Application/Initializer', 'SbisEnv/PresentationService', 'UI/Base', 'Core/core-init'], function (Env, AppInit, PS, UIBase) {
+   require(['Env/Env', 'Application/Initializer', 'UI/Base', 'Core/core-init'], function (Env, AppInit, UIBase) {
       Env.constants.resourceRoot = resourceRoot;
       Env.constants.modules = require('json!/contents').modules;
-      AppInit.default({ resourceRoot }, PS, new UIBase.StateReceiver());
+      AppInit.default({ resourceRoot }, void 0, new UIBase.StateReceiver());
       console.log(`server started http://localhost:${availablePort}`);
    }, function (err) {
       console.error(err);
@@ -78,8 +78,7 @@ function serverSideRender(req, res) {
 
    const AppInit = requirejs('Application/Initializer');
    const UIBase = requirejs('UI/Base');
-   const PS = requirejs('SbisEnv/PresentationService');
-   AppInit.default(void 0, PS, new UIBase.StateReceiver());
+   AppInit.default(void 0, void 0, new UIBase.StateReceiver());
 
    // App.startRequest({}, new UIBase.StateReceiver());
 
