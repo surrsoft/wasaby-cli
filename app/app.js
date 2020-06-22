@@ -40,7 +40,7 @@ async function run(resources, port, start) {
    require(['Env/Env', 'Application/Initializer', 'SbisEnv/PresentationService', 'UI/Base', 'Core/core-init'], function (Env, AppInit, PS, UIBase) {
       Env.constants.resourceRoot = resourceRoot;
       Env.constants.modules = require('json!/contents').modules;
-      AppInit.default({ resourceRoot }, new PS.default({ resourceRoot }), new UIBase.StateReceiver());
+      AppInit.default({ resourceRoot }, PS.default, new UIBase.StateReceiver());
       console.log(`server started http://localhost:${availablePort}`);
    }, function (err) {
       console.error(err);
@@ -78,7 +78,10 @@ function serverSideRender(req, res) {
 
    const AppInit = requirejs('Application/Initializer');
    const UIBase = requirejs('UI/Base');
-   AppInit.startRequest({}, new UIBase.StateReceiver());
+   const PS = requirejs('SbisEnv/PresentationService');
+   AppInit.default(void 0, PS.default, new UIBase.StateReceiver());
+
+   // App.startRequest({}, new UIBase.StateReceiver());
 
    const tpl = requirejs('wml!Controls/Application/Route');
 
