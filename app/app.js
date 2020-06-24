@@ -76,10 +76,10 @@ function serverSideRender(req, res) {
    process.domain.req = req;
    process.domain.res = res;
 
-   const AppEnv = requirejs('Application/Env');
+   const AppInit = requirejs('Application/Initializer');
    const UIBase = requirejs('UI/Base');
    const PS = requirejs('SbisEnv/PresentationService');
-   new AppEnv.App(void 0, new PS.default(), new UIBase.StateReceiver());
+   AppInit.default(void 0, PS.default, new UIBase.StateReceiver());
 
    // App.startRequest({}, new UIBase.StateReceiver());
 
