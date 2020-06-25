@@ -143,5 +143,8 @@
   "(node:) UnhandledPromiseRejectionWarning: TypeError: this._headersid.inst.resetSticky is not a function",
   "(node:) UnhandledPromiseRejectionWarning: TypeError: Cannot read property 'inst' of undefined",
   "TEMPLATE ERROR: error text IN \"not detected\"",
-  "(node:) UnhandledPromiseRejectionWarning"
+  "(node:) UnhandledPromiseRejectionWarning",
+  "CONTROL ERROR: dataSet.setKeyProperty is not a function",
+  "CONTROL ERROR: viewModel.getRoot is not a function",
+  "CONTROL ERROR: this._display.unsubscribe is not a function"
 ]
