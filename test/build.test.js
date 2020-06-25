@@ -75,7 +75,7 @@ describe('Build', () => {
       beforeEach(() => {
          stubfs = sinon.stub(fs, 'outputFile').callsFake(() => undefined);
          sinon.stub(build, '_modulesMap').value({
-            getTestList: () => {
+            getRequiredModules: () => {
                return ['test1', 'test2'];
             },
             getChildModules: () => {
@@ -126,7 +126,7 @@ describe('Build', () => {
    describe('._initWithJinnee()', () => {
       let stubProjectSrv, stubProjectDeploy, stubSdk, stubExists, stubstatSync;
       beforeEach(() => {
-         stubProjectSrv = sinon.stub(Project.prototype, 'updatePaths').callsFake(() => []);
+         stubProjectSrv = sinon.stub(Project.prototype, 'prepare').callsFake(() => []);
          stubProjectDeploy = sinon.stub(Project.prototype, 'getDeploy').callsFake(() => {});
          stubSdk = sinon.stub(process.env, 'SBISPlatformSDK_101000').value('path/to/sdk');
          stubExists = sinon.stub(fs, 'existsSync').callsFake(() => true);
