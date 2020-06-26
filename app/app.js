@@ -79,9 +79,10 @@ function serverSideRender(req, res) {
    const AppInit = requirejs('Application/Initializer');
    const UIBase = requirejs('UI/Base');
    const PS = requirejs('SbisEnv/PresentationService');
-   AppInit.default(void 0, PS.default, new UIBase.StateReceiver());
+   // FIXME форсированный старт
+   AppInit.default(void 0, PS.default, new UIBase.StateReceiver(), true);
 
-   // App.startRequest({}, new UIBase.StateReceiver());
+   // TODO App.startRequest({}, new UIBase.StateReceiver());
 
    const tpl = requirejs('wml!Controls/Application/Route');
 
