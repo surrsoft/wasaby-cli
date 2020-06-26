@@ -78,7 +78,7 @@ function serverSideRender(req, res) {
 
    const AppInit = requirejs('Application/Initializer');
    const UIBase = requirejs('UI/Base');
-   AppInit.startRequest({}, new UIBase.StateReceiver());
+   AppInit.startRequest(void 0, new UIBase.StateReceiver());
 
    const tpl = requirejs('wml!Controls/Application/Route');
 
