@@ -34,6 +34,7 @@ class Build extends Base {
       this._workspace = cfg.workspace;
       this._projectPath = cfg.projectPath;
       this._pathToJinnee = cfg.pathToJinnee;
+      this._watcher = cfg.watcher;
       this._builderCfg = path.join(process.cwd(), 'builderConfig.json');
       if (cfg.builderBaseConfig) {
          this._builderBaseConfig = path.normalize(path.join(process.cwd(), cfg.builderBaseConfig));
@@ -73,10 +74,10 @@ class Build extends Base {
    async _initWithBuilder(builderOutput) {
       const gulpPath = require.resolve('gulp/bin/gulp.js');
       const builderPath = require.resolve('sbis3-builder/gulpfile.js');
-
+      const build = this._watcher ? 'buildOnChangeWatcher' : 'build'
       await this._makeBuilderConfig(builderOutput);
       await this._shell.execute(
-         `node ${gulpPath} --gulpfile=${builderPath} build --config=${this._builderCfg}`,
+         `node ${gulpPath} --gulpfile=${builderPath} ${build} --config=${this._builderCfg}`,
          process.cwd(), {
             force: true,
             name: 'builder'

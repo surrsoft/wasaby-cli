@@ -104,10 +104,11 @@ class Cli {
          workDir: this._workDir,
          workspace: this._workspace,
          release:  this._argvOptions.release,
+         watcher:  this._argvOptions.watcher,
          builderBaseConfig: this._argvOptions.builderConfig,
          only: this._only,
          pathToJinnee: this._argvOptions.pathToJinnee,
-         argvOptions: this._argvOptions
+         argvOptions: this._argvOptions,
       });
 
       await build.run();
