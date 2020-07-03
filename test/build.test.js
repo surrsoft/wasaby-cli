@@ -122,6 +122,17 @@ describe('Build', () => {
       });
    });
 
+   describe('_initWithBuilder', () => {
+      it('should start watcher', (done) => {
+         build._watcher = true;
+         build._initWithBuilder();
+         stubExecute.callsFake((cmd) => {
+            if (cmd.includes('buildOnChangeWatcher')) {
+               done();
+            }
+         })
+      })
+   });
 
    describe('._initWithJinnee()', () => {
       let stubProjectSrv, stubProjectDeploy, stubSdk, stubExists, stubstatSync;
