@@ -21,17 +21,17 @@
       "express": "^4.16.3",
       "fs-extra": "^7.0.1",
       "p-map": "^2.1.0",
-      "saby-typescript": "git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-20.5000",
-      "saby-units": "git+https://platform-git.sbis.ru/saby/Units.git#rc-20.5000",
-      "sbis3-builder": "git+https://platform-git.sbis.ru/saby/Builder.git#rc-20.5000",
+      "saby-typescript": "git+https://github.com/saby/typescript.git#rc-20.5000",
+      "saby-units": "git+https://github.com/surrsoft/builder.git#rc-20.5000",
+      "sbis3-builder": "git+https://github.com/saby/units.git#rc-20.5000",
       "serve-static": "^1.14.1",
       "webdriverio": "5.16.6",
       "xml2js": "^0.4.19"
    },
    "devDependencies": {
       "chai": "^4.2.0",
-      "mocha": "^6.1.4",
-      "sinon": "^7.5.0",
-      "nyc": "^12.0.2"
+      "mocha": "^8.0.1",
+      "nyc": "^15.1.0",
+      "sinon": "^7.5.0"
    }
 }
